@@ -22,17 +22,7 @@ public class Searchlet {
         out.deleteOnExit();
 
         Writer w = new FileWriter(out);
-        for (Filter f : filters) {
-            w.write(f.toString());
-        }
-        
-        if (dependencies != null) {
-            w.write("FILTER APPLICATION\n");
-            for (String d : dependencies) {
-                w.write("REQUIRES " + d + "\n");
-            }
-        }
-        
+        w.write(toString());
         w.close();
         return out;
     }
@@ -53,5 +43,22 @@ public class Searchlet {
         }
         
         return result;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (Filter f : filters) {
+            sb.append(f.toString());
+        }
+        
+        if (dependencies != null) {
+            sb.append("FILTER APPLICATION\n");
+            for (String d : dependencies) {
+                sb.append("REQUIRES " + d + "\n");
+            }
+        }
+
+        return sb.toString();
     }
 }
