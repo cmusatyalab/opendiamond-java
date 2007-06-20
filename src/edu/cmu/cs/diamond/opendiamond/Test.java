@@ -8,9 +8,6 @@ import java.io.IOException;
 import java.util.List;
 
 import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
 
 public class Test {
 
@@ -18,14 +15,27 @@ public class Test {
      * @param args
      */
     public static void main(String[] args) {
-        // get scopes
-        List<Scope> scopes = ScopeSource.getPredefinedScopeList();
-        for (Scope scope : scopes) {
-            System.out.println(scope);
+        String scopeName = null;
+        if (args.length >= 1) {
+            scopeName = args[0];
         }
+        
 
-        // use first scope
-        Scope scope = scopes.get(2);
+        // get scopes
+        Scope scope = null;
+        List<Scope> scopes = ScopeSource.getPredefinedScopeList();
+        for (Scope s : scopes) {
+            System.out.println(s);
+            if (s.getName().equals(scopeName)) {
+                scope = s;
+            }
+        }
+        
+        if (scope == null) {
+            System.out.println("Cannot find scope \"" + scopeName + "\" from command line");
+            System.exit(1);
+        }
+        
 
         // set up the rgb filter
         Filter rgb = null;
@@ -103,12 +113,12 @@ public class Test {
                 }
             }
 
-            JFrame j = new JFrame();
-            j.setLocationByPlatform(true);
-            j.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            j.getContentPane().add(new JButton(new ImageIcon(img)));
-            j.pack();
-            j.setVisible(true);
+//            JFrame j = new JFrame();
+//            j.setLocationByPlatform(true);
+//            j.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//            j.getContentPane().add(new JButton(new ImageIcon(img)));
+//            j.pack();
+//            j.setVisible(true);
         } catch (IOException e) {
             e.printStackTrace();
         }
