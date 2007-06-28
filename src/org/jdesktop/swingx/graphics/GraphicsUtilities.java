@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: GraphicsUtilities.java,v 1.11 2007/04/29 22:33:33 gfx Exp $
  *
  * Dual-licensed under LGPL (Sun and Romain Guy) and BSD (Romain Guy).
  *
@@ -52,27 +52,34 @@ import javax.imageio.ImageIO;
  * <p><code>GraphicsUtilities</code> contains a set of tools to perform
  * common graphics operations easily. These operations are divided into
  * several themes, listed below.</p>
+ *
  * <h2>Compatible Images</h2>
+ *
  * <p>Compatible images can, and should, be used to increase drawing
  * performance. This class provides a number of methods to load compatible
  * images directly from files or to convert existing images to compatibles
  * images.</p>
+ *
  * <h2>Creating Thumbnails</h2>
+ *
  * <p>This class provides a number of methods to easily scale down images.
  * Some of these methods offer a trade-off between speed and result quality and
  * shouuld be used all the time. They also offer the advantage of producing
  * compatible images, thus automatically resulting into better runtime
  * performance.</p>
+ *
  * <p>All these methodes are both faster than
  * {@link java.awt.Image#getScaledInstance(int, int, int)} and produce
  * better-looking results than the various <code>drawImage()</code> methods
  * in {@link java.awt.Graphics}, which can be used for image scaling.</p>
  * <h2>Image Manipulation</h2>
+ *
  * <p>This class provides two methods to get and set pixels in a buffered image.
  * These methods try to avoid unmanaging the image in order to keep good
  * performance.</p>
  *
  * @author Romain Guy <romain.guy@mac.com>
+ * @author rbair
  */
 public class GraphicsUtilities {
     private GraphicsUtilities() {
@@ -82,6 +89,10 @@ public class GraphicsUtilities {
     private static GraphicsConfiguration getGraphicsConfiguration() {
         return GraphicsEnvironment.getLocalGraphicsEnvironment().
                     getDefaultScreenDevice().getDefaultConfiguration();
+    }
+
+    private static boolean isHeadless() {
+        return GraphicsEnvironment.isHeadless();
     }
 
     /**
@@ -105,7 +116,11 @@ public class GraphicsUtilities {
 
     /**
      * <p>Returns a new compatible image with the same width, height and
-     * transparency as the image specified as a parameter.</p>
+     * transparency as the image specified as a parameter. That is, the
+     * returned BufferedImage will be compatible with the graphics hardware.
+     * If this method is called in a headless environment, then
+     * the returned BufferedImage will be compatible with the source
+     * image.</p>
      *
      * @see java.awt.Transparency
      * @see #createCompatibleImage(int, int)
@@ -124,7 +139,11 @@ public class GraphicsUtilities {
 
     /**
      * <p>Returns a new compatible image of the specified width and height, and
-     * the same transparency setting as the image specified as a parameter.</p>
+     * the same transparency setting as the image specified as a parameter.
+     * That is, the returned <code>BufferedImage</code> is compatible with
+     * the graphics hardware. If the method is called in a headless
+     * environment, then the returned BufferedImage will be compatible with
+     * the source image.</p>
      *
      * @see java.awt.Transparency
      * @see #createCompatibleImage(java.awt.image.BufferedImage)
@@ -141,13 +160,18 @@ public class GraphicsUtilities {
      */
     public static BufferedImage createCompatibleImage(BufferedImage image,
                                                       int width, int height) {
-        return getGraphicsConfiguration().createCompatibleImage(width, height,
+        return isHeadless() ?
+                new BufferedImage(width, height, image.getType()) :
+                getGraphicsConfiguration().createCompatibleImage(width, height,
                                                    image.getTransparency());
     }
 
     /**
      * <p>Returns a new opaque compatible image of the specified width and
-     * height.</p>
+     * height. That is, the returned <code>BufferedImage</code> is compatible with
+     * the graphics hardware. If the method is called in a headless
+     * environment, then the returned BufferedImage will be compatible with
+     * the source image.</p>
      *
      * @see #createCompatibleImage(java.awt.image.BufferedImage)
      * @see #createCompatibleImage(java.awt.image.BufferedImage, int, int)
@@ -160,12 +184,17 @@ public class GraphicsUtilities {
      *   specified width and height
      */
     public static BufferedImage createCompatibleImage(int width, int height) {
-        return getGraphicsConfiguration().createCompatibleImage(width, height);
+        return isHeadless() ?
+                new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB) :
+                getGraphicsConfiguration().createCompatibleImage(width, height);
     }
 
     /**
-     * <p>Returns a new translucent compatible image of the specified width
-     * and height.</p>
+     * <p>Returns a new translucent compatible image of the specified width and
+     * height. That is, the returned <code>BufferedImage</code> is compatible with
+     * the graphics hardware. If the method is called in a headless
+     * environment, then the returned BufferedImage will be compatible with
+     * the source image.</p>
      *
      * @see #createCompatibleImage(java.awt.image.BufferedImage)
      * @see #createCompatibleImage(java.awt.image.BufferedImage, int, int)
@@ -179,7 +208,9 @@ public class GraphicsUtilities {
      */
     public static BufferedImage createCompatibleTranslucentImage(int width,
                                                                  int height) {
-        return getGraphicsConfiguration().createCompatibleImage(width, height,
+        return isHeadless() ?
+                new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB) :
+                getGraphicsConfiguration().createCompatibleImage(width, height,
                                                    Transparency.TRANSLUCENT);
     }
 
@@ -209,6 +240,9 @@ public class GraphicsUtilities {
      * image. This method ensures an image is compatible with the hardware,
      * and therefore optimized for fast blitting operations.</p>
      *
+     * <p>If the method is called in a headless environment, then the returned
+     * <code>BufferedImage</code> will be the source image.</p>
+     *
      * @see #createCompatibleImage(java.awt.image.BufferedImage)
      * @see #createCompatibleImage(java.awt.image.BufferedImage, int, int)
      * @see #createCompatibleImage(int, int)
@@ -219,6 +253,10 @@ public class GraphicsUtilities {
      *   same width and height and transparency and content, of <code>image</code>
      */
     public static BufferedImage toCompatibleImage(BufferedImage image) {
+        if (isHeadless()) {
+            return image;
+        }
+
         if (image.getColorModel().equals(
                 getGraphicsConfiguration().getColorModel())) {
             return image;
@@ -369,6 +407,7 @@ public class GraphicsUtilities {
         int width = image.getWidth();
         int height = image.getHeight();
 
+        boolean isTranslucent = image.getTransparency() != Transparency.OPAQUE;
         boolean isWidthGreater = width > height;
 
         if (isWidthGreater) {
@@ -412,14 +451,14 @@ public class GraphicsUtilities {
                 width = (int) (height / ratioHW);
             }
 
-            if (temp == null) {
+            if (temp == null || isTranslucent) {
                 temp = createCompatibleImage(image, width, height);
                 g2 = temp.createGraphics();
                 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
                                 RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             }
             g2.drawImage(thumb, 0, 0, width, height,
-                         0, 0, previousWidth, previousHeight, null);
+                    0, 0, previousWidth, previousHeight, null);
 
             previousWidth = width;
             previousHeight = height;
@@ -432,7 +471,9 @@ public class GraphicsUtilities {
         if (width != thumb.getWidth() || height != thumb.getHeight()) {
             temp = createCompatibleImage(image, width, height);
             g2 = temp.createGraphics();
-            g2.drawImage(thumb, 0, 0, null);
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2.drawImage(thumb, 0, 0, width, height, null);
             g2.dispose();
             thumb = temp;
         }
@@ -464,6 +505,8 @@ public class GraphicsUtilities {
                                                 int newWidth, int newHeight) {
         int width = image.getWidth();
         int height = image.getHeight();
+
+        boolean isTranslucent = image.getTransparency() != Transparency.OPAQUE;
 
         if (newWidth >= width || newHeight >= height) {
             throw new IllegalArgumentException("newWidth and newHeight cannot" +
@@ -497,7 +540,7 @@ public class GraphicsUtilities {
                 }
             }
 
-            if (temp == null) {
+            if (temp == null || isTranslucent) {
                 temp = createCompatibleImage(image, width, height);
                 g2 = temp.createGraphics();
                 g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
@@ -517,7 +560,9 @@ public class GraphicsUtilities {
         if (width != thumb.getWidth() || height != thumb.getHeight()) {
             temp = createCompatibleImage(image, width, height);
             g2 = temp.createGraphics();
-            g2.drawImage(thumb, 0, 0, null);
+            g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                                RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2.drawImage(thumb, 0, 0, width, height, null);
             g2.dispose();
             thumb = temp;
         }
