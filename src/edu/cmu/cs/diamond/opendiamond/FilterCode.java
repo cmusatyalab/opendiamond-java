@@ -25,7 +25,7 @@ public class FilterCode {
         code = out.toByteArray();
     }
 
-    public byte[] getBytes() {
+    byte[] getBytes() {
         return code;
     }
 }
