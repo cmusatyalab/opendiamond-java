@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -72,6 +73,8 @@ public class Test {
                 while ((r = search.getNextResult()) != null && count < 10) {
                     processResult(r);
 
+                    System.out.println(Arrays.toString(search.getSessionVariables()));
+                    
                     count++;
                 }
             } catch (InterruptedException e) {
