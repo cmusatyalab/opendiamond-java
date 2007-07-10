@@ -7,6 +7,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import edu.cmu.cs.diamond.opendiamond.glue.*;
@@ -138,23 +139,15 @@ public class Search {
 
         List<ServerStatistics> result = new ArrayList<ServerStatistics>();
 
-        devHandleArray devList = new devHandleArray(maxDevices);
-
-        // get device list
-        int numDevices[] = { maxDevices };
-        if (OpenDiamond.ls_get_dev_list(handle, devList, numDevices) != 0) {
-            // System.out.println(" *** bad ls_get_dev_list");
-            return noResult;
-        }
+        SWIGTYPE_p_void[] devices = getDevices();
 
         // for each device, get statistics
-        for (int i = 0; i < numDevices[0]; i++) {
+        for (SWIGTYPE_p_void dev : devices) {
             dev_stats_t dst = null;
             try {
-                // XXX intensely ugly code, please delete when C API is fixed
-                SWIGTYPE_p_void dev = devList.getitem(i);
-
                 int odResult;
+
+                // XXX intensely ugly code, please delete when C API is fixed
 
                 // get size
                 int tmp[] = { OpenDiamond.get_dev_stats_size(32) };
@@ -213,9 +206,8 @@ public class Search {
         return isRunning;
     }
 
-    public SessionVariables[] getSessionVariables() {
-        SessionVariables noResult[] = new SessionVariables[0];
-        List<SessionVariables> result = new ArrayList<SessionVariables>();
+    private SWIGTYPE_p_void[] getDevices() {
+        SWIGTYPE_p_void noResult[] = new SWIGTYPE_p_void[0];
 
         devHandleArray devList = new devHandleArray(maxDevices);
 
@@ -226,33 +218,51 @@ public class Search {
             return noResult;
         }
 
+        SWIGTYPE_p_void result[] = new SWIGTYPE_p_void[numDevices[0]];
+
+        for (int i = 0; i < result.length; i++) {
+            result[i] = devList.getitem(i);
+        }
+
+        return result;
+    }
+
+    public SessionVariables[] getSessionVariables() {
+        SessionVariables noResult[] = new SessionVariables[0];
+        List<SessionVariables> result = new ArrayList<SessionVariables>();
+
+        // get device list
+        SWIGTYPE_p_void devices[] = getDevices();
+
         SWIGTYPE_p_p_device_session_vars_t varsHandle = OpenDiamond
                 .create_session_vars_handle();
 
         try {
             // for each device, get variables
-            for (int i = 0; i < numDevices[0]; i++) {
-                SWIGTYPE_p_void dev = devList.getitem(i);
-                OpenDiamond.ls_get_dev_session_variables(handle, dev, varsHandle);
+            for (SWIGTYPE_p_void dev : devices) {
+                OpenDiamond.ls_get_dev_session_variables(handle, dev,
+                        varsHandle);
                 device_session_vars_t vars = OpenDiamond
                         .deref_session_vars_handle(varsHandle);
                 try {
                     SWIGTYPE_p_p_char names = vars.getNames();
                     doubleArray values = vars.getValues();
-                    
+
                     int len = vars.getLen();
                     String namesArray[] = new String[len];
                     double valuesArray[] = new double[len];
 
-                    for (int j = 0; j < len; j++) {
-                        namesArray[j] = OpenDiamond.get_string_element(names, j);
-                        valuesArray[j] = values.getitem(j);
+                    for (int i = 0; i < len; i++) {
+                        namesArray[i] = OpenDiamond
+                                .get_string_element(names, i);
+                        valuesArray[i] = values.getitem(i);
                     }
-                    
+
                     byte data[] = new byte[4];
                     OpenDiamond.get_ipv4addr_from_dev_handle(dev, data);
                     InetAddress a = InetAddress.getByAddress(data);
-                    SessionVariables sv = new SessionVariables(a, namesArray, valuesArray);
+                    SessionVariables sv = new SessionVariables(a, namesArray,
+                            valuesArray);
                     result.add(sv);
                 } catch (UnknownHostException e) {
                     e.printStackTrace();
@@ -263,8 +273,31 @@ public class Search {
         } finally {
             OpenDiamond.delete_session_vars_handle(varsHandle);
         }
-        
+
         return result.toArray(noResult);
+    }
+
+    public void setSessionVariables(Map<String, Double> map) {
+        device_session_vars_t vars = OpenDiamond
+                .create_session_vars(map.size());
+        try {
+            SWIGTYPE_p_p_char names = vars.getNames();
+            doubleArray values = vars.getValues();
+
+            int i = 0;
+            for (Map.Entry<String, Double> e : map.entrySet()) {
+                OpenDiamond.set_string_element(names, i, e.getKey());
+                values.setitem(i, e.getValue());
+                i++;
+            }
+
+            SWIGTYPE_p_void[] devices = getDevices();
+            for (SWIGTYPE_p_void dev : devices) {
+                OpenDiamond.ls_set_dev_session_variables(handle, dev, vars);
+            }
+        } finally {
+            OpenDiamond.delete_session_vars(vars);
+        }
     }
 
     public void addSearchEventListener(SearchEventListener listener) {

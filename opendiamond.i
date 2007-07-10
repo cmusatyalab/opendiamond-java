@@ -115,12 +115,35 @@ void delete_session_vars_handle(device_session_vars_t **vars) {
   free(vars);
 }
 
+device_session_vars_t *create_session_vars(int len) {
+  device_session_vars_t *vars = calloc(sizeof(device_session_vars_t), 1);
+  if (vars == NULL) {
+    return NULL;
+  }
+
+  vars->len = len;
+  vars->names = calloc(sizeof(char *), len);
+  vars->values = calloc(sizeof(double), len);
+
+  if (vars->names == NULL || vars->values == NULL) {
+    free(vars->names);
+    free(vars->values);
+    free(vars);
+    vars = NULL;
+  }
+
+  return vars;
+}
+
+
 void delete_session_vars(device_session_vars_t *vars) {
   int i;
   if (vars != NULL) {
     for (i = 0; i < vars->len; i++) {
       free(vars->names[i]);
     }
+    free(vars->names);
+    free(vars->values);
     free(vars);
   }
 }
@@ -128,6 +151,11 @@ void delete_session_vars(device_session_vars_t *vars) {
 char *get_string_element(char **array, int i) {
   return array[i];
 }
+
+void set_string_element(char **array, int i, char *string) {
+  array[i] = strdup(string);
+}
+
 
 %}
 
@@ -212,6 +240,9 @@ int ls_get_dev_stats(ls_search_handle_t handle,
 int ls_get_dev_session_variables(ls_search_handle_t handle,
 				 ls_dev_handle_t dev_handle,
 				 device_session_vars_t **INOUT);
+int ls_set_dev_session_variables(ls_search_handle_t handle,
+				 ls_dev_handle_t dev_handle,
+				 device_session_vars_t *vars);
 
 
 typedef	void *	lf_obj_handle_t;
@@ -242,11 +273,16 @@ void delete_dev_stats(dev_stats_t *ds);
 void get_ipv4addr_from_dev_handle(ls_dev_handle_t dev, signed char addr[]);
 
 %array_class(double, doubleArray);
+
 device_session_vars_t **create_session_vars_handle(void);
 device_session_vars_t *deref_session_vars_handle(device_session_vars_t **vars);
 void delete_session_vars_handle(device_session_vars_t **vars);
+
+device_session_vars_t *create_session_vars(int len);
 void delete_session_vars(device_session_vars_t *vars);
+
 char *get_string_element(char **array, int i);
+void set_string_element(char **array, int i, char *string);
 
 typedef struct {
   int len;
