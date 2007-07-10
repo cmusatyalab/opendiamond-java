@@ -1,0 +1,4 @@
+/bin
+/libOpenDiamond.so
+/opendiamond_wrap.c
+/src/edu/cmu/cs/diamond/opendiamond/glue
