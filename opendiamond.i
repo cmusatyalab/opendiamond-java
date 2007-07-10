@@ -102,7 +102,7 @@ void get_ipv4addr_from_dev_handle(ls_dev_handle_t dev, signed char addr[]) {
 }
 
 device_session_vars_t **create_session_vars_handle(void) {
-  return malloc(sizeof(device_session_vars_t *));
+  return calloc(sizeof(device_session_vars_t *), 1);
 }
 
 device_session_vars_t *deref_session_vars_handle(device_session_vars_t **vars) {
@@ -115,10 +115,12 @@ void delete_session_vars_handle(device_session_vars_t **vars) {
 
 void delete_session_vars(device_session_vars_t *vars) {
   int i;
-  for (i = 0; i < vars->len; i++) {
-    free(vars->names[i]);
+  if (vars != NULL) {
+    for (i = 0; i < vars->len; i++) {
+      free(vars->names[i]);
+    }
+    free(vars);
   }
-  free(vars);
 }
 
 char *get_string_element(char **array, int i) {
