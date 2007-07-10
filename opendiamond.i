@@ -1,3 +1,5 @@
+/* -*- c -*- */
+
 %module OpenDiamond
 %include "arrays_java.i"
 %include "typemaps.i"
