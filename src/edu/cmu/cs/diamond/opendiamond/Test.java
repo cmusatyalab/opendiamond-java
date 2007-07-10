@@ -6,7 +6,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -63,9 +65,22 @@ public class Test {
         search.setSearchlet(searchlet);
 
         Result r;
+        
+        try {
+            Thread.sleep(0);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        
         for (int ii = 0; ii < 1; ii++) {
             // begin search
             search.start();
+
+            Map<String, Double> map = new HashMap<String, Double>();
+            map.put("Hi", 42.0);
+            map.put("Oops", 23842938.0);
+            
+            search.setSessionVariables(map);
 
             // read some results
             int count = 0;
