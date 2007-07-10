@@ -213,6 +213,60 @@ public class Search {
         return isRunning;
     }
 
+    public SessionVariables[] getSessionVariables() {
+        SessionVariables noResult[] = new SessionVariables[0];
+        List<SessionVariables> result = new ArrayList<SessionVariables>();
+
+        devHandleArray devList = new devHandleArray(maxDevices);
+
+        // get device list
+        int numDevices[] = { maxDevices };
+        if (OpenDiamond.ls_get_dev_list(handle, devList, numDevices) != 0) {
+            // System.out.println(" *** bad ls_get_dev_list");
+            return noResult;
+        }
+
+        SWIGTYPE_p_p_device_session_vars_t varsHandle = OpenDiamond
+                .create_session_vars_handle();
+
+        try {
+            // for each device, get variables
+            for (int i = 0; i < numDevices[0]; i++) {
+                SWIGTYPE_p_void dev = devList.getitem(i);
+                OpenDiamond.ls_get_dev_session_variables(handle, dev, varsHandle);
+                device_session_vars_t vars = OpenDiamond
+                        .deref_session_vars_handle(varsHandle);
+                try {
+                    SWIGTYPE_p_p_char names = vars.getNames();
+                    doubleArray values = vars.getValues();
+                    
+                    int len = vars.getLen();
+                    String namesArray[] = new String[len];
+                    double valuesArray[] = new double[len];
+
+                    for (int j = 0; j < len; j++) {
+                        namesArray[j] = OpenDiamond.get_string_element(names, j);
+                        valuesArray[j] = values.getitem(j);
+                    }
+                    
+                    byte data[] = new byte[4];
+                    OpenDiamond.get_ipv4addr_from_dev_handle(dev, data);
+                    InetAddress a = InetAddress.getByAddress(data);
+                    SessionVariables sv = new SessionVariables(a, namesArray, valuesArray);
+                    result.add(sv);
+                } catch (UnknownHostException e) {
+                    e.printStackTrace();
+                } finally {
+                    OpenDiamond.delete_session_vars(vars);
+                }
+            }
+        } finally {
+            OpenDiamond.delete_session_vars_handle(varsHandle);
+        }
+        
+        return result.toArray(noResult);
+    }
+
     public void addSearchEventListener(SearchEventListener listener) {
         synchronized (searchEventListeners) {
             searchEventListeners.add(listener);
