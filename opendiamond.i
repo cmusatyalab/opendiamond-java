@@ -101,6 +101,30 @@ void get_ipv4addr_from_dev_handle(ls_dev_handle_t dev, signed char addr[]) {
   *((int *) addr) = a;
 }
 
+device_session_vars_t **create_session_vars_handle(void) {
+  return malloc(sizeof(device_session_vars_t *));
+}
+
+device_session_vars_t *deref_session_vars_handle(device_session_vars_t **vars) {
+  return *vars;
+}
+
+void delete_session_vars_handle(device_session_vars_t **vars) {
+  free(vars);
+}
+
+void delete_session_vars(device_session_vars_t *vars) {
+  int i;
+  for (i = 0; i < vars->len; i++) {
+    free(vars->names[i]);
+  }
+  free(vars);
+}
+
+char *get_string_element(char **array, int i) {
+  return array[i];
+}
+
 %}
 
 %pragma(java) jniclasscode=%{
@@ -114,7 +138,31 @@ void get_ipv4addr_from_dev_handle(ls_dev_handle_t dev, signed char addr[]) {
 %}
 
 %include "diamond_consts.h"
-%include "diamond_types.h"
+ //%include "diamond_types.h"
+
+typedef	void *	ls_obj_handle_t;
+typedef	void *	ls_search_handle_t;
+typedef	void *	ls_dev_handle_t;
+
+typedef enum {
+    DEV_ISA_UNKNOWN = 0,
+    DEV_ISA_IA32,
+    DEV_ISA_IA64,
+    DEV_ISA_XSCALE,
+} device_isa_t;
+
+
+typedef struct dev_stats {
+	int		ds_objs_total;	   	/* total objs in search  */
+	int		ds_objs_processed;	/* total objects by device */
+	int		ds_objs_dropped;	/* total objects dropped */
+	int		ds_objs_nproc;		/* objs not procced at disk */
+	int		ds_system_load;		/* average load on  device??? */
+	rtime_t	ds_avg_obj_time;	/* average time per objects */
+	int		ds_num_filters; 	/* number of filters */
+	filter_stats_t	ds_filter_stats[0];	/* list of filter */
+} dev_stats_t;
+
 
 #define LSEARCH_NO_BLOCK        0x01
 
@@ -157,6 +205,10 @@ int ls_get_dev_stats(ls_search_handle_t handle,
                      ls_dev_handle_t dev_handle,
                      dev_stats_t *dev_stats, int *INOUT);
 
+int ls_get_dev_session_variables(ls_search_handle_t handle,
+				 ls_dev_handle_t dev_handle,
+				 device_session_vars_t **INOUT);
+
 
 typedef	void *	lf_obj_handle_t;
 typedef unsigned int  size_t;
@@ -184,3 +236,16 @@ int get_dev_stats_size(int num_filters);
 dev_stats_t *create_dev_stats(int bytes);
 void delete_dev_stats(dev_stats_t *ds);
 void get_ipv4addr_from_dev_handle(ls_dev_handle_t dev, signed char addr[]);
+
+%array_class(double, doubleArray);
+device_session_vars_t **create_session_vars_handle(void);
+device_session_vars_t *deref_session_vars_handle(device_session_vars_t **vars);
+void delete_session_vars_handle(device_session_vars_t **vars);
+void delete_session_vars(device_session_vars_t *vars);
+char *get_string_element(char **array, int i);
+
+typedef struct {
+  int len;
+  char **names;
+  doubleArray *values;
+} device_session_vars_t;
