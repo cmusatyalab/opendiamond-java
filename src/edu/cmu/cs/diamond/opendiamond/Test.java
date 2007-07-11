@@ -78,6 +78,14 @@ public class Test {
                 e.printStackTrace();
             }
 
+            synchronized (Test.class) {
+                try {
+                    Test.class.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            
             search.stop();
         }
     }
