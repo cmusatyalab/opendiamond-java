@@ -255,42 +255,41 @@ public class Search {
         return result;
     }
 
-    public void redistributeSessionVariables(DoubleComposer composer) {
+    public Map<String, Double> mergeSessionVariables(
+            Map<String, Double> globalValues, DoubleComposer composer) {
         // collect all the session variables
         SessionVariables[] sv = getSessionVariables(true);
 
         // build new state
-        Map<String, Double> newState = composeVariables(composer, sv);
+        composeVariables(globalValues, composer, sv);
 
         // set it all back
-        setSessionVariables(newState);
+        setSessionVariables(globalValues);
+
+        return globalValues;
     }
 
-    private Map<String, Double> composeVariables(DoubleComposer composer,
-            SessionVariables[] sv) {
-        Map<String, Double> newState = new HashMap<String, Double>();
-        for (SessionVariables v : sv) {
-            Map<String, Double> oldMap = v.getVariables();
-            System.out.println(v);
-            for (Map.Entry<String, Double> e : oldMap.entrySet()) {
-                String key = e.getKey();
+    private void composeVariables(Map<String, Double> globalValues,
+            DoubleComposer composer, SessionVariables[] sv) {
 
-                if (!newState.containsKey(key)) {
-                    // add the value directly
-                    newState.put(key, e.getValue());
-                } else {
-                    // compose !
-                    double a = newState.get(key);
-                    double b = e.getValue();
-                    double composedValue = composer.compose(key, a, b);
-                    newState.put(key, composedValue);
-                }
+        System.out.println("INPUT: " + Arrays.toString(sv));
+
+        for (Map.Entry<String, Double> e : globalValues.entrySet()) {
+            String key = e.getKey();
+
+            for (SessionVariables v : sv) {
+                Map<String, Double> localValues = v.getVariables();
+
+                // compose !
+                double global = e.getValue();
+                double local = localValues.containsKey(key) ? localValues
+                        .get(key) : 0.0;
+                double composedValue = composer.compose(key, global, local);
+                globalValues.put(key, composedValue);
             }
-            System.out.println();
         }
 
-        System.out.println("NEW: " + newState);
-        return newState;
+        System.out.println("OUTPUT: " + globalValues);
     }
 
     private SessionVariables[] getSessionVariables(boolean expectGet) {
@@ -343,12 +342,7 @@ public class Search {
         return result.toArray(noResult);
     }
 
-    public Map<String, Double> getSessionVariables(DoubleComposer composer) {
-        return composeVariables(composer, getSessionVariables(false));
-    }
-
-    // TODO consider rename to setInitialSessionVariables ?
-    public void setSessionVariables(Map<String, Double> map) {
+    private void setSessionVariables(Map<String, Double> map) {
         device_session_vars_t vars = OpenDiamond
                 .create_session_vars(map.size());
         try {
