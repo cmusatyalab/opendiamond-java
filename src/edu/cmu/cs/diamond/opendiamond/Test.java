@@ -64,7 +64,6 @@ public class Test {
         search.setSearchlet(searchlet);
 
         Result r;
-        
 
         DoubleComposer sum = new DoubleComposer() {
             public double compose(String key, double a, double b) {
@@ -72,7 +71,7 @@ public class Test {
                 return a + b;
             }
         };
-        
+
         for (int ii = 0; ii < 1; ii++) {
             // begin search
             search.start();
@@ -80,8 +79,8 @@ public class Test {
             Map<String, Double> map = new HashMap<String, Double>();
             map.put("Hi", 42.0);
             map.put("Oops", 23842938.0);
-            
-            search.setSessionVariables(map);
+
+            search.mergeSessionVariables(map, sum);
 
             // read some results
             int count = 0;
@@ -89,8 +88,8 @@ public class Test {
                 while ((r = search.getNextResult()) != null && count < 10) {
                     processResult(r);
 
-                    System.out.println(search.getSessionVariables(sum));
-                    
+                    System.out.println(search.mergeSessionVariables(map, sum));
+
                     count++;
                 }
             } catch (InterruptedException e) {
