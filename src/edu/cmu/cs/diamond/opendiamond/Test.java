@@ -21,7 +21,6 @@ public class Test {
         if (args.length >= 1) {
             scopeName = args[0];
         }
-        
 
         // get scopes
         Scope scope = null;
@@ -32,12 +31,12 @@ public class Test {
                 scope = s;
             }
         }
-        
+
         if (scope == null) {
-            System.out.println("Cannot find scope \"" + scopeName + "\" from command line");
+            System.out.println("Cannot find scope \"" + scopeName
+                    + "\" from command line");
             System.exit(1);
         }
-        
 
         // set up the rgb filter
         Filter rgb = null;
@@ -103,7 +102,7 @@ public class Test {
                     e.printStackTrace();
                 }
             }
-            
+
             search.stop();
         }
     }
@@ -139,12 +138,12 @@ public class Test {
                 }
             }
 
-//            JFrame j = new JFrame();
-//            j.setLocationByPlatform(true);
-//            j.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//            j.getContentPane().add(new JButton(new ImageIcon(img)));
-//            j.pack();
-//            j.setVisible(true);
+            // JFrame j = new JFrame();
+            // j.setLocationByPlatform(true);
+            // j.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            // j.getContentPane().add(new JButton(new ImageIcon(img)));
+            // j.pack();
+            // j.setVisible(true);
         } catch (IOException e) {
             e.printStackTrace();
         }
