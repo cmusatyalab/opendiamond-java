@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,11 +65,13 @@ public class Test {
 
         Result r;
         
-        try {
-            Thread.sleep(0);
-        } catch (InterruptedException e1) {
-            e1.printStackTrace();
-        }
+
+        DoubleComposer sum = new DoubleComposer() {
+            public double compose(String key, double a, double b) {
+                // ignore key
+                return a + b;
+            }
+        };
         
         for (int ii = 0; ii < 1; ii++) {
             // begin search
@@ -88,7 +89,7 @@ public class Test {
                 while ((r = search.getNextResult()) != null && count < 10) {
                     processResult(r);
 
-                    System.out.println(Arrays.toString(search.getSessionVariables()));
+                    System.out.println(search.getSessionVariables(sum));
                     
                     count++;
                 }
