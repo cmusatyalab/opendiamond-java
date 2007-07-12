@@ -4,15 +4,43 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import edu.cmu.cs.diamond.opendiamond.glue.*;
 
 public class Search {
+    private static class SessionVariables {
+        final private InetAddress address;
+
+        final private Map<String, Double> map;
+
+        public SessionVariables(InetAddress address, String names[],
+                double values[]) {
+            this.address = address;
+
+            Map<String, Double> m = new HashMap<String, Double>();
+
+            for (int i = 0; i < names.length; i++) {
+                m.put(names[i], values[i]);
+            }
+
+            map = Collections.unmodifiableMap(m);
+        }
+
+        public InetAddress getAddress() {
+            return address;
+        }
+
+        public Map<String, Double> getVariables() {
+            return map;
+        }
+
+        @Override
+        public String toString() {
+            return address.getCanonicalHostName() + ": " + map.toString();
+        }
+    }
+
     static private Search singleton;
 
     final private SWIGTYPE_p_void handle;
@@ -227,7 +255,41 @@ public class Search {
         return result;
     }
 
-    public SessionVariables[] getSessionVariables() {
+    public void redistributeSessionVariables(DoubleComposer composer) {
+        // collect all the session variables
+        SessionVariables[] sv = getSessionVariables(true);
+
+        // build new state
+        Map<String, Double> newState = composeVariables(composer, sv);
+
+        // set it all back
+        setSessionVariables(newState);
+    }
+
+    private Map<String, Double> composeVariables(DoubleComposer composer,
+            SessionVariables[] sv) {
+        Map<String, Double> newState = new HashMap<String, Double>();
+        for (SessionVariables v : sv) {
+            Map<String, Double> oldMap = v.getVariables();
+            for (Map.Entry<String, Double> e : oldMap.entrySet()) {
+                String key = e.getKey();
+
+                if (!newState.containsKey(key)) {
+                    // add the value directly
+                    newState.put(key, e.getValue());
+                } else {
+                    // compose !
+                    double a = newState.get(key);
+                    double b = e.getValue();
+                    double composedValue = composer.compose(key, a, b);
+                    newState.put(key, composedValue);
+                }
+            }
+        }
+        return newState;
+    }
+
+    private SessionVariables[] getSessionVariables(boolean expectGet) {
         SessionVariables noResult[] = new SessionVariables[0];
         List<SessionVariables> result = new ArrayList<SessionVariables>();
 
@@ -277,6 +339,11 @@ public class Search {
         return result.toArray(noResult);
     }
 
+    public Map<String, Double> getSessionVariables(DoubleComposer composer) {
+        return composeVariables(composer, getSessionVariables(false));
+    }
+
+    // TODO consider rename to setInitialSessionVariables ?
     public void setSessionVariables(Map<String, Double> map) {
         device_session_vars_t vars = OpenDiamond
                 .create_session_vars(map.size());
