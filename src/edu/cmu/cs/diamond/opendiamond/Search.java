@@ -274,6 +274,16 @@ public class Search {
 
         System.out.println("INPUT: " + Arrays.toString(sv));
 
+        // first, gather all possible keys
+        for (SessionVariables v : sv) {
+            for (String key : v.getVariables().keySet()) {
+                if (!globalValues.containsKey(key)) {
+                    globalValues.put(key, 0.0);
+                }
+            }
+        }
+        
+        // now, compose them
         for (Map.Entry<String, Double> e : globalValues.entrySet()) {
             String key = e.getKey();
 
