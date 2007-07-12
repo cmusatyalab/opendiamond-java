@@ -258,7 +258,7 @@ public class Search {
     public Map<String, Double> mergeSessionVariables(
             Map<String, Double> globalValues, DoubleComposer composer) {
         // collect all the session variables
-        SessionVariables[] sv = getSessionVariables(true);
+        SessionVariables[] sv = getSessionVariables();
 
         // build new state
         composeVariables(globalValues, composer, sv);
@@ -292,7 +292,7 @@ public class Search {
         System.out.println("OUTPUT: " + globalValues);
     }
 
-    private SessionVariables[] getSessionVariables(boolean expectGet) {
+    private SessionVariables[] getSessionVariables() {
         SessionVariables noResult[] = new SessionVariables[0];
         List<SessionVariables> result = new ArrayList<SessionVariables>();
 
@@ -306,7 +306,7 @@ public class Search {
             // for each device, get variables
             for (SWIGTYPE_p_void dev : devices) {
                 OpenDiamond.ls_get_dev_session_variables(handle, dev,
-                        varsHandle, expectGet);
+                        varsHandle);
                 device_session_vars_t vars = OpenDiamond
                         .deref_session_vars_handle(varsHandle);
                 try {
