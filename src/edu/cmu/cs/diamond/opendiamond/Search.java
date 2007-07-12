@@ -271,6 +271,7 @@ public class Search {
         Map<String, Double> newState = new HashMap<String, Double>();
         for (SessionVariables v : sv) {
             Map<String, Double> oldMap = v.getVariables();
+            System.out.println(v);
             for (Map.Entry<String, Double> e : oldMap.entrySet()) {
                 String key = e.getKey();
 
@@ -285,7 +286,10 @@ public class Search {
                     newState.put(key, composedValue);
                 }
             }
+            System.out.println();
         }
+
+        System.out.println("NEW: " + newState);
         return newState;
     }
 
