@@ -239,7 +239,8 @@ int ls_get_dev_stats(ls_search_handle_t handle,
 
 int ls_get_dev_session_variables(ls_search_handle_t handle,
 				 ls_dev_handle_t dev_handle,
-				 device_session_vars_t **INOUT);
+				 device_session_vars_t **INOUT,
+				 bool expect_set);
 int ls_set_dev_session_variables(ls_search_handle_t handle,
 				 ls_dev_handle_t dev_handle,
 				 device_session_vars_t *vars);

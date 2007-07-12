@@ -241,7 +241,7 @@ public class Search {
             // for each device, get variables
             for (SWIGTYPE_p_void dev : devices) {
                 OpenDiamond.ls_get_dev_session_variables(handle, dev,
-                        varsHandle);
+                        varsHandle, expectGet);
                 device_session_vars_t vars = OpenDiamond
                         .deref_session_vars_handle(varsHandle);
                 try {
