@@ -34,18 +34,17 @@
 
 package org.jdesktop.swingx.graphics;
 
+import java.awt.Graphics;
+import java.awt.GraphicsConfiguration;
+import java.awt.GraphicsEnvironment;
+import java.awt.Transparency;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
-import java.awt.GraphicsConfiguration;
-import java.awt.Transparency;
-import java.awt.Graphics;
-import java.awt.GraphicsEnvironment;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.io.IOException;
 import java.net.URL;
+
 import javax.imageio.ImageIO;
 
 /**
