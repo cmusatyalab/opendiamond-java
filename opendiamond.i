@@ -162,7 +162,7 @@ void set_string_element(char **array, int i, char *string) {
 %pragma(java) jniclasscode=%{
   static {
     try {
-        System.loadLibrary("OpenDiamond");
+        System.loadLibrary("opendiamondjava");
     } catch (UnsatisfiedLinkError e) {
       System.err.println("Native code library failed to load. \n" + e);
     }

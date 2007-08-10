@@ -1,4 +1,4 @@
 /bin
-/libOpenDiamond.so
+/libopendiamondjava.so
 /opendiamond_wrap.c
 /src/edu/cmu/cs/diamond/opendiamond/glue
