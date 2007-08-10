@@ -7,6 +7,7 @@ all: libopendiamondjava.so src/edu/cmu/cs/diamond/opendiamond/glue/OpenDiamond.j
 	ant
 
 opendiamond_wrap.c src/edu/cmu/cs/diamond/opendiamond/glue/OpenDiamond.java: opendiamond.i
+	mkdir src/edu/cmu/cs/diamond/opendiamond/glue
 	swig -Wall -java $$(pkg-config opendiamond --cflags-only-I) -package edu.cmu.cs.diamond.opendiamond.glue -outdir src/edu/cmu/cs/diamond/opendiamond/glue $<
 
 
