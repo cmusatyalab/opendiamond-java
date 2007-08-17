@@ -12,7 +12,7 @@ opendiamond_wrap.c src/edu/cmu/cs/diamond/opendiamond/glue/OpenDiamond.java: ope
 
 
 libopendiamondjava.so: opendiamond_wrap.c
-	$(CC) -fno-strict-aliasing -m32 -shared $$(pkg-config opendiamond --cflags --libs) -g -O2 -Wall -o $@ $<
+	$(CC) -fPIC -fno-strict-aliasing -m32 -shared $$(pkg-config opendiamond --cflags --libs) -g -O2 -Wall -o $@ $<
 
 clean:
 	ant clean
