@@ -27,6 +27,7 @@
 #include "lib_dconfig.h"
 #include "lib_filter.h"
 #include "lib_searchlet.h"
+#include "lib_scope.h"
 
 #define MAX_DEV_GROUPS          64
 
@@ -268,6 +269,9 @@ int lf_first_attr(lf_obj_handle_t ohandle, char **name,
 		size_t *OUTPUT, unsigned char **data, void **cookie);
 int lf_next_attr(lf_obj_handle_t ohandle, char **name,
 		size_t *OUTPUT, unsigned char **data, void **cookie);
+
+int ls_define_scope(void);
+
 
 %array_class(unsigned char, byteArray);
 

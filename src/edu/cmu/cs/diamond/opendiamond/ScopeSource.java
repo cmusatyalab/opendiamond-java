@@ -23,6 +23,10 @@ import edu.cmu.cs.diamond.opendiamond.glue.SWIGTYPE_p_p_void;
 import edu.cmu.cs.diamond.opendiamond.glue.groupidArray;
 
 public class ScopeSource {
+    static public void commitScope() {
+        OpenDiamond.ls_define_scope();
+    }
+    
     static public List<Scope> getPredefinedScopeList() {
         List<Scope> result = new ArrayList<Scope>();
 
