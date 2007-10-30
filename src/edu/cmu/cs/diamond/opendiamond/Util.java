@@ -13,8 +13,12 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.awt.*;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.util.List;
 
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
@@ -181,5 +185,36 @@ public class Util {
 
     public static String extractString(byte[] value) {
         return new String(value, 0, value.length - 1);
+    }
+
+    public static void runSimpleSearch(SimpleSearchCallback s) {
+        // init OpenDiamond
+        ScopeSource.commitScope();
+        Search search = Search.getSharedInstance();
+        List<Scope> scopes = ScopeSource.getPredefinedScopeList();
+        if (scopes.size() < 1) {
+            throw new InvalidScopeException("No scope found");
+        }
+        Scope scope = ScopeSource.getPredefinedScopeList().get(0);
+        search.setScope(scope);
+        search.setSearchlet(s.getSearchlet());
+    
+        // begin search
+        search.start();
+    
+        // process results
+        try {
+            Result r;
+            while ((r = search.getNextResult()) != null) {
+                boolean keepGoing = s.processResult(r);
+                if (!keepGoing) {
+                    break;
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            search.stop();
+        }
     }
 }
