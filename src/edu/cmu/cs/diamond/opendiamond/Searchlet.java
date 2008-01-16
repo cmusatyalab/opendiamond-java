@@ -77,4 +77,8 @@ public class Searchlet {
 
         return sb.toString();
     }
+
+    List<Filter> getFilters() {
+        return filters;
+    }
 }

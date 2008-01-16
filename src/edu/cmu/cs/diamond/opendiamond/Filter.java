@@ -32,9 +32,11 @@ public class Filter {
 
     final private int threshold;
 
+    final private byte blob[];
+    
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,
-            String dependencies[], String arguments[], int merit) {
+            String dependencies[], String arguments[], int merit, byte blob[]) {
 
         // TODO check for valid characters as in filter_spec.l
         this.name = name.trim();
@@ -51,6 +53,16 @@ public class Filter {
 
         this.arguments = new String[arguments.length];
         System.arraycopy(arguments, 0, this.arguments, 0, arguments.length);
+        
+        this.blob = new byte[blob.length];
+        System.arraycopy(blob, 0, this.blob, 0, blob.length);
+    }
+
+    public Filter(String name, FilterCode code, String evalFunction,
+            String initFunction, String finiFunction, int threshold,
+            String dependencies[], String arguments[], int merit) {
+        this(name, code, evalFunction, initFunction, finiFunction, threshold,
+                dependencies, arguments, merit, new byte[0]);
     }
 
     @Override
@@ -72,6 +84,14 @@ public class Filter {
         }
 
         return sb.toString();
+    }
+    
+    byte[] getBlob() {
+        return blob;
+    }
+    
+    public String getName() {
+        return name;
     }
 
     public FilterCode getFilterCode() {
