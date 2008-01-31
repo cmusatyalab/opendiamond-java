@@ -198,10 +198,10 @@ public class Util {
         Scope scope = ScopeSource.getPredefinedScopeList().get(0);
         search.setScope(scope);
         search.setSearchlet(s.getSearchlet());
-    
+
         // begin search
         search.start();
-    
+
         // process results
         try {
             Result r;
