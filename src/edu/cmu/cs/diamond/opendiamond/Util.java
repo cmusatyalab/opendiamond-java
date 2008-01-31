@@ -18,6 +18,9 @@ import java.awt.Container;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 import javax.swing.Spring;
@@ -216,5 +219,18 @@ public class Util {
         } finally {
             search.stop();
         }
+    }
+
+    public static byte[] readFully(InputStream in) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+    
+        byte bb[] = new byte[4096];
+        
+        int amount;
+        while((amount = in.read(bb)) != -1) {
+            out.write(bb, 0, amount);
+        }
+    
+        return out.toByteArray();
     }
 }
