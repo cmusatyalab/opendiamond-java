@@ -55,7 +55,7 @@ public class Test {
         Filter rgb = null;
         try {
             FilterCode c = new FilterCode(new FileInputStream(
-                    "/opt/diamond/lib/fil_rgb.a"));
+                    "/opt/diamond/lib/fil_rgb.so"));
             rgb = new Filter("RGB", c, "f_eval_img2rgb", "f_init_img2rgb",
                     "f_fini_img2rgb", 1, new String[0], new String[0], 400);
             System.out.println(rgb);
