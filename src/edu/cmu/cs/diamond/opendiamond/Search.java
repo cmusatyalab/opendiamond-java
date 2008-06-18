@@ -290,7 +290,7 @@ public class Search {
     private void composeVariables(Map<String, Double> globalValues,
             DoubleComposer composer, SessionVariables[] sv) {
 
-        System.out.println("INPUT: " + Arrays.toString(sv));
+        // System.out.println("INPUT: " + Arrays.toString(sv));
 
         // first, gather all possible keys
         for (SessionVariables v : sv) {
@@ -300,7 +300,7 @@ public class Search {
                 }
             }
         }
-        
+
         // now, compose them
         for (Map.Entry<String, Double> e : globalValues.entrySet()) {
             String key = e.getKey();
@@ -317,7 +317,7 @@ public class Search {
             }
         }
 
-        System.out.println("OUTPUT: " + globalValues);
+        // System.out.println("OUTPUT: " + globalValues);
     }
 
     private SessionVariables[] getSessionVariables() {
