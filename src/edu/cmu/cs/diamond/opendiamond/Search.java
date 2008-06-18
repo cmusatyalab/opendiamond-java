@@ -104,26 +104,30 @@ public class Search {
         maxDevices = computeMaxDevices();
 
         // prepare searchlet
-        File filterspec;
-        try {
-            filterspec = searchlet.createFilterSpecFile();
-            File filters[] = searchlet.createFilterFiles();
-            OpenDiamond.ls_set_searchlet(handle, device_isa_t.DEV_ISA_IA32,
-                    filters[0].getAbsolutePath(), filterspec.getAbsolutePath());
-            for (int i = 1; i < filters.length; i++) {
-                OpenDiamond
-                        .ls_add_filter_file(handle, device_isa_t.DEV_ISA_IA32,
-                                filters[i].getAbsolutePath());
+        if (searchlet != null) {
+            File filterspec;
+            try {
+                filterspec = searchlet.createFilterSpecFile();
+                File filters[] = searchlet.createFilterFiles();
+                OpenDiamond.ls_set_searchlet(handle, device_isa_t.DEV_ISA_IA32,
+                        filters[0].getAbsolutePath(), filterspec
+                                .getAbsolutePath());
+                for (int i = 1; i < filters.length; i++) {
+                    OpenDiamond.ls_add_filter_file(handle,
+                            device_isa_t.DEV_ISA_IA32, filters[i]
+                                    .getAbsolutePath());
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-            return;
-        }
-        
-        for (Filter f : searchlet.getFilters()) {
-            byte blob[] = f.getBlob();
-            OpenDiamond.ls_set_blob(handle, f.getName(), blob.length, new String(blob));
+            for (Filter f : searchlet.getFilters()) {
+                byte blob[] = f.getBlob();
+                OpenDiamond.ls_set_blob(handle, f.getName(), blob.length,
+                        new String(blob));
+            }
         }
 
         // begin
