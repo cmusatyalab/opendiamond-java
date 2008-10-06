@@ -244,7 +244,7 @@ int ls_next_object(ls_search_handle_t handle,
 int ls_release_object(ls_search_handle_t handle,
                       ls_obj_handle_t obj_handle);
 int ls_set_blob(ls_search_handle_t handle,
-		char *filter_name, int blob_len, char *blob_data);
+		char *filter_name, int blob_len, char *BYTE);
 
 %array_class(ls_dev_handle_t, devHandleArray);
 int ls_get_dev_list(ls_search_handle_t handle, devHandleArray *handle_list,

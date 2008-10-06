@@ -125,8 +125,7 @@ public class Search {
 
             for (Filter f : searchlet.getFilters()) {
                 byte blob[] = f.getBlob();
-                OpenDiamond.ls_set_blob(handle, f.getName(), blob.length,
-                        new String(blob));
+                OpenDiamond.ls_set_blob(handle, f.getName(), blob.length, blob);
             }
         }
 
