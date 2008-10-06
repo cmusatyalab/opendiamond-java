@@ -18,9 +18,7 @@ import java.awt.Container;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.List;
 
 import javax.swing.Spring;
@@ -223,14 +221,69 @@ public class Util {
 
     public static byte[] readFully(InputStream in) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-    
+
         byte bb[] = new byte[4096];
-        
+
         int amount;
-        while((amount = in.read(bb)) != -1) {
+        while ((amount = in.read(bb)) != -1) {
             out.write(bb, 0, amount);
         }
-    
+
         return out.toByteArray();
+    }
+
+    public static void quickTar1(DataOutputStream out, InputStream in,
+            int length, String name) throws IOException {
+
+        // write name length (+1 for zero termination)
+        byte nameBytes[] = name.getBytes("UTF-8");
+        out.writeInt(nameBytes.length + 1);
+
+        // write size
+        out.writeInt(length);
+
+        // write name (zero-terminated)
+        out.write(nameBytes);
+        out.write(0);
+
+        // write data
+        for (int i = 0; i < length; i++) {
+            out.write(in.read());
+        }
+    }
+
+    public static byte[] quickTar(File files[]) throws IOException {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(bos);
+
+        for (File f : files) {
+            if (f.isFile()) {
+                String name = f.getName();
+                long length = f.length();
+                BufferedInputStream in = new BufferedInputStream(
+                        new FileInputStream(f));
+                try {
+                    quickTar1(out, in, (int) length, name);
+                } finally {
+                    in.close();
+                }
+            }
+        }
+
+        return bos.toByteArray();
+    }
+
+    public static byte[] quickTar(File directory) throws IOException {
+        if (!directory.isDirectory()) {
+            throw new IllegalArgumentException(directory + " must be directory");
+        }
+
+        return quickTar(directory.listFiles());
+    }
+
+    public static void quickTar1(DataOutputStream out, byte[] buf, String name)
+            throws IOException {
+        ByteArrayInputStream in = new ByteArrayInputStream(buf);
+        quickTar1(out, in, buf.length, name);
     }
 }
