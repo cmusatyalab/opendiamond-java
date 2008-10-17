@@ -15,21 +15,19 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.*;
 
 import edu.cmu.cs.diamond.opendiamond.glue.*;
 
 public class Search {
     private static class SessionVariables {
-        final private InetAddress address;
+        final private String hostname;
 
         final private Map<String, Double> map;
 
-        public SessionVariables(InetAddress address, String names[],
+        public SessionVariables(String hostname, String names[],
                 double values[]) {
-            this.address = address;
+            this.hostname = hostname;
 
             Map<String, Double> m = new HashMap<String, Double>();
 
@@ -40,8 +38,8 @@ public class Search {
             map = Collections.unmodifiableMap(m);
         }
 
-        public InetAddress getAddress() {
-            return address;
+        public String getHostname() {
+            return hostname;
         }
 
         public Map<String, Double> getVariables() {
@@ -50,7 +48,7 @@ public class Search {
 
         @Override
         public String toString() {
-            return address.getCanonicalHostName() + ": " + map.toString();
+            return hostname + ": " + map.toString();
         }
     }
 
@@ -221,16 +219,13 @@ public class Search {
                     return noResult;
                 }
 
-                byte data[] = new byte[4];
-                OpenDiamond.get_ipv4addr_from_dev_handle(dev, data);
-                InetAddress a = InetAddress.getByAddress(data);
+                String deviceName = OpenDiamond
+                        .get_device_name_from_dev_handle(dev);
 
-                ServerStatistics s = new ServerStatistics(a, dst
+                ServerStatistics s = new ServerStatistics(deviceName, dst
                         .getDs_objs_total(), dst.getDs_objs_processed(), dst
                         .getDs_objs_dropped());
                 result.add(s);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
             } finally {
                 OpenDiamond.delete_dev_stats(dst);
             }
@@ -354,14 +349,11 @@ public class Search {
                         valuesArray[i] = values.getitem(i);
                     }
 
-                    byte data[] = new byte[4];
-                    OpenDiamond.get_ipv4addr_from_dev_handle(dev, data);
-                    InetAddress a = InetAddress.getByAddress(data);
-                    SessionVariables sv = new SessionVariables(a, namesArray,
-                            valuesArray);
+                    String name = OpenDiamond
+                            .get_device_name_from_dev_handle(dev);
+                    SessionVariables sv = new SessionVariables(name,
+                            namesArray, valuesArray);
                     result.add(sv);
-                } catch (UnknownHostException e) {
-                    e.printStackTrace();
                 } finally {
                     OpenDiamond.delete_session_vars(vars);
                 }

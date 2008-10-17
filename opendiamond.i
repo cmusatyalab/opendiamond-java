@@ -33,7 +33,6 @@
 
 typedef struct device_handle {
         struct device_handle *          next;
-        uint32_t                        dev_id;
         char *                          dev_name;
         groupid_t                       dev_groups[MAX_DEV_GROUPS];
         int                             num_groups;
@@ -111,10 +110,9 @@ void delete_dev_stats(dev_stats_t *ds) {
   free(ds);
 }
 
-void get_ipv4addr_from_dev_handle(ls_dev_handle_t dev, signed char addr[]) {
+char *get_device_name_from_dev_handle(ls_dev_handle_t dev) {
   device_handle_t *dhandle = (device_handle_t *) dev;
-  int a = dhandle->dev_id;
-  *((int *) addr) = a;
+  return dhandle->dev_name;
 }
 
 device_session_vars_t **create_session_vars_handle(void) {
@@ -289,7 +287,7 @@ void delete_data_cookie(unsigned char **c);
 int get_dev_stats_size(int num_filters);
 dev_stats_t *create_dev_stats(int bytes);
 void delete_dev_stats(dev_stats_t *ds);
-void get_ipv4addr_from_dev_handle(ls_dev_handle_t dev, signed char addr[]);
+char *get_device_name_from_dev_handle(ls_dev_handle_t dev);
 
 %array_class(double, doubleArray);
 

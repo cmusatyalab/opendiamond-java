@@ -13,10 +13,8 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.net.InetAddress;
-
 public class ServerStatistics {
-    final private InetAddress address;
+    final private String hostname;
 
     final private int totalObjects;
 
@@ -24,16 +22,16 @@ public class ServerStatistics {
 
     final private int droppedObjects;
 
-    public ServerStatistics(InetAddress address, int totalObjects,
+    public ServerStatistics(String hostname, int totalObjects,
             int processedObjects, int droppedObjects) {
-        this.address = address;
+        this.hostname = hostname;
         this.totalObjects = totalObjects;
         this.processedObjects = processedObjects;
         this.droppedObjects = droppedObjects;
     }
 
-    public InetAddress getAddress() {
-        return address;
+    public String getHostname() {
+        return hostname;
     }
 
     public int getDroppedObjects() {
@@ -50,8 +48,7 @@ public class ServerStatistics {
 
     @Override
     public String toString() {
-        String name = address.getCanonicalHostName();
-        return name + ": " + totalObjects + " total, " + processedObjects
+        return hostname + ": " + totalObjects + " total, " + processedObjects
                 + " processed, " + droppedObjects + " dropped";
     }
 }
