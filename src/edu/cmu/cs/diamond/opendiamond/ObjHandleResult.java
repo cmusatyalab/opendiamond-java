@@ -25,8 +25,6 @@ public class ObjHandleResult extends Result {
         this.obj_handle = obj_handle;
     }
 
-    private byte[] savedData;
-
     /*
      * (non-Javadoc)
      * 
@@ -34,10 +32,7 @@ public class ObjHandleResult extends Result {
      */
     @Override
     public byte[] getData() {
-        if (savedData == null) {
-            savedData = getValue(null);
-        }
-        return savedData;
+        return getValue("");
     }
 
     /*
@@ -53,15 +48,9 @@ public class ObjHandleResult extends Result {
         SWIGTYPE_p_p_unsigned_char data = OpenDiamond.create_data_cookie();
         try {
             data = OpenDiamond.create_data_cookie();
-
-            if (key == null) {
-                OpenDiamond.lf_next_block(obj_handle, Integer.MAX_VALUE, lenp,
-                        data);
-            } else {
-                if (OpenDiamond.lf_ref_attr(obj_handle, key, lenp, data) != 0) {
-                    // no such key
-                    return null;
-                }
+            if (OpenDiamond.lf_ref_attr(obj_handle, key, lenp, data) != 0) {
+                // no such key
+                return null;
             }
 
             // copy

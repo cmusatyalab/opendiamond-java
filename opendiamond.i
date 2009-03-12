@@ -261,8 +261,6 @@ int ls_set_dev_session_variables(ls_search_handle_t handle,
 
 typedef	void *	lf_obj_handle_t;
 typedef unsigned int  size_t;
-int lf_next_block(lf_obj_handle_t obj_handle, int num_blocks,
-			size_t *OUTPUT, unsigned char **data);
 int lf_ref_attr(lf_obj_handle_t ohandle, const char *name,
 		size_t *OUTPUT, unsigned char **data);
 int lf_first_attr(lf_obj_handle_t ohandle, char **name,
