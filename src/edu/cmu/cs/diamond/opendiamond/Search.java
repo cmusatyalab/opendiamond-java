@@ -62,17 +62,9 @@ public class Search {
 
     volatile private boolean isRunning;
 
-    final private SWIGTYPE_p_p_void obj_handle = OpenDiamond
-            .create_void_cookie();
-
     private int maxDevices;
 
     final private Set<SearchEventListener> searchEventListeners = new HashSet<SearchEventListener>();
-
-    @Override
-    protected void finalize() throws Throwable {
-        OpenDiamond.delete_void_cookie(obj_handle);
-    }
 
     public static Search getSharedInstance() {
         if (singleton == null) {
@@ -158,27 +150,46 @@ public class Search {
     }
 
     public Result getNextResult() throws InterruptedException {
+        SWIGTYPE_p_p_void obj_handle = OpenDiamond.create_void_cookie();
+
         // notice: polling is v. bad, but we have to do it here
+        try {
+            while (isRunning) {
+                int r = OpenDiamond.ls_next_object(handle, obj_handle,
+                        OpenDiamondConstants.LSEARCH_NO_BLOCK);
+                SWIGTYPE_p_void object;
+                switch (r) {
+                case 0:
+                    object = OpenDiamond.deref_void_cookie(obj_handle);
+                    String objectID = makeObjectID(object);
+                    return new Result(object, objectID);
 
-        while (isRunning) {
-            int r = OpenDiamond.ls_next_object(handle, obj_handle,
-                    OpenDiamondConstants.LSEARCH_NO_BLOCK);
-            switch (r) {
-            case 0:
-                return new ObjHandleResult(OpenDiamond
-                        .deref_void_cookie(obj_handle));
+                case OpenDiamondConstants.EWOULDBLOCK:
+                    // System.out.println("sleeping on result");
+                    Thread.sleep(500);
+                    continue;
 
-            case OpenDiamondConstants.EWOULDBLOCK:
-                // System.out.println("sleeping on result");
-                Thread.sleep(500);
-                continue;
-
-            default:
-                setIsRunning(false);
-                return null;
+                default:
+                    setIsRunning(false);
+                    return null;
+                }
             }
+        } finally {
+            OpenDiamond.delete_void_cookie(obj_handle);
         }
         return null;
+    }
+
+    private String makeObjectID(SWIGTYPE_p_void object) {
+        SWIGTYPE_p_p_char objectid = OpenDiamond.create_char_cookie();
+
+        try {
+            OpenDiamond.ls_get_objectid(handle, object, objectid);
+            return OpenDiamond.get_string_element(objectid, 0);
+        } finally {
+            OpenDiamond.delete_deref_char_cookie(objectid);
+            OpenDiamond.delete_char_cookie(objectid);
+        }
     }
 
     public ServerStatistics[] getStatistics() {
@@ -397,6 +408,46 @@ public class Search {
     public void removeSearchEventListener(SearchEventListener listener) {
         synchronized (searchEventListeners) {
             searchEventListeners.remove(listener);
+        }
+    }
+
+    public Result reevaluateResult(Result r, Set<String> attributes) {
+        SWIGTYPE_p_p_void newObj = OpenDiamond.create_void_cookie();
+        SWIGTYPE_p_p_char attrs = createStringArrayFromSet(attributes);
+
+        try {
+            int err = OpenDiamond.ls_reexecute_filters(handle, r.getObjectID(),
+                    attrs, newObj);
+            if (err != 0) {
+                throw new ReexecutionFailedException();
+            }
+            SWIGTYPE_p_void obj = OpenDiamond.deref_void_cookie(newObj);
+            return new Result(obj, makeObjectID(obj));
+        } finally {
+            OpenDiamond.delete_string_array(attrs);
+            OpenDiamond.delete_void_cookie(newObj);
+        }
+    }
+
+    private SWIGTYPE_p_p_char createStringArrayFromSet(Set<String> set) {
+        SWIGTYPE_p_p_char result = OpenDiamond.create_string_array(set.size());
+
+        int i = 0;
+        for (String s : set) {
+            OpenDiamond.set_string_element(result, i, s);
+            i++;
+        }
+
+        return result;
+    }
+
+    public void setPushAttributes(Set<String> attributes) {
+        SWIGTYPE_p_p_char attrs = createStringArrayFromSet(attributes);
+
+        try {
+            OpenDiamond.ls_set_push_attributes(handle, attrs);
+        } finally {
+            OpenDiamond.delete_string_array(attrs);
         }
     }
 }

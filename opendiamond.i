@@ -2,9 +2,9 @@
 
 /*
  *  The OpenDiamond Platform for Interactive Search
- *  Version 3
+ *  Version 4
  *
- *  Copyright (c) 2007 Carnegie Mellon University
+ *  Copyright (c) 2007-2009 Carnegie Mellon University
  *  All rights reserved.
  *
  *  This software is distributed under the terms of the Eclipse Public
@@ -80,6 +80,12 @@ char *deref_char_cookie(char **c) {
 
 void delete_char_cookie(char **c) {
   free(c);
+}
+
+void delete_deref_char_cookie(char **c) {
+  if (c != NULL) {
+    free(*c);
+  }
 }
 
 unsigned char **create_data_cookie(void) {
@@ -158,6 +164,23 @@ void delete_session_vars(device_session_vars_t *vars) {
     free(vars->values);
     free(vars);
   }
+}
+
+char **create_string_array(int n) {
+  return calloc(n + 1, sizeof(char *));
+}
+
+void delete_string_array(char **array) {
+  if (array == NULL) {
+    return;
+  }
+
+  char **current = array;
+  while (*current != NULL) {
+    free(*current++);
+  }
+
+  free(array);
 }
 
 char *get_string_element(char **array, int i) {
@@ -270,6 +293,13 @@ int lf_next_attr(lf_obj_handle_t ohandle, char **name,
 
 int ls_define_scope(void);
 
+int ls_set_push_attributes(ls_search_handle_t handle,
+			   const char **attributes);
+int ls_get_objectid(ls_search_handle_t handle, ls_obj_handle_t obj_handle,
+		    const char **objectid);
+int ls_reexecute_filters(ls_search_handle_t handle,
+			 const char *objectid, const char **attributes,
+			 ls_obj_handle_t *obj_handle);
 
 %array_class(unsigned char, byteArray);
 
@@ -279,6 +309,7 @@ void *deref_void_cookie(void **c);
 char **create_char_cookie(void);
 char *deref_char_cookie(char **c);
 void delete_char_cookie(char **c);
+void delete_deref_char_cookie(char **c);
 unsigned char **create_data_cookie(void);
 byteArray *deref_data_cookie(unsigned char **c);
 void delete_data_cookie(unsigned char **c);
@@ -296,6 +327,8 @@ void delete_session_vars_handle(device_session_vars_t **vars);
 device_session_vars_t *create_session_vars(int len);
 void delete_session_vars(device_session_vars_t *vars);
 
+char **create_string_array(int n);
+void delete_string_array(char **array);
 char *get_string_element(char **array, int i);
 void set_string_element(char **array, int i, char *string);
 
