@@ -134,11 +134,9 @@ public class Test {
         System.out.println(w + "x" + h);
 
         JFrame j = new JFrame();
-        j.setLocationByPlatform(true);
         j.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JButton b = new JButton(new ImageIcon(img));
         b.addActionListener(new ActionListener() {
-            @Override
             public void actionPerformed(ActionEvent e) {
                 Result r2 = s.reevaluateResult(r, new HashSet<String>(Arrays
                         .asList(new String[] { "" })));
@@ -149,7 +147,6 @@ public class Test {
                             .read(new ByteArrayInputStream(data));
                     JLabel l = new JLabel(new ImageIcon(bigimg));
                     JFrame j = new JFrame();
-                    j.setLocationByPlatform(true);
                     j.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
                     j.add(l);
                     j.pack();
