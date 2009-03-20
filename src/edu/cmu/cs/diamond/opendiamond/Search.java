@@ -66,6 +66,8 @@ public class Search {
 
     final private Set<SearchEventListener> searchEventListeners = new HashSet<SearchEventListener>();
 
+    private Set<String> pushAttributes = Collections.emptySet();
+
     public static Search getSharedInstance() {
         if (singleton == null) {
             singleton = new Search();
@@ -90,6 +92,8 @@ public class Search {
         // set scope
         OpenDiamond.ls_set_searchlist(handle, scope.getGidsSize(), scope
                 .getGids());
+
+        setPushAttributesInternal();
 
         maxDevices = computeMaxDevices();
 
@@ -442,7 +446,11 @@ public class Search {
     }
 
     public void setPushAttributes(Set<String> attributes) {
-        SWIGTYPE_p_p_char attrs = createStringArrayFromSet(attributes);
+        this.pushAttributes = new HashSet<String>(attributes);
+    }
+
+    private void setPushAttributesInternal() {
+        SWIGTYPE_p_p_char attrs = createStringArrayFromSet(pushAttributes);
 
         try {
             OpenDiamond.ls_set_push_attributes(handle, attrs);
