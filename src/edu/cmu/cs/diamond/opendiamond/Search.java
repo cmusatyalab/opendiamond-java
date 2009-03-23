@@ -66,7 +66,7 @@ public class Search {
 
     final private Set<SearchEventListener> searchEventListeners = new HashSet<SearchEventListener>();
 
-    private Set<String> pushAttributes = Collections.emptySet();
+    private Set<String> pushAttributes;
 
     public static Search getSharedInstance() {
         if (singleton == null) {
@@ -450,12 +450,13 @@ public class Search {
     }
 
     private void setPushAttributesInternal() {
-        SWIGTYPE_p_p_char attrs = createStringArrayFromSet(pushAttributes);
-
-        try {
-            OpenDiamond.ls_set_push_attributes(handle, attrs);
-        } finally {
-            OpenDiamond.delete_string_array(attrs);
+        if (pushAttributes != null) {
+            SWIGTYPE_p_p_char attrs = createStringArrayFromSet(pushAttributes);
+            try {
+                OpenDiamond.ls_set_push_attributes(handle, attrs);
+            } finally {
+                OpenDiamond.delete_string_array(attrs);
+            }
         }
     }
 }
