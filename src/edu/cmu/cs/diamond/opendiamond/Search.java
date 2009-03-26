@@ -423,7 +423,7 @@ public class Search {
             int err = OpenDiamond.ls_reexecute_filters(handle, r.getObjectID(),
                     attrs, newObj);
             if (err != 0) {
-                throw new ReexecutionFailedException();
+                throw new ReexecutionFailedException("code: " + err);
             }
             SWIGTYPE_p_void obj = OpenDiamond.deref_void_cookie(newObj);
             return new Result(obj, makeObjectID(obj));
