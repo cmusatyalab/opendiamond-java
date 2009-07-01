@@ -37,9 +37,6 @@ public class Test {
      * @param args
      */
     public static void main(String[] args) {
-        // get scope
-        Scope scope = ScopeSource.getPredefinedScopeList().get(0);
-
         // set up the rgb filter
         Filter rgb = null;
         Filter thumb = null;
@@ -63,7 +60,8 @@ public class Test {
 
         // init diamond
         Search search = Search.getSharedInstance();
-        search.setScope(scope);
+        System.out.println("defining scope");
+        search.defineScope();
 
         // make a new searchlet
         Searchlet searchlet = new Searchlet();
@@ -85,6 +83,7 @@ public class Test {
 
         for (int ii = 0; ii < 1; ii++) {
             // begin search
+            System.out.println("starting search");
             search.start();
 
             Map<String, Double> map = new HashMap<String, Double>();
@@ -96,7 +95,7 @@ public class Test {
             // read some results
             int count = 0;
             try {
-                while ((r = search.getNextResult()) != null && count < 3) {
+                while ((r = search.getNextResult()) != null && count < 10) {
                     processResult(search, r);
 
                     System.out.println(search.mergeSessionVariables(map, sum));

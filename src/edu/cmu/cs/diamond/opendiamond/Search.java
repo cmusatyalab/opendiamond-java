@@ -58,11 +58,7 @@ public class Search {
 
     private Searchlet searchlet;
 
-    private Scope scope;
-
     volatile private boolean isRunning;
-
-    private int maxDevices;
 
     final private Set<SearchEventListener> searchEventListeners = new HashSet<SearchEventListener>();
 
@@ -80,22 +76,12 @@ public class Search {
         handle = OpenDiamond.ls_init_search();
     }
 
-    public void setScope(Scope scope) {
-        this.scope = scope;
-    }
-
     public void setSearchlet(Searchlet searchlet) {
         this.searchlet = searchlet;
     }
 
     public void start() {
-        // set scope
-        OpenDiamond.ls_set_searchlist(handle, scope.getGidsSize(), scope
-                .getGids());
-
         setPushAttributesInternal();
-
-        maxDevices = computeMaxDevices();
 
         // prepare searchlet
         if (searchlet != null) {
@@ -234,8 +220,7 @@ public class Search {
                     return noResult;
                 }
 
-                String deviceName = OpenDiamond
-                        .get_device_name_from_dev_handle(dev);
+                String deviceName = OpenDiamond.ls_get_dev_name(handle, dev);
 
                 ServerStatistics s = new ServerStatistics(deviceName, dst
                         .getDs_objs_total(), dst.getDs_objs_processed(), dst
@@ -249,32 +234,21 @@ public class Search {
         return result.toArray(noResult);
     }
 
-    private int computeMaxDevices() {
-        int numDev = 0;
-        groupidArray gids = scope.getGids();
-        for (int i = 0; i < scope.getGidsSize(); i++) {
-            int tmp[] = { 0 };
-
-            OpenDiamond.glkup_gid_hosts(gids.getitem(i), tmp, null);
-            numDev += tmp[0];
-        }
-        return numDev;
-    }
-
     public boolean isRunning() {
         return isRunning;
     }
 
     private SWIGTYPE_p_void[] getDevices() {
-        SWIGTYPE_p_void noResult[] = new SWIGTYPE_p_void[0];
+        int numDevices[] = { 0 };
+        devHandleArray devList;
+        while (true) {
+            devList = new devHandleArray(numDevices[0]);
 
-        devHandleArray devList = new devHandleArray(maxDevices);
-
-        // get device list
-        int numDevices[] = { maxDevices };
-        if (OpenDiamond.ls_get_dev_list(handle, devList, numDevices) != 0) {
-            // System.out.println(" *** bad ls_get_dev_list");
-            return noResult;
+            int err = OpenDiamond.ls_get_dev_list(handle, devList, numDevices);
+            if (err == 0) {
+                // success
+                break;
+            }
         }
 
         SWIGTYPE_p_void result[] = new SWIGTYPE_p_void[numDevices[0]];
@@ -364,8 +338,7 @@ public class Search {
                         valuesArray[i] = values.getitem(i);
                     }
 
-                    String name = OpenDiamond
-                            .get_device_name_from_dev_handle(dev);
+                    String name = OpenDiamond.ls_get_dev_name(handle, dev);
                     SessionVariables sv = new SessionVariables(name,
                             namesArray, valuesArray);
                     result.add(sv);
@@ -458,5 +431,9 @@ public class Search {
                 OpenDiamond.delete_string_array(attrs);
             }
         }
+    }
+
+    public void defineScope() {
+        OpenDiamond.ls_define_scope(handle);
     }
 }

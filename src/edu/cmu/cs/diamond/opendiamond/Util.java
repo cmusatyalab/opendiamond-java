@@ -19,7 +19,6 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.List;
 
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
@@ -190,14 +189,8 @@ public class Util {
 
     public static void runSimpleSearch(SimpleSearchCallback s) {
         // init OpenDiamond
-        ScopeSource.commitScope();
         Search search = Search.getSharedInstance();
-        List<Scope> scopes = ScopeSource.getPredefinedScopeList();
-        if (scopes.size() < 1) {
-            throw new InvalidScopeException("No scope found");
-        }
-        Scope scope = ScopeSource.getPredefinedScopeList().get(0);
-        search.setScope(scope);
+        search.defineScope();
         search.setSearchlet(s.getSearchlet());
 
         // begin search

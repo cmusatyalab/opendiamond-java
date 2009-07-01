@@ -21,38 +21,13 @@
 
 %javaconst(1);
 
+
 %{
 #include "diamond_consts.h"
 #include "diamond_types.h"
-#include "lib_dconfig.h"
 #include "lib_filter.h"
 #include "lib_searchlet.h"
 #include "lib_scope.h"
-
-#define MAX_DEV_GROUPS          64
-
-typedef struct device_handle {
-        struct device_handle *          next;
-        char *                          dev_name;
-        groupid_t                       dev_groups[MAX_DEV_GROUPS];
-        int                             num_groups;
-        unsigned int                    flags;
-        void *                          dev_handle;
-        int                             ver_no;
-        time_t                          start_time;
-        int                             remain_old;
-        int                             remain_mid;
-        int                             remain_new;
-        float                           done;
-        float                           delta;
-        float                           prate;
-        int                             obj_total;
-        float                           cur_credits;    /* credits for current iteration */
-        int                             credit_incr;    /* incremental credits to add */
-        int                             serviced;       /* times data removed */
-        struct                          search_context *        sc;
-} device_handle_t;
-
 
 void **create_void_cookie(void) {
   return (void**) malloc(sizeof(void *));
@@ -114,11 +89,6 @@ dev_stats_t *create_dev_stats(int bytes) {
 
 void delete_dev_stats(dev_stats_t *ds) {
   free(ds);
-}
-
-char *get_device_name_from_dev_handle(ls_dev_handle_t dev) {
-  device_handle_t *dhandle = (device_handle_t *) dev;
-  return dhandle->dev_name;
 }
 
 device_session_vars_t **create_session_vars_handle(void) {
@@ -204,32 +174,24 @@ void set_string_element(char **array, int i, char *string) {
   }
 %}
 
+
+%array_class(groupid_t, groupidArray);
+%array_class(uint32_t, uintArray);
+%array_class(ls_dev_handle_t, devHandleArray);
+%array_class(double, doubleArray);
+%array_class(unsigned char, byteArray);
+
+typedef unsigned int uint32_t;
+
+typedef struct {
+  int len;
+  char **names;
+  doubleArray *values;
+} device_session_vars_t;
+
+
 %include "diamond_consts.h"
- //%include "diamond_types.h"
-
-typedef	void *	ls_obj_handle_t;
-typedef	void *	ls_search_handle_t;
-typedef	void *	ls_dev_handle_t;
-
-typedef enum {
-    DEV_ISA_UNKNOWN = 0,
-    DEV_ISA_IA32,
-    DEV_ISA_IA64,
-    DEV_ISA_XSCALE,
-} device_isa_t;
-
-
-typedef struct dev_stats {
-	int		ds_objs_total;	   	/* total objs in search  */
-	int		ds_objs_processed;	/* total objects by device */
-	int		ds_objs_dropped;	/* total objects dropped */
-	int		ds_objs_nproc;		/* objs not procced at disk */
-	int		ds_system_load;		/* average load on  device??? */
-	uint64_t	ds_avg_obj_time;	/* average time per objects */
-	int		ds_num_filters; 	/* number of filters */
-	filter_stats_t	ds_filter_stats[0];	/* list of filter */
-} dev_stats_t;
-
+%include "diamond_types.h"
 
 #define LSEARCH_NO_BLOCK        0x01
 
@@ -238,21 +200,8 @@ typedef struct dev_stats {
 #define EWOULDBLOCK EAGAIN
 
 
-int nlkup_first_entry(char **name, void **cookie);
-int nlkup_next_entry(char **name, void **cookie);
-
-typedef unsigned int uint32_t;
-
-%array_class(groupid_t, groupidArray);
-%array_class(uint32_t, uintArray);
-
-int nlkup_lookup_collection(char *name, int *INOUT, groupidArray *gids);
-int glkup_gid_hosts(groupid_t gid, int *INOUT, uintArray *hostids);
-
 ls_search_handle_t ls_init_search(void);
 int ls_terminate_search(ls_search_handle_t handle); // stops search
-int ls_set_searchlist(ls_search_handle_t handle, int num_groups,
-                      groupidArray *glist);
 int ls_set_searchlet(ls_search_handle_t handle, device_isa_t isa_type,
                      char *filter_file_name, char *filter_spec_name);
 int ls_add_filter_file(ls_search_handle_t handle, device_isa_t isa_type,
@@ -267,7 +216,6 @@ int ls_release_object(ls_search_handle_t handle,
 int ls_set_blob(ls_search_handle_t handle,
 		char *filter_name, int blob_len, char *BYTE);
 
-%array_class(ls_dev_handle_t, devHandleArray);
 int ls_get_dev_list(ls_search_handle_t handle, devHandleArray *handle_list,
 		    int *INOUT);
 int ls_get_dev_stats(ls_search_handle_t handle,
@@ -291,7 +239,7 @@ int lf_first_attr(lf_obj_handle_t ohandle, char **name,
 int lf_next_attr(lf_obj_handle_t ohandle, char **name,
 		size_t *OUTPUT, unsigned char **data, void **cookie);
 
-int ls_define_scope(void);
+int ls_define_scope(ls_search_handle_t handle);
 
 int ls_set_push_attributes(ls_search_handle_t handle,
 			   const char **attributes);
@@ -300,8 +248,8 @@ int ls_get_objectid(ls_search_handle_t handle, ls_obj_handle_t obj_handle,
 int ls_reexecute_filters(ls_search_handle_t handle,
 			 const char *objectid, const char **attributes,
 			 ls_obj_handle_t *obj_handle);
-
-%array_class(unsigned char, byteArray);
+const char *ls_get_dev_name(ls_search_handle_t handle,
+			    ls_dev_handle_t dev_handle);
 
 void **create_void_cookie(void);
 void delete_void_cookie(void **c);
@@ -316,9 +264,6 @@ void delete_data_cookie(unsigned char **c);
 int get_dev_stats_size(int num_filters);
 dev_stats_t *create_dev_stats(int bytes);
 void delete_dev_stats(dev_stats_t *ds);
-char *get_device_name_from_dev_handle(ls_dev_handle_t dev);
-
-%array_class(double, doubleArray);
 
 device_session_vars_t **create_session_vars_handle(void);
 device_session_vars_t *deref_session_vars_handle(device_session_vars_t **vars);
@@ -331,9 +276,3 @@ char **create_string_array(int n);
 void delete_string_array(char **array);
 char *get_string_element(char **array, int i);
 void set_string_element(char **array, int i, char *string);
-
-typedef struct {
-  int len;
-  char **names;
-  doubleArray *values;
-} device_session_vars_t;
