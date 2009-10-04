@@ -49,14 +49,10 @@ public class MiniRPCConnection {
     }
 
     public MiniRPCMessage receive() throws IOException {
-        System.out.println("*** PACKET");
-
         ByteBuffer buf1 = ByteBuffer.allocate(MINIRPC_HEADER_LENGTH);
         if (channel.read(buf1) != MINIRPC_HEADER_LENGTH) {
             throw new IOException("Can't read header");
         }
-
-        System.out.println(buf1);
 
         buf1.flip();
 
@@ -64,12 +60,6 @@ public class MiniRPCConnection {
         int status = buf1.getInt();
         int cmd = buf1.getInt();
         int datalen = buf1.getInt();
-
-        System.out.println("sequence: " + sequence);
-        System.out.println("status: " + status);
-        System.out.println("cmd: " + cmd);
-        System.out.println("datalen: " + datalen);
-        System.out.println();
 
         ByteBuffer buf2 = ByteBuffer.allocate(datalen);
         if (channel.read(buf2) != datalen) {
