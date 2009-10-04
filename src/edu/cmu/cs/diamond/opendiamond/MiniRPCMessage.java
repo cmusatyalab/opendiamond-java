@@ -2,7 +2,7 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.nio.ByteBuffer;
 
-public final class MiniRPCMessage {
+final class MiniRPCMessage {
     public final static int MINIRPC_OK = 0;
     public final static int MINIRPC_PENDING = -1;
     public final static int MINIRPC_ENCODING_ERR = -2;

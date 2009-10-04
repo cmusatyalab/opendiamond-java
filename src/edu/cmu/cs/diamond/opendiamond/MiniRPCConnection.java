@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class MiniRPCConnection {
+final class MiniRPCConnection {
     private static final int MINIRPC_HEADER_LENGTH = 16;
 
     final private AtomicInteger nextSequence = new AtomicInteger();
