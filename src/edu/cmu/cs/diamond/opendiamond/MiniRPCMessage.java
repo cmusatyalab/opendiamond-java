@@ -47,4 +47,32 @@ public final class MiniRPCMessage {
     public ByteBuffer getData() {
         return data;
     }
+
+    @Override
+    public String toString() {
+        return "sequence: " + sequence + ", status: " + statusToString(status)
+                + ", cmd: " + cmd + ", data: " + data;
+    }
+
+    private static String statusToString(int s) {
+        switch (s) {
+        case MINIRPC_OK:
+            return "MINIRPC_OK";
+        case MINIRPC_PENDING:
+            return "MINIRPC_PENDING";
+        case MINIRPC_ENCODING_ERR:
+            return "MINIRPC_ENCODING_ERR";
+        case MINIRPC_PROCEDURE_UNAVAIL:
+            return "MINIRPC_PROCEDURE_UNAVAIL";
+        case MINIRPC_INVALID_ARGUMENT:
+            return "MINIRPC_INVALID_ARGUMENT";
+        case MINIRPC_INVALID_PROTOCOL:
+            return "MINIRPC_INVALID_PROTOCOL";
+        case MINIRPC_NETWORK_FAILURE:
+            return "MINIRPC_NETWORK_FAILURE";
+        default:
+            return Integer.toString(s);
+
+        }
+    }
 }
