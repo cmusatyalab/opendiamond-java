@@ -28,7 +28,7 @@ public class MiniRPCConnection {
         int datalen = data.remaining();
         ByteBuffer header = ByteBuffer.allocate(MINIRPC_HEADER_LENGTH);
         header.putInt((int) sequence).putInt(status).putInt(cmd)
-                .putInt(datalen);
+                .putInt(datalen).flip();
 
         if ((channel.write(header) != MINIRPC_HEADER_LENGTH)) {
             throw new IOException("Can't write miniRPC header");
