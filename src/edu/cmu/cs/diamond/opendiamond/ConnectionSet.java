@@ -73,10 +73,16 @@ class ConnectionSet {
 
     public void setConnectionsFromCookies(Map<String, Cookie> cookieMap)
             throws IOException {
+        Set<String> currentHosts = connections.keySet();
+        // System.out.println("existing: " + currentHosts);
+
         // first, identify dead connections and close them
         Set<String> passedInHosts = cookieMap.keySet();
-        Set<String> deadHosts = connections.keySet();
+        Set<String> deadHosts = new HashSet<String>(currentHosts);
+
         deadHosts.removeAll(passedInHosts);
+
+        // System.out.println("removing: " + deadHosts);
 
         for (String d : deadHosts) {
             final Connection c = connections.remove(d);
@@ -91,7 +97,8 @@ class ConnectionSet {
 
         // next, create new connections
         Set<String> newHosts = new HashSet<String>(passedInHosts);
-        newHosts.removeAll(connections.keySet());
+
+        // System.out.println("adding: " + newHosts);
 
         CompletionService<Object> connectionCreator = new ExecutorCompletionService<Object>(
                 executor);
