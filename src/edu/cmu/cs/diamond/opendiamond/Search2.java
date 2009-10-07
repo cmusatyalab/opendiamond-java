@@ -71,6 +71,10 @@ public class Search2 {
         this.searchlet = searchlet;
     }
 
+    public void close() {
+        cs.clear();
+    }
+
     public void start() {
         setPushAttributesInternal();
 
