@@ -54,4 +54,17 @@ public class XDRBuffer {
     public String getString(int maxLength) {
         return new String(getOpaque(maxLength));
     }
+
+    static public byte[] putString(String s) {
+        byte bytes[] = s.getBytes();
+        int len = bytes.length;
+        int roundup = roundup(len);
+
+        byte result[] = new byte[roundup + 4];
+        ByteBuffer buf = ByteBuffer.wrap(result);
+        buf.putInt(len);
+        buf.put(bytes);
+
+        return result;
+    }
 }
