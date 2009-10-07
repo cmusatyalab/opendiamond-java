@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
 class Connection {
 
@@ -79,38 +76,6 @@ class Connection {
             dataSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    public static void main(String[] args) {
-        try {
-            ConnectionAggregate ca = new ConnectionAggregate();
-
-            for (String s : args) {
-                ca.add(new Connection(s));
-            }
-
-            // send some messages
-            requestCharactistics(ca);
-            requestCharactistics(ca);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private static void requestCharactistics(ConnectionAggregate ca)
-            throws InterruptedException, ExecutionException {
-        CompletionService<MiniRPCReply> cs = ca.sendToAllControlChannels(
-                MiniRPCMessage.MINIRPC_PENDING, 14, new byte[0]);
-        for (int i = 0; i < ca.size(); i++) {
-            Future<MiniRPCReply> f = cs.take();
-            MiniRPCReply mrr = f.get();
-            System.out.println(mrr.getHostname() + ": "
-                    + new XDR_dev_char(mrr.getMessage().getData()));
         }
     }
 
