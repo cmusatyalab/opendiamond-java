@@ -387,9 +387,6 @@ public class Search2 {
 
         // do it
         cs.setConnectionsFromCookies(cookieMap);
-
-        // done
-        cs.clear();
     }
 
     private List<String> splitCookies(String megacookie) {
@@ -427,6 +424,9 @@ public class Search2 {
 
         try {
             s.defineScope();
+            s.defineScope();
+
+            s.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
