@@ -4,11 +4,17 @@ import java.nio.ByteBuffer;
 
 final class MiniRPCMessage {
     public final static int MINIRPC_OK = 0;
+
     public final static int MINIRPC_PENDING = -1;
+
     public final static int MINIRPC_ENCODING_ERR = -2;
+
     public final static int MINIRPC_PROCEDURE_UNAVAIL = -3;
+
     public final static int MINIRPC_INVALID_ARGUMENT = -4;
+
     public final static int MINIRPC_INVALID_PROTOCOL = -5;
+
     public final static int MINIRPC_NETWORK_FAILURE = -6;
 
     private final long sequence;
@@ -54,7 +60,7 @@ final class MiniRPCMessage {
                 + ", cmd: " + cmd + ", data: " + data;
     }
 
-    private static String statusToString(int s) {
+    static String statusToString(int s) {
         switch (s) {
         case MINIRPC_OK:
             return "MINIRPC_OK";
