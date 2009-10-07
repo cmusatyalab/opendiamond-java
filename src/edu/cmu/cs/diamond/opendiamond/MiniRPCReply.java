@@ -1,8 +1,11 @@
 package edu.cmu.cs.diamond.opendiamond;
 
+
 final class MiniRPCReply {
     final private MiniRPCMessage message;
+
     final private MiniRPCConnection connection;
+
     final private String hostname;
 
     public MiniRPCMessage getMessage() {
