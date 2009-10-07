@@ -17,7 +17,7 @@ class Connection {
 
     final private String hostname;
 
-    public String getHostname() {
+    String getHostname() {
         return hostname;
     }
 
@@ -52,7 +52,9 @@ class Connection {
         return sc;
     }
 
-    public Connection(String host) throws IOException {
+    Connection(String host) throws IOException {
+        System.out.println("connecting to " + host);
+
         byte nonce[] = new byte[NONCE_SIZE];
 
         this.hostname = host;
@@ -66,7 +68,7 @@ class Connection {
                 new InetSocketAddress(host, DIAMOND_PORT), nonce));
     }
 
-    public void close() {
+    void close() {
         try {
             controlSocket.close();
         } catch (IOException e) {
