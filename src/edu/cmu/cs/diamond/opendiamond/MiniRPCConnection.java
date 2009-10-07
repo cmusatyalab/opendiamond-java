@@ -16,7 +16,7 @@ final class MiniRPCConnection {
         this.channel = channel;
     }
 
-    public void send(long sequence, int status, int cmd, ByteBuffer data)
+    private void send(long sequence, int status, int cmd, ByteBuffer data)
             throws IOException {
         if ((sequence < 0) || (sequence > 0xFFFFFFFFL)) {
             throw new IllegalArgumentException(
@@ -40,12 +40,39 @@ final class MiniRPCConnection {
         }
     }
 
-    public void send(int status, int cmd, ByteBuffer data) throws IOException {
-        send(nextSequence.getAndIncrement() & 0xFFFFFFFFL, status, cmd, data);
+    public void sendRequest(int cmd, ByteBuffer data) throws IOException {
+        if (cmd <= 0) {
+            throw new IllegalArgumentException(
+                    "cmd must be positive for requests");
+        }
+        send(nextSequence.getAndIncrement() & 0xFFFFFFFFL,
+                MiniRPCMessage.MINIRPC_PENDING, cmd, data);
     }
 
-    public void send(MiniRPCMessage msg) throws IOException {
-        send(msg.getSequence(), msg.getStatus(), msg.getCmd(), msg.getData());
+    public void sendMessage(int cmd, ByteBuffer data) throws IOException {
+        if (cmd >= 0) {
+            throw new IllegalArgumentException(
+                    "cmd must be negative for messages");
+        }
+
+        send(nextSequence.getAndIncrement() & 0xFFFFFFFFL,
+                MiniRPCMessage.MINIRPC_PENDING, cmd, data);
+    }
+
+    public void sendReply(MiniRPCMessage inReplyTo, ByteBuffer data)
+            throws IOException {
+        send(inReplyTo.getSequence(), MiniRPCMessage.MINIRPC_OK, inReplyTo
+                .getCmd(), data);
+    }
+
+    public void sendReplyWithStatus(MiniRPCMessage inReplyTo, int status,
+            ByteBuffer data) throws IOException {
+        if ((status == MiniRPCMessage.MINIRPC_OK)
+                || (status == MiniRPCMessage.MINIRPC_PENDING)) {
+            throw new IllegalArgumentException(
+                    "status cannot be MINIRPC_OK or MINIRPC_PENDING");
+        }
+        send(inReplyTo.getSequence(), status, inReplyTo.getCmd(), data);
     }
 
     public MiniRPCMessage receive() throws IOException {
@@ -61,14 +88,30 @@ final class MiniRPCConnection {
         int cmd = buf1.getInt();
         int datalen = buf1.getInt();
 
-        ByteBuffer buf2 = ByteBuffer.allocate(datalen);
-        if (channel.read(buf2) != datalen) {
-            throw new IOException("Can't read data");
-        }
-
+        ByteBuffer buf2 = readXDRData(datalen);
         buf2.flip();
 
         return new MiniRPCMessage(sequence, status, cmd, buf2);
+    }
+
+    private ByteBuffer readXDRData(int datalen) throws IOException {
+        // get slack required
+        int roundup = datalen;
+        if ((roundup & 0x3) != 0) {
+            // round up
+            roundup = (roundup + 4) & (~3);
+        }
+        int slack = roundup - datalen;
+
+        ByteBuffer buf2 = ByteBuffer.allocate(roundup);
+        if (channel.read(buf2) != roundup) {
+            throw new IOException("Can't read data");
+        }
+
+        // reposition
+        buf2.position(buf2.position() - slack);
+
+        return buf2;
     }
 
     public void close() throws IOException {

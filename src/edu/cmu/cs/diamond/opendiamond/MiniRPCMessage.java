@@ -17,9 +17,9 @@ final class MiniRPCMessage {
 
     private final int cmd;
 
-    private final ByteBuffer data;
+    private final XDRBuffer data;
 
-    public MiniRPCMessage(long sequence, int status, int cmd, ByteBuffer data) {
+    MiniRPCMessage(long sequence, int status, int cmd, ByteBuffer data) {
         if ((sequence < 0) || (sequence > 0xFFFFFFFFL)) {
             throw new IllegalArgumentException(
                     "sequence must be between 0 and " + 0xFFFFFFFFL
@@ -29,10 +29,10 @@ final class MiniRPCMessage {
         this.sequence = sequence;
         this.status = status;
         this.cmd = cmd;
-        this.data = data.asReadOnlyBuffer();
+        this.data = new XDRBuffer(data);
     }
 
-    public long getSequence() {
+    long getSequence() {
         return sequence;
     }
 
@@ -44,7 +44,7 @@ final class MiniRPCMessage {
         return cmd;
     }
 
-    public ByteBuffer getData() {
+    public XDRBuffer getData() {
         return data;
     }
 
