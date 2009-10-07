@@ -48,34 +48,6 @@ class ConnectionAggregate {
 
     }
 
-    private static class RPC implements Callable<MiniRPCReply> {
-
-        final private MiniRPCConnection connection;
-
-        final private int status;
-
-        final private int cmd;
-
-        final private byte[] data;
-
-        final private String hostname;
-
-        public RPC(MiniRPCConnection connection, String hostname, int status,
-                int cmd, byte[] data) {
-            this.connection = connection;
-            this.hostname = hostname;
-            this.status = status;
-            this.cmd = cmd;
-            this.data = data;
-        }
-
-        @Override
-        public MiniRPCReply call() throws Exception {
-            connection.sendRequest(cmd, ByteBuffer.wrap(data));
-            return new MiniRPCReply(connection.receive(), connection, hostname);
-        }
-    }
-
     private final Set<Connection> connections = new HashSet<Connection>();
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
@@ -83,14 +55,14 @@ class ConnectionAggregate {
     private final BlockingQueue<XDR_object> blastQueue = new ArrayBlockingQueue<XDR_object>(
             20);
 
-    public CompletionService<MiniRPCReply> sendToAllControlChannels(int status,
-            int cmd, byte data[]) {
+    public CompletionService<MiniRPCReply> sendToAllControlChannels(int cmd,
+            byte data[]) {
         CompletionService<MiniRPCReply> cs = new ExecutorCompletionService<MiniRPCReply>(
                 executor);
 
         for (Connection c : connections) {
             MiniRPCConnection mc = c.getControlConnection();
-            cs.submit(new RPC(mc, c.getHostname(), status, cmd, data));
+            cs.submit(new RPC(mc, c.getHostname(), cmd, data));
         }
 
         return cs;
@@ -115,8 +87,7 @@ class ConnectionAggregate {
         }
     }
 
-    public XDR_object getNextBlastChannelObject()
-            throws InterruptedException {
+    public XDR_object getNextBlastChannelObject() throws InterruptedException {
         return blastQueue.take();
     }
 }
