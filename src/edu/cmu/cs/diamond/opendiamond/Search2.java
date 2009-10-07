@@ -65,7 +65,7 @@ public class Search2 {
 
     private Set<String> pushAttributes;
 
-    private ConnectionAggregate cs;
+    final private ConnectionSet cs = new ConnectionSet();
 
     public void setSearchlet(Searchlet searchlet) {
         this.searchlet = searchlet;
@@ -358,10 +358,6 @@ public class Search2 {
     }
 
     public void defineScope() throws IOException {
-        if (cs != null) {
-            cs.close(); // XXX
-        }
-
         // get newscope file
         File home = new File(System.getProperty("user.home"));
         File diamondDir = new File(home, ".diamond");
@@ -371,8 +367,9 @@ public class Search2 {
         String megacookie = new String(Util.readFully(in));
         in.close();
 
-        cs = new ConnectionAggregate();
+        Map<String, Cookie> cookieMap = new HashMap<String, Cookie>();
 
+        // fill map from hostnames to cookies
         List<String> cookies = splitCookies(megacookie);
         for (String s : cookies) {
             Cookie c = new Cookie(s);
@@ -380,24 +377,15 @@ public class Search2 {
 
             List<String> servers = c.getServers();
             for (String server : servers) {
-                Connection conn = new Connection(server);
-
-                byte data[] = XDRBuffer.putString(c.getCookie());
-
-                System.out.println("connecting to " + server);
-
-                MiniRPCReply reply = new RPC(conn.getControlConnection(),
-                        server, 24, data).doRPC();
-
-                int status = reply.getMessage().getStatus();
-                if (status != MiniRPCMessage.MINIRPC_OK) {
-                    throw new IOException("bad status on RPC from " + server
-                            + ": " + status);
-                }
-
-                cs.add(conn);
+                cookieMap.put(server, c);
             }
         }
+
+        // do it
+        cs.setConnectionsFromCookies(cookieMap);
+
+        // done
+        cs.clear();
     }
 
     private List<String> splitCookies(String megacookie) {
