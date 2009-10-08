@@ -80,10 +80,8 @@ class ConnectionSet {
         });
     }
 
-    public CompletionService<MiniRPCReply> runOnAllServers(
-            ConnectionFunction<MiniRPCReply> cf) {
-        CompletionService<MiniRPCReply> cs = new ExecutorCompletionService<MiniRPCReply>(
-                executor);
+    public <T> CompletionService<T> runOnAllServers(ConnectionFunction<T> cf) {
+        CompletionService<T> cs = new ExecutorCompletionService<T>(executor);
 
         for (Entry<String, Connection> entry : connections.entrySet()) {
             Connection c = entry.getValue();
