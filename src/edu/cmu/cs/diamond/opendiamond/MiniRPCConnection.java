@@ -30,6 +30,9 @@ final class MiniRPCConnection {
         header.putInt((int) sequence).putInt(status).putInt(cmd)
                 .putInt(datalen).flip();
 
+        System.out.println("sending " + sequence + " " + status + " " + cmd
+                + " " + datalen);
+
         if ((channel.write(header) != MINIRPC_HEADER_LENGTH)) {
             throw new IOException("Can't write miniRPC header");
         }
