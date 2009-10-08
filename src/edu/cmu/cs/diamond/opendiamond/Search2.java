@@ -465,17 +465,4 @@ public class Search2 {
 
         return result;
     }
-
-    public static void main(String[] args) {
-        Search2 s = new Search2();
-
-        try {
-            s.defineScope();
-            s.defineScope();
-
-            s.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
