@@ -2,7 +2,7 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.util.Map;
 
-public class JResult extends Result {
+class JResult extends Result {
 
     final private String hostname;
 
@@ -12,7 +12,7 @@ public class JResult extends Result {
         this.hostname = hostname;
     }
 
-    public String getHostname() {
+    String getHostname() {
         return hostname;
     }
 }
