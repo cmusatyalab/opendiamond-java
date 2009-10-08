@@ -17,16 +17,20 @@ class RPC implements Callable<MiniRPCReply> {
 
     final public static int DIAMOND_COOKIE_EXPIRED = 504;
 
+    final public static int MAX_FILTER_NAME = 128;
+
+    final public static int MAX_FILTERS = 64;
+
     final private MiniRPCConnection connection;
 
     final private int cmd;
 
-    final private byte[] data;
+    final private ByteBuffer data;
 
     final private String hostname;
 
     public RPC(MiniRPCConnection connection, String hostname, int cmd,
-            byte[] data) {
+            ByteBuffer data) {
         this.connection = connection;
         this.hostname = hostname;
         this.cmd = cmd;
@@ -39,8 +43,13 @@ class RPC implements Callable<MiniRPCReply> {
     }
 
     public MiniRPCReply doRPC() throws IOException {
-        connection.sendRequest(cmd, ByteBuffer.wrap(data));
-        return new MiniRPCReply(connection.receive(), connection, hostname);
+        connection.sendRequest(cmd, data);
+        MiniRPCReply reply = new MiniRPCReply(connection.receive(), connection,
+                hostname);
+
+        System.out.println(reply);
+
+        return reply;
     }
 
     public static String statusToString(int status) {

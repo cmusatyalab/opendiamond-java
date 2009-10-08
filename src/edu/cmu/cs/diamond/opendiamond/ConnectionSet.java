@@ -140,10 +140,10 @@ class ConnectionSet {
                 public Object call() throws Exception {
                     // clear scope
                     checkStatus(new RPC(conn.getControlConnection(), hostname,
-                            4, new byte[0]).doRPC());
+                            4, ByteBuffer.allocate(0)).doRPC());
 
                     // define scope
-                    byte data[] = XDRBuffer.putString(c.getCookie());
+                    ByteBuffer data = XDREncoders.encodeString(c.getCookie());
                     checkStatus(new RPC(conn.getControlConnection(), hostname,
                             24, data).doRPC());
 

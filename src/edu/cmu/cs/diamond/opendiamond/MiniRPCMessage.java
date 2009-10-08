@@ -23,7 +23,7 @@ final class MiniRPCMessage {
 
     private final int cmd;
 
-    private final XDRBuffer data;
+    private final XDRGetter data;
 
     MiniRPCMessage(long sequence, int status, int cmd, ByteBuffer data) {
         if ((sequence < 0) || (sequence > 0xFFFFFFFFL)) {
@@ -35,7 +35,7 @@ final class MiniRPCMessage {
         this.sequence = sequence;
         this.status = status;
         this.cmd = cmd;
-        this.data = new XDRBuffer(data);
+        this.data = new XDRGetter(data);
     }
 
     long getSequence() {
@@ -50,7 +50,7 @@ final class MiniRPCMessage {
         return cmd;
     }
 
-    public XDRBuffer getData() {
+    public XDRGetter getData() {
         return data;
     }
 
