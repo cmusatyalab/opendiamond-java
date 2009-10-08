@@ -133,7 +133,7 @@ class ConnectionSet {
             });
         }
 
-        checkAllFutures(newHosts.size(), connectionCreator);
+        Util.checkResultsForIOException(newHosts.size(), connectionCreator);
 
         // finally, do the RPCs
         for (Map.Entry<String, Cookie> e : cookieMap.entrySet()) {
@@ -151,24 +151,7 @@ class ConnectionSet {
             });
         }
 
-        checkAllFutures(cookieMap.size(), connectionCreator);
-    }
-
-    private void checkAllFutures(int size,
-            CompletionService<Object> connectionCreator) throws IOException {
-        for (int i = 0; i < size; i++) {
-            try {
-                connectionCreator.take().get();
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-            } catch (ExecutionException e1) {
-                Throwable cause = e1.getCause();
-                if (cause instanceof IOException) {
-                    throw (IOException) cause;
-                }
-                e1.printStackTrace();
-            }
-        }
+        Util.checkResultsForIOException(cookieMap.size(), connectionCreator);
     }
 
     private void add(String hostname, Connection connection) {

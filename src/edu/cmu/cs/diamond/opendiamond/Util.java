@@ -19,6 +19,8 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
 
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
@@ -278,5 +280,22 @@ public class Util {
             throws IOException {
         ByteArrayInputStream in = new ByteArrayInputStream(buf);
         quickTar1(out, in, buf.length, name);
+    }
+
+    static void checkResultsForIOException(int size,
+            CompletionService<?> connectionCreator) throws IOException {
+        for (int i = 0; i < size; i++) {
+            try {
+                connectionCreator.take().get();
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            } catch (ExecutionException e1) {
+                Throwable cause = e1.getCause();
+                if (cause instanceof IOException) {
+                    throw (IOException) cause;
+                }
+                e1.printStackTrace();
+            }
+        }
     }
 }
