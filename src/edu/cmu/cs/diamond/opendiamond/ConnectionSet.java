@@ -70,7 +70,7 @@ class ConnectionSet {
 
     public CompletionService<MiniRPCReply> sendToAllControlChannels(
             final int cmd, final ByteBuffer data) {
-        return runOnAllServers(new ConnectionFunction() {
+        return runOnAllServers(new ConnectionFunction<MiniRPCReply>() {
             @Override
             public Callable<MiniRPCReply> createCallable(Connection c) {
                 MiniRPCConnection mc = c.getControlConnection();
@@ -80,7 +80,8 @@ class ConnectionSet {
         });
     }
 
-    public CompletionService<MiniRPCReply> runOnAllServers(ConnectionFunction cf) {
+    public CompletionService<MiniRPCReply> runOnAllServers(
+            ConnectionFunction<MiniRPCReply> cf) {
         CompletionService<MiniRPCReply> cs = new ExecutorCompletionService<MiniRPCReply>(
                 executor);
 

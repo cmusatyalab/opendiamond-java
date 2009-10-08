@@ -148,7 +148,7 @@ public class Search2 {
 
         System.out.println("blob sig: " + encodedBlobSig);
 
-        replies = cs.runOnAllServers(new ConnectionFunction() {
+        replies = cs.runOnAllServers(new ConnectionFunction<MiniRPCReply>() {
             @Override
             public Callable<MiniRPCReply> createCallable(Connection c) {
                 // first, try to set the blob, then send if necessary
@@ -184,7 +184,7 @@ public class Search2 {
         final ByteBuffer encodedSig = sig.encode();
         final ByteBuffer encodedSigAndData = sigAndData.encode();
 
-        replies = cs.runOnAllServers(new ConnectionFunction() {
+        replies = cs.runOnAllServers(new ConnectionFunction<MiniRPCReply>() {
             @Override
             public Callable<MiniRPCReply> createCallable(Connection c) {
                 // first, try to set the obj, then send if necessary
