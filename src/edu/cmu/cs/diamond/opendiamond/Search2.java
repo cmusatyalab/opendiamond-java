@@ -101,18 +101,21 @@ public class Search2 {
 
             for (Filter f : searchlet.getFilters()) {
                 byte blob[] = f.getBlob();
+                // TODO
                 // OpenDiamond.ls_set_blob(handle, f.getName(), blob.length,
                 // blob);
             }
         }
 
         // begin
+        // TODO
         // OpenDiamond.ls_start_search(handle);
 
         setIsRunning(true);
     }
 
     public void stop() {
+        // TODO
         // OpenDiamond.ls_terminate_search(handle);
         setIsRunning(false);
     }
@@ -141,6 +144,7 @@ public class Search2 {
     }
 
     private String makeObjectID(SWIGTYPE_p_void object) {
+        // TODO
         SWIGTYPE_p_p_char objectid = OpenDiamond.create_char_cookie();
 
         try {
@@ -170,6 +174,7 @@ public class Search2 {
         // while (true) {
         // devList = new devHandleArray(numDevices[0]);
         //
+        // TODO
         // int err = OpenDiamond.ls_get_dev_list(handle, devList,
         // numDevices);
         // if (err == 0) {
@@ -241,6 +246,7 @@ public class Search2 {
         // get device list
         SWIGTYPE_p_void devices[] = getDevices();
 
+        // TODO
         SWIGTYPE_p_p_device_session_vars_t varsHandle = OpenDiamond
                 .create_session_vars_handle();
 
@@ -281,6 +287,7 @@ public class Search2 {
     }
 
     private void setSessionVariables(Map<String, Double> map) {
+        // TODO
         device_session_vars_t vars = OpenDiamond
                 .create_session_vars(map.size());
         try {
@@ -316,6 +323,7 @@ public class Search2 {
     }
 
     public Result reevaluateResult(Result r, Set<String> attributes) {
+        // TODO
         SWIGTYPE_p_p_void newObj = OpenDiamond.create_void_cookie();
         SWIGTYPE_p_p_char attrs = createStringArrayFromSet(attributes);
 
