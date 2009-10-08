@@ -223,12 +223,16 @@ public class Search2 {
         }
     }
 
-    public void stop() {
+    public void stop() throws IOException {
         searchID.incrementAndGet();
 
-        // TODO
-        // OpenDiamond.ls_terminate_search(handle);
         setIsRunning(false);
+
+        ByteBuffer stop = new XDR_stop(0, 0, 0, 0, 0).encode();
+
+        CompletionService<MiniRPCReply> replies = cs.sendToAllControlChannels(
+                2, stop);
+        checkAllReplies(replies, cs.size());
     }
 
     private void setIsRunning(boolean running) {
