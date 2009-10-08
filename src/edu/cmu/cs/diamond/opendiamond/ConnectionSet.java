@@ -27,7 +27,11 @@ class ConnectionSet {
             // block, waiting for blast channel object, then stick into queue
             try {
                 while ((obj = getAndAcknowldgeBlastChannelObject()) != null) {
-                    q.add(new BlastChannelObject(obj, connection));
+                    try {
+                        q.put(new BlastChannelObject(obj, connection));
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -38,14 +42,20 @@ class ConnectionSet {
                 throws IOException {
             MiniRPCConnection blastConnection = connection.getDataConnection();
 
+            System.out.println(connection.getHostname()
+                    + ": waiting for blast object");
             MiniRPCMessage incoming = blastConnection.receive();
             XDR_object obj = new XDR_object(incoming.getData());
+            System.out.println(connection.getHostname()
+                    + ":   blast object done");
 
             // ack
+            System.out.println(connection.getHostname() + ": sending credit");
             ByteBuffer data = ByteBuffer.allocate(4);
             data.putInt(1);
             data.flip();
             blastConnection.sendMessage(1, data);
+            System.out.println(connection.getHostname() + ":   credit done");
 
             return obj;
         }
