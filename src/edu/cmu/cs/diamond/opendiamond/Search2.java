@@ -364,7 +364,7 @@ public class Search2 {
             throw new IOException("No cookie found for host " + host);
         }
 
-        Connection conn = new Connection(host);
+        Connection conn = Connection.createConnection(host);
         conn.sendCookie(c);
 
         // start

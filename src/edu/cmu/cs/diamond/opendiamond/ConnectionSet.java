@@ -127,7 +127,7 @@ class ConnectionSet {
             connectionCreator.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
-                    add(host, new Connection(host));
+                    add(host, Connection.createConnection(host));
 
                     return null;
                 }

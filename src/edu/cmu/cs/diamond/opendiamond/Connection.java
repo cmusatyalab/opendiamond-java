@@ -11,9 +11,9 @@ class Connection {
 
     private static final int NONCE_SIZE = 16;
 
-    final private MiniRPCConnection controlSocket;
+    final private MiniRPCConnection control;
 
-    final private MiniRPCConnection dataSocket;
+    final private MiniRPCConnection blast;
 
     final private String hostname;
 
@@ -21,7 +21,7 @@ class Connection {
         return hostname;
     }
 
-    private static SocketChannel createOneConnection(InetSocketAddress address,
+    private static SocketChannel createOneChannel(InetSocketAddress address,
             byte nonce[]) throws IOException {
         if (nonce.length != NONCE_SIZE) {
             throw new IllegalArgumentException("nonce[] must be NONCE_SIZE ("
@@ -53,51 +53,58 @@ class Connection {
         return sc;
     }
 
-    Connection(String host) throws IOException {
+    Connection(MiniRPCConnection control, MiniRPCConnection blast,
+            String hostname) {
+        this.control = control;
+        this.blast = blast;
+        this.hostname = hostname;
+    }
+
+    static Connection createConnection(String host) throws IOException {
         System.out.println("connecting to " + host);
 
         byte nonce[] = new byte[NONCE_SIZE];
 
-        this.hostname = host;
-
         // open control
-        controlSocket = new MiniRPCConnection(createOneConnection(
+        MiniRPCConnection control = new MiniRPCConnection(createOneChannel(
                 new InetSocketAddress(host, DIAMOND_PORT), nonce));
 
         // open data
-        dataSocket = new MiniRPCConnection(createOneConnection(
+        MiniRPCConnection blast = new MiniRPCConnection(createOneChannel(
                 new InetSocketAddress(host, DIAMOND_PORT), nonce));
+
+        return new Connection(control, blast, host);
     }
 
     public void sendCookie(Cookie c) throws IOException {
         // clear scope
-        ConnectionSet.checkStatus(new RPC(getControlConnection(), hostname, 4,
-                ByteBuffer.allocate(0)).doRPC());
+        new RPC(getControlConnection(), hostname, 4, ByteBuffer.allocate(0))
+                .doRPC().checkStatus();
 
         // define scope
         ByteBuffer data = XDREncoders.encodeString(c.getCookie());
-        ConnectionSet.checkStatus(new RPC(getControlConnection(), hostname, 24,
-                data).doRPC());
+        new RPC(getControlConnection(), hostname, 24, data).doRPC()
+                .checkStatus();
     }
 
     void close() {
         try {
-            controlSocket.close();
+            control.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
         try {
-            dataSocket.close();
+            blast.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     MiniRPCConnection getControlConnection() {
-        return controlSocket;
+        return control;
     }
 
     MiniRPCConnection getDataConnection() {
-        return dataSocket;
+        return blast;
     }
 }
