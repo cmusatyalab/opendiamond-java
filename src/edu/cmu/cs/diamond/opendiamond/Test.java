@@ -35,20 +35,20 @@ public class Test {
 
     /**
      * @param args
+     * @throws IOException
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         // set up the rgb filter
         Filter rgb = null;
         Filter thumb = null;
         try {
-            FilterCode c = new FilterCode(new FileInputStream(
-                    "/opt/snapfind/lib/fil_rgb.so"));
+            FilterCode c = new FilterCode(
+                    new FileInputStream("/tmp/fil_rgb.so"));
             rgb = new Filter("RGB", c, "f_eval_img2rgb", "f_init_img2rgb",
                     "f_fini_img2rgb", 1, new String[0], new String[0], 400);
             System.out.println(rgb);
 
-            c = new FilterCode(new FileInputStream(
-                    "/opt/snapfind/lib/fil_thumb.so"));
+            c = new FilterCode(new FileInputStream("/tmp/fil_thumb.so"));
             thumb = new Filter("thumb", c, "f_eval_thumbnailer",
                     "f_init_thumbnailer", "f_fini_thumbnailer", 1,
                     new String[] { "RGB" }, new String[] { "200", "150" }, 0);
@@ -59,7 +59,7 @@ public class Test {
         }
 
         // init diamond
-        Search search = Search.getSharedInstance();
+        Search2 search = new Search2();
         System.out.println("defining scope");
         search.defineScope();
 
@@ -69,8 +69,8 @@ public class Test {
         searchlet.addFilter(thumb);
         searchlet.setApplicationDependencies(new String[] { "RGB" });
         search.setSearchlet(searchlet);
-        search.setPushAttributes(new HashSet<String>(Arrays
-                .asList(new String[] { "thumbnail.jpeg" })));
+        // search.setPushAttributes(new HashSet<String>(Arrays
+        // .asList(new String[] { "thumbnail.jpeg" })));
 
         Result r;
 
@@ -120,7 +120,7 @@ public class Test {
         }
     }
 
-    private static void processResult(final Search s, final Result r)
+    private static void processResult(final Search2 s, final Result r)
             throws IOException {
         System.out.println(r);
 
