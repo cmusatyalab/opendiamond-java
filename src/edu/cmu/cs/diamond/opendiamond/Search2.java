@@ -77,6 +77,8 @@ public class Search2 {
 
     final private ConnectionSet cs = new ConnectionSet();
 
+    private HashMap<String, Cookie> cookieMap;
+
     public void setSearchlet(Searchlet searchlet) {
         this.searchlet = searchlet;
     }
@@ -367,7 +369,23 @@ public class Search2 {
         }
     }
 
-    public Result reevaluateResult(Result r, Set<String> attributes) {
+    public Result reevaluateResult(Result r, Set<String> attributes)
+            throws IOException {
+        JResult jr = (JResult) r;
+
+        String host = jr.getHostname();
+        String objID = jr.getObjectID();
+        Cookie c = cookieMap.get(host);
+
+        if (c == null) {
+            throw new IOException("No cookie found for host " + host);
+        }
+
+        Connection conn = new Connection(host);
+        conn.sendCookie(c);
+
+        // start
+
         // TODO
         // SWIGTYPE_p_p_void newObj = OpenDiamond.create_void_cookie();
         // SWIGTYPE_p_p_char attrs = createStringArrayFromSet(attributes);
@@ -411,7 +429,7 @@ public class Search2 {
         String megacookie = new String(Util.readFully(in));
         in.close();
 
-        Map<String, Cookie> cookieMap = new HashMap<String, Cookie>();
+        cookieMap = new HashMap<String, Cookie>();
 
         // fill map from hostnames to cookies
         List<String> cookies = splitCookies(megacookie);
