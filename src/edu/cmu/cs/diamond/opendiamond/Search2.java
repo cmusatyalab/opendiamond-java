@@ -262,29 +262,34 @@ public class Search2 {
         }
 
         Connection conn = Connection.createConnection(host);
+
+        // cookie
         conn.sendCookie(c);
 
-        // start
+        // prestart
+        byte[] spec = searchlet.toString().getBytes();
+        XDR_sig_and_data fspec = new XDR_sig_and_data(XDR_sig_val
+                .createSignature(spec), spec);
+        List<Filter> filters = searchlet.getFilters();
+        conn.sendPreStart(null, fspec, filters);
 
-        // TODO
-        // SWIGTYPE_p_p_void newObj = OpenDiamond.create_void_cookie();
-        // SWIGTYPE_p_p_char attrs = createStringArrayFromSet(attributes);
-        //
-        // try {
-        // // int err = OpenDiamond.ls_reexecute_filters(handle,
-        // // r.getObjectID(),
-        // // attrs, newObj);
-        // // if (err != 0) {
-        // // throw new ReexecutionFailedException("code: " + err);
-        // // }
-        // SWIGTYPE_p_void obj = OpenDiamond.deref_void_cookie(newObj);
-        // return new CResult(obj, makeObjectID(obj));
-        // } finally {
-        // OpenDiamond.delete_string_array(attrs);
-        // OpenDiamond.delete_void_cookie(newObj);
-        // }
+        // send eval
+        ByteBuffer reexec = new XDR_reexecute(objID, attributes).encode();
+        MiniRPCReply reply = new RPC(conn.getControlConnection(), conn
+                .getHostname(), 21, reexec).doRPC();
 
-        return null;
+        // read reply
+        reply.checkStatus();
+        Map<String, byte[]> resultAttributes = new XDR_attr_list(reply
+                .getMessage().getData()).createMap();
+
+        // create result
+        JResult newResult = new JResult(resultAttributes, host);
+
+        // close
+        conn.close();
+
+        return newResult;
     }
 
     public void setPushAttributes(Set<String> attributes) {
