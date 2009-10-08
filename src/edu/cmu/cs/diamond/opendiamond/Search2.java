@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import edu.cmu.cs.diamond.opendiamond.glue.OpenDiamond;
 import edu.cmu.cs.diamond.opendiamond.glue.SWIGTYPE_p_p_char;
 import edu.cmu.cs.diamond.opendiamond.glue.SWIGTYPE_p_void;
-import edu.cmu.cs.diamond.opendiamond.glue.devHandleArray;
 
 public class Search2 {
     private static class SessionVariables {
@@ -64,6 +63,8 @@ public class Search2 {
         }
     }
 
+    private static final int MAX_ATTRIBUTE_NAME = 256;
+
     private Searchlet searchlet;
 
     volatile private boolean isRunning;
@@ -97,28 +98,33 @@ public class Search2 {
     }
 
     public void start() throws IOException {
-        // prepare searchlet
-        if (searchlet != null) {
-            byte spec[] = searchlet.toString().getBytes();
+        byte spec[] = searchlet.toString().getBytes();
+        CompletionService<MiniRPCReply> replies;
 
-            // set the fspec
-            XDR_sig_and_data xsf = new XDR_sig_and_data(createSig(spec), spec);
-            // device_set_spec = 6
-            CompletionService<MiniRPCReply> replies = cs
-                    .sendToAllControlChannels(6, xsf.encode());
+        // set the push attributes
+        if (pushAttributes != null) {
+            ByteBuffer encodedAttributes = new XDR_attr_name_list(
+                    pushAttributes).encode();
+            replies = cs.sendToAllControlChannels(20, encodedAttributes);
             checkAllReplies(replies, cs.size());
+        }
 
-            // set the codes
-            for (Filter f : searchlet.getFilters()) {
-                replies = setCodes(f);
-                checkAllReplies(replies, cs.size());
-            }
+        // set the fspec
+        XDR_sig_and_data xsf = new XDR_sig_and_data(createSig(spec), spec);
+        // device_set_spec = 6
+        replies = cs.sendToAllControlChannels(6, xsf.encode());
+        checkAllReplies(replies, cs.size());
 
-            // set the blobs
-            for (Filter f : searchlet.getFilters()) {
-                replies = setBlobs(f);
-                checkAllReplies(replies, cs.size());
-            }
+        // set the codes
+        for (Filter f : searchlet.getFilters()) {
+            replies = setCodes(f);
+            checkAllReplies(replies, cs.size());
+        }
+
+        // set the blobs
+        for (Filter f : searchlet.getFilters()) {
+            replies = setBlobs(f);
+            checkAllReplies(replies, cs.size());
         }
 
         // start search
@@ -126,8 +132,7 @@ public class Search2 {
         encodedSearchId.putInt(searchID.get()).flip();
 
         // device_start_search = 1
-        CompletionService<MiniRPCReply> replies = cs.sendToAllControlChannels(
-                1, encodedSearchId);
+        replies = cs.sendToAllControlChannels(1, encodedSearchId);
         checkAllReplies(replies, cs.size());
 
         setIsRunning(true);
@@ -290,30 +295,6 @@ public class Search2 {
         return isRunning;
     }
 
-    private SWIGTYPE_p_void[] getDevices() {
-        int numDevices[] = { 0 };
-        devHandleArray devList;
-        // while (true) {
-        // devList = new devHandleArray(numDevices[0]);
-        //
-        // TODO
-        // int err = OpenDiamond.ls_get_dev_list(handle, devList,
-        // numDevices);
-        // if (err == 0) {
-        // // success
-        // break;
-        // }
-        // }
-
-        // SWIGTYPE_p_void result[] = new SWIGTYPE_p_void[numDevices[0]];
-        //
-        // for (int i = 0; i < result.length; i++) {
-        // result[i] = devList.getitem(i);
-        // }
-
-        return null;
-    }
-
     public Map<String, Double> mergeSessionVariables(
             Map<String, Double> globalValues, DoubleComposer composer) {
         // collect all the session variables
@@ -409,7 +390,15 @@ public class Search2 {
     }
 
     public void setPushAttributes(Set<String> attributes) {
-        this.pushAttributes = new HashSet<String>(attributes);
+        // validate
+        HashSet<String> copyOfAttributes = new HashSet<String>(attributes);
+        for (String string : copyOfAttributes) {
+            if (string.length() > MAX_ATTRIBUTE_NAME) {
+                throw new IllegalArgumentException("\"" + string
+                        + "\" length is greater than MAX_ATTRIBUTE_NAME");
+            }
+        }
+        this.pushAttributes = copyOfAttributes;
     }
 
     public void defineScope() throws IOException {

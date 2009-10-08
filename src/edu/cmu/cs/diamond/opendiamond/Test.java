@@ -69,8 +69,8 @@ public class Test {
         searchlet.addFilter(thumb);
         searchlet.setApplicationDependencies(new String[] { "RGB" });
         search.setSearchlet(searchlet);
-        // search.setPushAttributes(new HashSet<String>(Arrays
-        // .asList(new String[] { "thumbnail.jpeg" })));
+        search.setPushAttributes(new HashSet<String>(Arrays
+                .asList(new String[] { "thumbnail.jpeg" })));
 
         Result r;
 
