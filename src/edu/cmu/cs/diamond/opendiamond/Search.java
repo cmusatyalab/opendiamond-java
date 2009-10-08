@@ -152,7 +152,7 @@ public class Search {
                 case 0:
                     object = OpenDiamond.deref_void_cookie(obj_handle);
                     String objectID = makeObjectID(object);
-                    return new Result(object, objectID);
+                    return new CResult(object, objectID);
 
                 case OpenDiamondConstants.EWOULDBLOCK:
                     // System.out.println("sleeping on result");
@@ -393,13 +393,13 @@ public class Search {
         SWIGTYPE_p_p_char attrs = createStringArrayFromSet(attributes);
 
         try {
-            int err = OpenDiamond.ls_reexecute_filters(handle, r.getObjectID(),
-                    attrs, newObj);
+            int err = OpenDiamond.ls_reexecute_filters(handle, ((CResult) r)
+                    .getObjectID(), attrs, newObj);
             if (err != 0) {
                 throw new ReexecutionFailedException("code: " + err);
             }
             SWIGTYPE_p_void obj = OpenDiamond.deref_void_cookie(newObj);
-            return new Result(obj, makeObjectID(obj));
+            return new CResult(obj, makeObjectID(obj));
         } finally {
             OpenDiamond.delete_string_array(attrs);
             OpenDiamond.delete_void_cookie(newObj);

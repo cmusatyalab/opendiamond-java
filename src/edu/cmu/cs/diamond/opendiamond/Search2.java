@@ -327,7 +327,7 @@ public class Search2 {
             // throw new ReexecutionFailedException("code: " + err);
             // }
             SWIGTYPE_p_void obj = OpenDiamond.deref_void_cookie(newObj);
-            return new Result(obj, makeObjectID(obj));
+            return new CResult(obj, makeObjectID(obj));
         } finally {
             OpenDiamond.delete_string_array(attrs);
             OpenDiamond.delete_void_cookie(newObj);
