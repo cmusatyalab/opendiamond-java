@@ -85,7 +85,7 @@ public class Search2 {
         cs.clear();
     }
 
-    private XDR_sig_val createSig(byte data[]) {
+    private static XDR_sig_val createSig(byte data[]) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance("MD5");
