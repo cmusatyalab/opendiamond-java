@@ -26,10 +26,6 @@ import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.cmu.cs.diamond.opendiamond.glue.OpenDiamond;
-import edu.cmu.cs.diamond.opendiamond.glue.SWIGTYPE_p_p_char;
-import edu.cmu.cs.diamond.opendiamond.glue.SWIGTYPE_p_void;
-
 public class Search2 {
     private static class SessionVariables {
         final private String hostname;
@@ -270,19 +266,6 @@ public class Search2 {
         } while (bco.getObj().getSearchID() != (searchID.get() & 0xFFFFFFFFL));
 
         return new JResult(bco.getObj().getAttributes(), bco.getHostname());
-    }
-
-    private String makeObjectID(SWIGTYPE_p_void object) {
-        // TODO
-        SWIGTYPE_p_p_char objectid = OpenDiamond.create_char_cookie();
-
-        try {
-            // OpenDiamond.ls_get_objectid(handle, object, objectid);
-            return OpenDiamond.get_string_element(objectid, 0);
-        } finally {
-            OpenDiamond.delete_deref_char_cookie(objectid);
-            OpenDiamond.delete_char_cookie(objectid);
-        }
     }
 
     public ServerStatistics[] getStatistics() {
