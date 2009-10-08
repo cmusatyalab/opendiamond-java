@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -80,24 +81,25 @@ public class Search2 {
 
         // prepare searchlet
         if (searchlet != null) {
-            File filterspec;
-            try {
-                filterspec = searchlet.createFilterSpecFile();
-                File filters[] = searchlet.createFilterFiles();
-                // OpenDiamond.ls_set_searchlet(handle,
-                // device_isa_t.DEV_ISA_IA32,
-                // filters[0].getAbsolutePath(), filterspec
-                // .getAbsolutePath());
-                // for (int i = 1; i < filters.length; i++) {
-                // OpenDiamond.ls_add_filter_file(handle,
-                // device_isa_t.DEV_ISA_IA32, filters[i]
-                // .getAbsolutePath());
-                // }
+            byte spec[] = searchlet.toString().getBytes();
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.digest(spec);
 
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
-            }
+            // device_set_spec = 6
+            XDR_spec_file xsf = new XDR_spec_file();
+            cs.sendToAllControlChannels(6, data);
+            filterspec = searchlet.createFilterSpecFile();
+            File filters[] = searchlet.createFilterFiles();
+            // TODO
+            // OpenDiamond.ls_set_searchlet(handle,
+            // device_isa_t.DEV_ISA_IA32,
+            // filters[0].getAbsolutePath(), filterspec
+            // .getAbsolutePath());
+            // for (int i = 1; i < filters.length; i++) {
+            // OpenDiamond.ls_add_filter_file(handle,
+            // device_isa_t.DEV_ISA_IA32, filters[i]
+            // .getAbsolutePath());
+            // }
 
             for (Filter f : searchlet.getFilters()) {
                 byte blob[] = f.getBlob();
@@ -140,7 +142,12 @@ public class Search2 {
     }
 
     public Result getNextResult() throws InterruptedException {
-        return null;
+        BlastChannelObject bco;
+        do {
+            bco = cs.getNextBlastChannelObject();
+        } while (bco.getObj().getSearchID() != searchID.get());
+
+        return new JResult(bco.getObj().getAttributes(), bco.getConnection());
     }
 
     private String makeObjectID(SWIGTYPE_p_void object) {
