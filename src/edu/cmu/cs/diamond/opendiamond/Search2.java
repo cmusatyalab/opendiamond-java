@@ -18,8 +18,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -83,132 +81,30 @@ public class Search2 {
         cs.clear();
     }
 
-    private static XDR_sig_val createSig(byte data[]) {
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        XDR_sig_val sig = new XDR_sig_val(md.digest(data));
-
-        return sig;
-    }
-
     public void start() throws IOException {
         byte spec[] = searchlet.toString().getBytes();
-        CompletionService<MiniRPCReply> replies;
 
-        // set the push attributes
-        if (pushAttributes != null) {
-            ByteBuffer encodedAttributes = new XDR_attr_name_list(
-                    pushAttributes).encode();
-            replies = cs.sendToAllControlChannels(20, encodedAttributes);
-            checkAllReplies(replies, cs.size());
-        }
+        final XDR_sig_and_data fspec = new XDR_sig_and_data(XDR_sig_val
+                .createSignature(spec), spec);
+        final List<Filter> filters = searchlet.getFilters();
+        final int searchID = this.searchID.get();
 
-        // set the fspec
-        XDR_sig_and_data xsf = new XDR_sig_and_data(createSig(spec), spec);
-        // device_set_spec = 6
-        replies = cs.sendToAllControlChannels(6, xsf.encode());
-        checkAllReplies(replies, cs.size());
-
-        // set the codes and blobs
-        for (Filter f : searchlet.getFilters()) {
-            setCodes(f);
-            setBlobs(f);
-        }
-
-        // start search
-        ByteBuffer encodedSearchId = ByteBuffer.allocate(4);
-        encodedSearchId.putInt(searchID.get()).flip();
-
-        // device_start_search = 1
-        replies = cs.sendToAllControlChannels(1, encodedSearchId);
-        checkAllReplies(replies, cs.size());
+        CompletionService<?> replies = cs
+                .runOnAllServers(new ConnectionFunction<Object>() {
+                    @Override
+                    public Callable<Object> createCallable(final Connection c) {
+                        return new Callable<Object>() {
+                            @Override
+                            public Object call() throws Exception {
+                                c.sendStart(pushAttributes, fspec, filters,
+                                        searchID);
+                                return null;
+                            }
+                        };
+                    }
+                });
 
         setIsRunning(true);
-    }
-
-    private void setBlobs(Filter f) throws IOException {
-        byte blobData[] = f.getBlob();
-        String name = f.getName();
-
-        XDR_sig_val sig = createSig(blobData);
-
-        final ByteBuffer encodedBlobSig = new XDR_blob_sig(name, sig).encode();
-        final ByteBuffer encodedBlob = new XDR_blob(name, blobData).encode();
-
-        System.out.println("blob sig: " + encodedBlobSig);
-
-        CompletionService<?> replies = cs
-                .runOnAllServers(new ConnectionFunction<Object>() {
-                    @Override
-                    public Callable<Object> createCallable(Connection c) {
-                        // first, try to set the blob, then send if necessary
-                        final MiniRPCConnection control = c
-                                .getControlConnection();
-                        final String host = c.getHostname();
-
-                        return new Callable<Object>() {
-                            @Override
-                            public MiniRPCReply call() throws Exception {
-                                // device_set_blob_by_signature
-                                MiniRPCReply reply1 = new RPC(control, host,
-                                        22, encodedBlobSig.duplicate()).call();
-                                if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
-                                    reply1.checkStatus();
-                                }
-
-                                // device_set_blob = 11
-                                new RPC(control, host, 11, encodedBlob
-                                        .duplicate()).call().checkStatus();
-
-                                return null;
-                            }
-                        };
-                    }
-                });
-
-        Util.checkResultsForIOException(cs.size(), replies);
-    }
-
-    private void setCodes(Filter f) throws IOException {
-        byte code[] = f.getFilterCode().getBytes();
-        XDR_sig_val sig = createSig(code);
-        XDR_sig_and_data sigAndData = new XDR_sig_and_data(sig, code);
-
-        final ByteBuffer encodedSig = sig.encode();
-        final ByteBuffer encodedSigAndData = sigAndData.encode();
-
-        CompletionService<?> replies = cs
-                .runOnAllServers(new ConnectionFunction<Object>() {
-                    @Override
-                    public Callable<Object> createCallable(Connection c) {
-                        // first, try to set the obj, then send if necessary
-                        final MiniRPCConnection control = c
-                                .getControlConnection();
-                        final String host = c.getHostname();
-
-                        return new Callable<Object>() {
-                            @Override
-                            public MiniRPCReply call() throws Exception {
-                                // device_set_obj = 16
-                                MiniRPCReply reply1 = new RPC(control, host,
-                                        16, encodedSig.duplicate()).call();
-                                if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
-                                    reply1.checkStatus();
-                                }
-
-                                // device_send_obj = 17
-                                new RPC(control, host, 17, encodedSigAndData
-                                        .duplicate()).call().checkStatus();
-
-                                return null;
-                            }
-                        };
-                    }
-                });
         Util.checkResultsForIOException(cs.size(), replies);
     }
 

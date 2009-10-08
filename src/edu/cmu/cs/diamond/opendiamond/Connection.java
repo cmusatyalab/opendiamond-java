@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.List;
+import java.util.Set;
 
 class Connection {
 
@@ -84,6 +86,78 @@ class Connection {
         // define scope
         ByteBuffer data = XDREncoders.encodeString(c.getCookie());
         new RPC(getControlConnection(), hostname, 24, data).doRPC()
+                .checkStatus();
+    }
+
+    public void sendStart(Set<String> pushAttributes, XDR_sig_and_data fspec,
+            List<Filter> filters, int searchID) throws IOException {
+        // set the push attributes
+        if (pushAttributes != null) {
+            ByteBuffer encodedAttributes = new XDR_attr_name_list(
+                    pushAttributes).encode();
+            new RPC(control, hostname, 20, encodedAttributes).doRPC()
+                    .checkStatus();
+        }
+
+        // set the fspec
+        // device_set_spec = 6
+        new RPC(control, hostname, 6, fspec.encode()).doRPC().checkStatus();
+
+        // set the codes and blobs
+        for (Filter f : filters) {
+            setCode(f);
+            setBlob(f);
+        }
+
+        // start search
+        ByteBuffer encodedSearchId = ByteBuffer.allocate(4);
+        encodedSearchId.putInt(searchID).flip();
+
+        // device_start_search = 1
+        new RPC(control, hostname, 1, encodedSearchId).doRPC().checkStatus();
+
+    }
+
+    private void setBlob(Filter f) throws IOException {
+        byte blobData[] = f.getBlob();
+        String name = f.getName();
+
+        XDR_sig_val sig = XDR_sig_val.createSignature(blobData);
+
+        final ByteBuffer encodedBlobSig = new XDR_blob_sig(name, sig).encode();
+        final ByteBuffer encodedBlob = new XDR_blob(name, blobData).encode();
+
+        System.out.println("blob sig: " + encodedBlobSig);
+
+        // device_set_blob_by_signature = 22
+        MiniRPCReply reply1 = new RPC(control, hostname, 22, encodedBlobSig
+                .duplicate()).doRPC();
+        if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
+            reply1.checkStatus();
+        }
+
+        // device_set_blob = 11
+        new RPC(control, hostname, 11, encodedBlob.duplicate()).doRPC()
+                .checkStatus();
+    }
+
+    private void setCode(Filter f) throws IOException {
+        byte code[] = f.getFilterCode().getBytes();
+        XDR_sig_val sig = XDR_sig_val.createSignature(code);
+        XDR_sig_and_data sigAndData = new XDR_sig_and_data(sig, code);
+
+        final ByteBuffer encodedSig = sig.encode();
+        final ByteBuffer encodedSigAndData = sigAndData.encode();
+
+        // device_set_obj = 16
+        MiniRPCReply reply1 = new RPC(control, hostname, 16, encodedSig
+                .duplicate()).doRPC();
+        if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
+            reply1.checkStatus();
+        }
+
+        // device_send_obj = 17
+        new RPC(control, hostname, 17, encodedSigAndData.duplicate()).doRPC()
                 .checkStatus();
     }
 
