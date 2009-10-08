@@ -45,21 +45,19 @@ final class MiniRPCConnection {
 
     public void sendRequest(int cmd, ByteBuffer data) throws IOException {
         if (cmd <= 0) {
-            throw new IllegalArgumentException(
-                    "cmd must be positive for requests");
+            throw new IllegalArgumentException("cmd must be positive");
         }
         send(nextSequence.getAndIncrement() & 0xFFFFFFFFL,
                 MiniRPCMessage.MINIRPC_PENDING, cmd, data);
     }
 
     public void sendMessage(int cmd, ByteBuffer data) throws IOException {
-        if (cmd >= 0) {
-            throw new IllegalArgumentException(
-                    "cmd must be negative for messages");
+        if (cmd <= 0) {
+            throw new IllegalArgumentException("cmd must be positive");
         }
 
         send(nextSequence.getAndIncrement() & 0xFFFFFFFFL,
-                MiniRPCMessage.MINIRPC_PENDING, cmd, data);
+                MiniRPCMessage.MINIRPC_PENDING, -cmd, data);
     }
 
     public void sendReply(MiniRPCMessage inReplyTo, ByteBuffer data)
