@@ -185,7 +185,7 @@ class ConnectionSet {
         connections.put(hostname, connection);
 
         // create task for getting blast messages
-        executor.submit(new BlastGetter(connection, blastQueue));
+        executor.execute(new BlastGetter(connection, blastQueue));
     }
 
     public int size() {
