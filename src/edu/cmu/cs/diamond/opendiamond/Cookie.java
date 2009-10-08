@@ -1,25 +1,32 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 public class Cookie {
     final static String BEGIN_COOKIE = "-----BEGIN OPENDIAMOND SCOPECOOKIE-----";
+
     final static String END_COOKIE = "-----END OPENDIAMOND SCOPECOOKIE-----";
 
     private final List<String> servers;
+
     private final String rawCookie;
+
     private final int version;
+
     private final UUID serial;
+
     private final byte[] keyId;
-    private final Date expires;
+
+    private final XMLGregorianCalendar expires;
+
     private final String scopeData;
 
     public Cookie(String s) throws IOException {
@@ -46,7 +53,7 @@ public class Cookie {
         int version = 0;
         UUID serial = null;
         byte keyId[] = null;
-        Date expires = null;
+        XMLGregorianCalendar expires = null;
         List<String> servers = null;
 
         for (String line : header.split("\n")) {
@@ -65,10 +72,11 @@ public class Cookie {
             } else if (key.equals("KeyId")) {
                 keyId = hexDecode(val);
             } else if (key.equals("Expires")) {
-                DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                DatatypeFactory df;
                 try {
-                    expires = df.parse(val);
-                } catch (ParseException e) {
+                    df = DatatypeFactory.newInstance();
+                    expires = df.newXMLGregorianCalendar(val);
+                } catch (DatatypeConfigurationException e) {
                     e.printStackTrace();
                 }
             } else if (key.equals("Servers")) {
