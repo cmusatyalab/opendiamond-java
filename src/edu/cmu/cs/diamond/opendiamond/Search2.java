@@ -17,11 +17,19 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import edu.cmu.cs.diamond.opendiamond.glue.*;
+import edu.cmu.cs.diamond.opendiamond.glue.OpenDiamond;
+import edu.cmu.cs.diamond.opendiamond.glue.SWIGTYPE_p_p_char;
+import edu.cmu.cs.diamond.opendiamond.glue.SWIGTYPE_p_void;
+import edu.cmu.cs.diamond.opendiamond.glue.devHandleArray;
 
 public class Search2 {
     private static class SessionVariables {
@@ -76,47 +84,148 @@ public class Search2 {
         cs.clear();
     }
 
-    public void start() {
-        setPushAttributesInternal();
+    private XDR_sig_val createSig(byte data[]) {
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        XDR_sig_val sig = new XDR_sig_val(md.digest(data));
 
+        return sig;
+    }
+
+    public void start() throws IOException {
         // prepare searchlet
         if (searchlet != null) {
             byte spec[] = searchlet.toString().getBytes();
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            md.digest(spec);
 
+            // set the fspec
+            XDR_sig_and_data xsf = new XDR_sig_and_data(createSig(spec), spec);
             // device_set_spec = 6
-            XDR_spec_file xsf = new XDR_spec_file();
-            cs.sendToAllControlChannels(6, data);
-            filterspec = searchlet.createFilterSpecFile();
-            File filters[] = searchlet.createFilterFiles();
-            // TODO
-            // OpenDiamond.ls_set_searchlet(handle,
-            // device_isa_t.DEV_ISA_IA32,
-            // filters[0].getAbsolutePath(), filterspec
-            // .getAbsolutePath());
-            // for (int i = 1; i < filters.length; i++) {
-            // OpenDiamond.ls_add_filter_file(handle,
-            // device_isa_t.DEV_ISA_IA32, filters[i]
-            // .getAbsolutePath());
-            // }
+            CompletionService<MiniRPCReply> replies = cs
+                    .sendToAllControlChannels(6, xsf.encode());
+            checkAllReplies(replies, cs.size());
 
+            // set the codes
             for (Filter f : searchlet.getFilters()) {
-                byte blob[] = f.getBlob();
-                // TODO
-                // OpenDiamond.ls_set_blob(handle, f.getName(), blob.length,
-                // blob);
+                replies = setCodes(f);
+                checkAllReplies(replies, cs.size());
+            }
+
+            // set the blobs
+            for (Filter f : searchlet.getFilters()) {
+                replies = setBlobs(f);
+                checkAllReplies(replies, cs.size());
             }
         }
 
-        // begin
-        // TODO
-        // OpenDiamond.ls_start_search(handle);
+        // start search
+        ByteBuffer encodedSearchId = ByteBuffer.allocate(4);
+        encodedSearchId.putInt(searchID.get()).flip();
+
+        // device_start_search = 1
+        CompletionService<MiniRPCReply> replies = cs.sendToAllControlChannels(
+                1, encodedSearchId);
+        checkAllReplies(replies, cs.size());
 
         setIsRunning(true);
     }
 
+    private CompletionService<MiniRPCReply> setBlobs(Filter f) {
+        CompletionService<MiniRPCReply> replies;
+        byte blobData[] = f.getBlob();
+        String name = f.getName();
+
+        XDR_sig_val sig = createSig(blobData);
+
+        final ByteBuffer encodedBlobSig = new XDR_blob_sig(name, sig).encode();
+        final ByteBuffer encodedBlob = new XDR_blob(name, blobData).encode();
+
+        System.out.println("blob sig: " + encodedBlobSig);
+
+        replies = cs.runOnAllServers(new ConnectionFunction() {
+            @Override
+            public Callable<MiniRPCReply> createCallable(Connection c) {
+                // first, try to set the blob, then send if necessary
+                final MiniRPCConnection control = c.getControlConnection();
+                final String host = c.getHostname();
+
+                return new Callable<MiniRPCReply>() {
+                    @Override
+                    public MiniRPCReply call() throws Exception {
+                        // device_set_blob_by_signature
+                        MiniRPCReply reply1 = new RPC(control, host, 22,
+                                encodedBlobSig.duplicate()).call();
+                        if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
+                            return reply1;
+                        }
+
+                        // device_set_blob = 11
+                        return new RPC(control, host, 11, encodedBlob
+                                .duplicate()).call();
+                    }
+                };
+            }
+        });
+        return replies;
+    }
+
+    private CompletionService<MiniRPCReply> setCodes(Filter f) {
+        CompletionService<MiniRPCReply> replies;
+        byte code[] = f.getFilterCode().getBytes();
+        XDR_sig_val sig = createSig(code);
+        XDR_sig_and_data sigAndData = new XDR_sig_and_data(sig, code);
+
+        final ByteBuffer encodedSig = sig.encode();
+        final ByteBuffer encodedSigAndData = sigAndData.encode();
+
+        replies = cs.runOnAllServers(new ConnectionFunction() {
+            @Override
+            public Callable<MiniRPCReply> createCallable(Connection c) {
+                // first, try to set the obj, then send if necessary
+                final MiniRPCConnection control = c.getControlConnection();
+                final String host = c.getHostname();
+
+                return new Callable<MiniRPCReply>() {
+                    @Override
+                    public MiniRPCReply call() throws Exception {
+                        // device_set_obj = 16
+                        MiniRPCReply reply1 = new RPC(control, host, 16,
+                                encodedSig.duplicate()).call();
+                        if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
+                            return reply1;
+                        }
+
+                        // device_send_obj = 17
+                        return new RPC(control, host, 17, encodedSigAndData
+                                .duplicate()).call();
+                    }
+                };
+            }
+        });
+        return replies;
+    }
+
+    private static void checkAllReplies(
+            CompletionService<MiniRPCReply> replies, int len)
+            throws IOException {
+        for (int i = 0; i < len; i++) {
+            try {
+                MiniRPCReply reply = replies.take().get();
+                ConnectionSet.checkStatus(reply);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public void stop() {
+        searchID.incrementAndGet();
+
         // TODO
         // OpenDiamond.ls_terminate_search(handle);
         setIsRunning(false);
@@ -145,7 +254,9 @@ public class Search2 {
         BlastChannelObject bco;
         do {
             bco = cs.getNextBlastChannelObject();
-        } while (bco.getObj().getSearchID() != searchID.get());
+            System.out.println("current searchID: " + searchID.get());
+            System.out.println("obj searchID: " + bco.getObj().getSearchID());
+        } while (bco.getObj().getSearchID() != (searchID.get() & 0xFFFFFFFFL));
 
         return new JResult(bco.getObj().getAttributes(), bco.getConnection());
     }
@@ -250,71 +361,13 @@ public class Search2 {
         SessionVariables noResult[] = new SessionVariables[0];
         List<SessionVariables> result = new ArrayList<SessionVariables>();
 
-        // get device list
-        SWIGTYPE_p_void devices[] = getDevices();
-
         // TODO
-        SWIGTYPE_p_p_device_session_vars_t varsHandle = OpenDiamond
-                .create_session_vars_handle();
-
-        try {
-            // for each device, get variables
-            for (SWIGTYPE_p_void dev : devices) {
-                // OpenDiamond.ls_get_dev_session_variables(handle, dev,
-                // varsHandle);
-                device_session_vars_t vars = OpenDiamond
-                        .deref_session_vars_handle(varsHandle);
-                try {
-                    SWIGTYPE_p_p_char names = vars.getNames();
-                    doubleArray values = vars.getValues();
-
-                    int len = vars.getLen();
-                    String namesArray[] = new String[len];
-                    double valuesArray[] = new double[len];
-
-                    for (int i = 0; i < len; i++) {
-                        namesArray[i] = OpenDiamond
-                                .get_string_element(names, i);
-                        valuesArray[i] = values.getitem(i);
-                    }
-
-                    // String name = OpenDiamond.ls_get_dev_name(handle, dev);
-                    // SessionVariables sv = new SessionVariables(name,
-                    // namesArray, valuesArray);
-                    // result.add(sv);
-                } finally {
-                    OpenDiamond.delete_session_vars(vars);
-                }
-            }
-        } finally {
-            OpenDiamond.delete_session_vars_handle(varsHandle);
-        }
 
         return result.toArray(noResult);
     }
 
     private void setSessionVariables(Map<String, Double> map) {
         // TODO
-        device_session_vars_t vars = OpenDiamond
-                .create_session_vars(map.size());
-        try {
-            SWIGTYPE_p_p_char names = vars.getNames();
-            doubleArray values = vars.getValues();
-
-            int i = 0;
-            for (Map.Entry<String, Double> e : map.entrySet()) {
-                OpenDiamond.set_string_element(names, i, e.getKey());
-                values.setitem(i, e.getValue());
-                i++;
-            }
-
-            SWIGTYPE_p_void[] devices = getDevices();
-            for (SWIGTYPE_p_void dev : devices) {
-                // OpenDiamond.ls_set_dev_session_variables(handle, dev, vars);
-            }
-        } finally {
-            OpenDiamond.delete_session_vars(vars);
-        }
     }
 
     public void addSearchEventListener(SearchEventListener listener) {
@@ -331,49 +384,28 @@ public class Search2 {
 
     public Result reevaluateResult(Result r, Set<String> attributes) {
         // TODO
-        SWIGTYPE_p_p_void newObj = OpenDiamond.create_void_cookie();
-        SWIGTYPE_p_p_char attrs = createStringArrayFromSet(attributes);
+        // SWIGTYPE_p_p_void newObj = OpenDiamond.create_void_cookie();
+        // SWIGTYPE_p_p_char attrs = createStringArrayFromSet(attributes);
+        //
+        // try {
+        // // int err = OpenDiamond.ls_reexecute_filters(handle,
+        // // r.getObjectID(),
+        // // attrs, newObj);
+        // // if (err != 0) {
+        // // throw new ReexecutionFailedException("code: " + err);
+        // // }
+        // SWIGTYPE_p_void obj = OpenDiamond.deref_void_cookie(newObj);
+        // return new CResult(obj, makeObjectID(obj));
+        // } finally {
+        // OpenDiamond.delete_string_array(attrs);
+        // OpenDiamond.delete_void_cookie(newObj);
+        // }
 
-        try {
-            // int err = OpenDiamond.ls_reexecute_filters(handle,
-            // r.getObjectID(),
-            // attrs, newObj);
-            // if (err != 0) {
-            // throw new ReexecutionFailedException("code: " + err);
-            // }
-            SWIGTYPE_p_void obj = OpenDiamond.deref_void_cookie(newObj);
-            return new CResult(obj, makeObjectID(obj));
-        } finally {
-            OpenDiamond.delete_string_array(attrs);
-            OpenDiamond.delete_void_cookie(newObj);
-        }
-    }
-
-    private SWIGTYPE_p_p_char createStringArrayFromSet(Set<String> set) {
-        SWIGTYPE_p_p_char result = OpenDiamond.create_string_array(set.size());
-
-        int i = 0;
-        for (String s : set) {
-            OpenDiamond.set_string_element(result, i, s);
-            i++;
-        }
-
-        return result;
+        return null;
     }
 
     public void setPushAttributes(Set<String> attributes) {
         this.pushAttributes = new HashSet<String>(attributes);
-    }
-
-    private void setPushAttributesInternal() {
-        if (pushAttributes != null) {
-            SWIGTYPE_p_p_char attrs = createStringArrayFromSet(pushAttributes);
-            try {
-                // OpenDiamond.ls_set_push_attributes(handle, attrs);
-            } finally {
-                OpenDiamond.delete_string_array(attrs);
-            }
-        }
     }
 
     public void defineScope() throws IOException {
