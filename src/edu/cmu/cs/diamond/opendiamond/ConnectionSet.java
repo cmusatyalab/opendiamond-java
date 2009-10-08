@@ -155,15 +155,6 @@ class ConnectionSet {
         checkAllFutures(cookieMap.size(), connectionCreator);
     }
 
-    public static void checkStatus(MiniRPCReply reply) throws IOException {
-        int status = reply.getMessage().getStatus();
-        if (status != MiniRPCMessage.MINIRPC_OK) {
-            // TODO case on other statuses
-            throw new IOException("bad status on RPC from "
-                    + reply.getHostname() + ": " + RPC.statusToString(status));
-        }
-    }
-
     private void checkAllFutures(int size,
             CompletionService<Object> connectionCreator) throws IOException {
         for (int i = 0; i < size; i++) {

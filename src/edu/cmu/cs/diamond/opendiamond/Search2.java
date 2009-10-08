@@ -217,7 +217,7 @@ public class Search2 {
         for (int i = 0; i < len; i++) {
             try {
                 MiniRPCReply reply = replies.take().get();
-                ConnectionSet.checkStatus(reply);
+                reply.checkStatus();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {
