@@ -143,19 +143,10 @@ class ConnectionSet {
 
             // look up hostname in connection map
             final Connection conn = connections.get(hostname);
-
             connectionCreator.submit(new Callable<Object>() {
                 @Override
                 public Object call() throws Exception {
-                    // clear scope
-                    checkStatus(new RPC(conn.getControlConnection(), hostname,
-                            4, ByteBuffer.allocate(0)).doRPC());
-
-                    // define scope
-                    ByteBuffer data = XDREncoders.encodeString(c.getCookie());
-                    checkStatus(new RPC(conn.getControlConnection(), hostname,
-                            24, data).doRPC());
-
+                    conn.sendCookie(c);
                     return null;
                 }
             });

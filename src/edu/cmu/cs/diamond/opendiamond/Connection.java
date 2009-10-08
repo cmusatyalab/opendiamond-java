@@ -69,6 +69,17 @@ class Connection {
                 new InetSocketAddress(host, DIAMOND_PORT), nonce));
     }
 
+    public void sendCookie(Cookie c) throws IOException {
+        // clear scope
+        ConnectionSet.checkStatus(new RPC(getControlConnection(), hostname, 4,
+                ByteBuffer.allocate(0)).doRPC());
+
+        // define scope
+        ByteBuffer data = XDREncoders.encodeString(c.getCookie());
+        ConnectionSet.checkStatus(new RPC(getControlConnection(), hostname, 24,
+                data).doRPC());
+    }
+
     void close() {
         try {
             controlSocket.close();
