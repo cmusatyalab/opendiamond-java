@@ -69,15 +69,25 @@ class ConnectionSet {
     private final BlockingQueue<BlastChannelObject> blastQueue = new ArrayBlockingQueue<BlastChannelObject>(
             20);
 
-    public CompletionService<MiniRPCReply> sendToAllControlChannels(int cmd,
-            byte data[]) {
+    public CompletionService<MiniRPCReply> sendToAllControlChannels(
+            final int cmd, final ByteBuffer data) {
+        return runOnAllServers(new ConnectionFunction() {
+            @Override
+            public Callable<MiniRPCReply> createCallable(Connection c) {
+                MiniRPCConnection mc = c.getControlConnection();
+                return new RPC(mc, c.getHostname(), cmd, data
+                        .asReadOnlyBuffer());
+            }
+        });
+    }
+
+    public CompletionService<MiniRPCReply> runOnAllServers(ConnectionFunction cf) {
         CompletionService<MiniRPCReply> cs = new ExecutorCompletionService<MiniRPCReply>(
                 executor);
 
         for (Entry<String, Connection> entry : connections.entrySet()) {
             Connection c = entry.getValue();
-            MiniRPCConnection mc = c.getControlConnection();
-            cs.submit(new RPC(mc, c.getHostname(), cmd, data));
+            cs.submit(cf.createCallable(c));
         }
 
         return cs;
