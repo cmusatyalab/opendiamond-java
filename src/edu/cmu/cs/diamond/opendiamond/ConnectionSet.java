@@ -11,13 +11,13 @@ import java.util.concurrent.*;
 class ConnectionSet {
     private static class BlastGetter implements Runnable {
 
-        private final BlockingQueue<XDR_object> q;
+        private final BlockingQueue<BlastChannelObject> q;
 
-        private final MiniRPCConnection blastConnection;
+        private final Connection connection;
 
-        public BlastGetter(MiniRPCConnection blastConnection,
-                BlockingQueue<XDR_object> blastQueue) {
-            this.blastConnection = blastConnection;
+        public BlastGetter(Connection connection,
+                BlockingQueue<BlastChannelObject> blastQueue) {
+            this.connection = connection;
             this.q = blastQueue;
         }
 
@@ -27,7 +27,7 @@ class ConnectionSet {
             // block, waiting for blast channel object, then stick into queue
             try {
                 while ((obj = getAndAcknowldgeBlastChannelObject()) != null) {
-                    q.add(obj);
+                    q.add(new BlastChannelObject(obj, connection));
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -36,6 +36,8 @@ class ConnectionSet {
 
         private XDR_object getAndAcknowldgeBlastChannelObject()
                 throws IOException {
+            MiniRPCConnection blastConnection = connection.getDataConnection();
+
             MiniRPCMessage incoming = blastConnection.receive();
             XDR_object obj = new XDR_object(incoming.getData());
 
@@ -54,7 +56,7 @@ class ConnectionSet {
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    private final BlockingQueue<XDR_object> blastQueue = new ArrayBlockingQueue<XDR_object>(
+    private final BlockingQueue<BlastChannelObject> blastQueue = new ArrayBlockingQueue<BlastChannelObject>(
             20);
 
     public CompletionService<MiniRPCReply> sendToAllControlChannels(int cmd,
@@ -173,8 +175,7 @@ class ConnectionSet {
         connections.put(hostname, connection);
 
         // create task for getting blast messages
-        executor.submit(new BlastGetter(connection.getDataConnection(),
-                blastQueue));
+        executor.submit(new BlastGetter(connection, blastQueue));
     }
 
     public int size() {
@@ -189,7 +190,8 @@ class ConnectionSet {
         connections.clear();
     }
 
-    public XDR_object getNextBlastChannelObject() throws InterruptedException {
+    public BlastChannelObject getNextBlastChannelObject()
+            throws InterruptedException {
         return blastQueue.take();
     }
 }
