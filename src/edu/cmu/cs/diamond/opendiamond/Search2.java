@@ -96,8 +96,8 @@ public class Search2 {
                         return new Callable<Object>() {
                             @Override
                             public Object call() throws Exception {
-                                c.sendStart(pushAttributes, fspec, filters,
-                                        searchID);
+                                c.sendPreStart(pushAttributes, fspec, filters);
+                                c.sendStart(searchID);
                                 return null;
                             }
                         };

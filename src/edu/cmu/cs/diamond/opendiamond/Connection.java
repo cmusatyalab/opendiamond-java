@@ -89,8 +89,8 @@ class Connection {
                 .checkStatus();
     }
 
-    public void sendStart(Set<String> pushAttributes, XDR_sig_and_data fspec,
-            List<Filter> filters, int searchID) throws IOException {
+    public void sendPreStart(Set<String> pushAttributes,
+            XDR_sig_and_data fspec, List<Filter> filters) throws IOException {
         // set the push attributes
         if (pushAttributes != null) {
             ByteBuffer encodedAttributes = new XDR_attr_name_list(
@@ -108,7 +108,9 @@ class Connection {
             setCode(f);
             setBlob(f);
         }
+    }
 
+    public void sendStart(int searchID) throws IOException {
         // start search
         ByteBuffer encodedSearchId = ByteBuffer.allocate(4);
         encodedSearchId.putInt(searchID).flip();
