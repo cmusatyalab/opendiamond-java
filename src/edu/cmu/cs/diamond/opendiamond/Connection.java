@@ -43,10 +43,11 @@ class Connection {
         // read nonce
         buf.clear();
 
-        size = sc.read(buf);
-        if (size != NONCE_SIZE) {
-            throw new IOException("Could not read nonce, size: " + size);
-        }
+        size = 0;
+        do {
+            size += sc.read(buf);
+        } while (size != NONCE_SIZE);
+
         // System.out.println("read " + Arrays.toString(nonce));
 
         return sc;

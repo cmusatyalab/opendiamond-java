@@ -77,9 +77,10 @@ final class MiniRPCConnection {
 
     public MiniRPCMessage receive() throws IOException {
         ByteBuffer buf1 = ByteBuffer.allocate(MINIRPC_HEADER_LENGTH);
-        if (channel.read(buf1) != MINIRPC_HEADER_LENGTH) {
-            throw new IOException("Can't read header");
-        }
+        int bytesRead = 0;
+        do {
+            bytesRead += channel.read(buf1);
+        } while (bytesRead != MINIRPC_HEADER_LENGTH);
 
         buf1.flip();
 
@@ -104,9 +105,10 @@ final class MiniRPCConnection {
         int slack = roundup - datalen;
 
         ByteBuffer buf2 = ByteBuffer.allocate(roundup);
-        if (channel.read(buf2) != roundup) {
-            throw new IOException("Can't read data");
-        }
+        int bytesRead = 0;
+        do {
+            bytesRead += channel.read(buf2);
+        } while (bytesRead != roundup);
 
         // reposition
         buf2.position(buf2.position() - slack);
