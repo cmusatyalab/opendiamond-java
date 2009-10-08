@@ -113,16 +113,10 @@ public class Search2 {
         replies = cs.sendToAllControlChannels(6, xsf.encode());
         checkAllReplies(replies, cs.size());
 
-        // set the codes
+        // set the codes and blobs
         for (Filter f : searchlet.getFilters()) {
-            replies = setCodes(f);
-            checkAllReplies(replies, cs.size());
-        }
-
-        // set the blobs
-        for (Filter f : searchlet.getFilters()) {
-            replies = setBlobs(f);
-            checkAllReplies(replies, cs.size());
+            setCodes(f);
+            setBlobs(f);
         }
 
         // start search
@@ -136,8 +130,7 @@ public class Search2 {
         setIsRunning(true);
     }
 
-    private CompletionService<MiniRPCReply> setBlobs(Filter f) {
-        CompletionService<MiniRPCReply> replies;
+    private void setBlobs(Filter f) throws IOException {
         byte blobData[] = f.getBlob();
         String name = f.getName();
 
@@ -148,35 +141,39 @@ public class Search2 {
 
         System.out.println("blob sig: " + encodedBlobSig);
 
-        replies = cs.runOnAllServers(new ConnectionFunction<MiniRPCReply>() {
-            @Override
-            public Callable<MiniRPCReply> createCallable(Connection c) {
-                // first, try to set the blob, then send if necessary
-                final MiniRPCConnection control = c.getControlConnection();
-                final String host = c.getHostname();
-
-                return new Callable<MiniRPCReply>() {
+        CompletionService<?> replies = cs
+                .runOnAllServers(new ConnectionFunction<Object>() {
                     @Override
-                    public MiniRPCReply call() throws Exception {
-                        // device_set_blob_by_signature
-                        MiniRPCReply reply1 = new RPC(control, host, 22,
-                                encodedBlobSig.duplicate()).call();
-                        if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
-                            return reply1;
-                        }
+                    public Callable<Object> createCallable(Connection c) {
+                        // first, try to set the blob, then send if necessary
+                        final MiniRPCConnection control = c
+                                .getControlConnection();
+                        final String host = c.getHostname();
 
-                        // device_set_blob = 11
-                        return new RPC(control, host, 11, encodedBlob
-                                .duplicate()).call();
+                        return new Callable<Object>() {
+                            @Override
+                            public MiniRPCReply call() throws Exception {
+                                // device_set_blob_by_signature
+                                MiniRPCReply reply1 = new RPC(control, host,
+                                        22, encodedBlobSig.duplicate()).call();
+                                if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
+                                    reply1.checkStatus();
+                                }
+
+                                // device_set_blob = 11
+                                new RPC(control, host, 11, encodedBlob
+                                        .duplicate()).call().checkStatus();
+
+                                return null;
+                            }
+                        };
                     }
-                };
-            }
-        });
-        return replies;
+                });
+
+        Util.checkResultsForIOException(cs.size(), replies);
     }
 
-    private CompletionService<MiniRPCReply> setCodes(Filter f) {
-        CompletionService<MiniRPCReply> replies;
+    private void setCodes(Filter f) throws IOException {
         byte code[] = f.getFilterCode().getBytes();
         XDR_sig_val sig = createSig(code);
         XDR_sig_and_data sigAndData = new XDR_sig_and_data(sig, code);
@@ -184,31 +181,35 @@ public class Search2 {
         final ByteBuffer encodedSig = sig.encode();
         final ByteBuffer encodedSigAndData = sigAndData.encode();
 
-        replies = cs.runOnAllServers(new ConnectionFunction<MiniRPCReply>() {
-            @Override
-            public Callable<MiniRPCReply> createCallable(Connection c) {
-                // first, try to set the obj, then send if necessary
-                final MiniRPCConnection control = c.getControlConnection();
-                final String host = c.getHostname();
-
-                return new Callable<MiniRPCReply>() {
+        CompletionService<?> replies = cs
+                .runOnAllServers(new ConnectionFunction<Object>() {
                     @Override
-                    public MiniRPCReply call() throws Exception {
-                        // device_set_obj = 16
-                        MiniRPCReply reply1 = new RPC(control, host, 16,
-                                encodedSig.duplicate()).call();
-                        if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
-                            return reply1;
-                        }
+                    public Callable<Object> createCallable(Connection c) {
+                        // first, try to set the obj, then send if necessary
+                        final MiniRPCConnection control = c
+                                .getControlConnection();
+                        final String host = c.getHostname();
 
-                        // device_send_obj = 17
-                        return new RPC(control, host, 17, encodedSigAndData
-                                .duplicate()).call();
+                        return new Callable<Object>() {
+                            @Override
+                            public MiniRPCReply call() throws Exception {
+                                // device_set_obj = 16
+                                MiniRPCReply reply1 = new RPC(control, host,
+                                        16, encodedSig.duplicate()).call();
+                                if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
+                                    reply1.checkStatus();
+                                }
+
+                                // device_send_obj = 17
+                                new RPC(control, host, 17, encodedSigAndData
+                                        .duplicate()).call().checkStatus();
+
+                                return null;
+                            }
+                        };
                     }
-                };
-            }
-        });
-        return replies;
+                });
+        Util.checkResultsForIOException(cs.size(), replies);
     }
 
     private static void checkAllReplies(
