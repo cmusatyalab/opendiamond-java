@@ -13,11 +13,14 @@ class ConnectionSet {
 
         private final BlockingQueue<BlastChannelObject> q;
 
-        private final Connection connection;
+        private final MiniRPCConnection blastConnection;
 
-        public BlastGetter(Connection connection,
+        private final String hostname;
+
+        public BlastGetter(MiniRPCConnection blastConnection, String hostname,
                 BlockingQueue<BlastChannelObject> blastQueue) {
-            this.connection = connection;
+            this.blastConnection = blastConnection;
+            this.hostname = hostname;
             this.q = blastQueue;
         }
 
@@ -28,7 +31,7 @@ class ConnectionSet {
             try {
                 while ((obj = getAndAcknowldgeBlastChannelObject()) != null) {
                     try {
-                        q.put(new BlastChannelObject(obj, connection));
+                        q.put(new BlastChannelObject(obj, hostname));
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -40,22 +43,18 @@ class ConnectionSet {
 
         private XDR_object getAndAcknowldgeBlastChannelObject()
                 throws IOException {
-            MiniRPCConnection blastConnection = connection.getDataConnection();
-
-            System.out.println(connection.getHostname()
-                    + ": waiting for blast object");
+            System.out.println(hostname + ": waiting for blast object");
             MiniRPCMessage incoming = blastConnection.receive();
             XDR_object obj = new XDR_object(incoming.getData());
-            System.out.println(connection.getHostname()
-                    + ":   blast object done");
+            System.out.println(hostname + ":   blast object done");
 
             // ack
-            System.out.println(connection.getHostname() + ": sending credit");
+            System.out.println(hostname + ": sending credit");
             ByteBuffer data = ByteBuffer.allocate(4);
             data.putInt(1);
             data.flip();
             blastConnection.sendMessage(1, data);
-            System.out.println(connection.getHostname() + ":   credit done");
+            System.out.println(hostname + ":   credit done");
 
             return obj;
         }
@@ -195,7 +194,8 @@ class ConnectionSet {
         connections.put(hostname, connection);
 
         // create task for getting blast messages
-        executor.execute(new BlastGetter(connection, blastQueue));
+        executor.execute(new BlastGetter(connection.getDataConnection(),
+                hostname, blastQueue));
     }
 
     public int size() {

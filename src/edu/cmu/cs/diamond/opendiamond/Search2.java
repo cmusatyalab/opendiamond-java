@@ -267,7 +267,7 @@ public class Search2 {
             System.out.println("obj searchID: " + bco.getObj().getSearchID());
         } while (bco.getObj().getSearchID() != (searchID.get() & 0xFFFFFFFFL));
 
-        return new JResult(bco.getObj().getAttributes(), bco.getConnection());
+        return new JResult(bco.getObj().getAttributes(), bco.getHostname());
     }
 
     private String makeObjectID(SWIGTYPE_p_void object) {

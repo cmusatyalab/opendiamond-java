@@ -4,18 +4,18 @@ public class BlastChannelObject {
 
     final private XDR_object obj;
 
-    final private Connection connection;
+    final private String hostname;
 
-    public BlastChannelObject(XDR_object obj, Connection connection) {
+    public BlastChannelObject(XDR_object obj, String hostname) {
         this.obj = obj;
-        this.connection = connection;
+        this.hostname = hostname;
     }
 
     public XDR_object getObj() {
         return obj;
     }
 
-    public Connection getConnection() {
-        return connection;
+    public String getHostname() {
+        return hostname;
     }
 }

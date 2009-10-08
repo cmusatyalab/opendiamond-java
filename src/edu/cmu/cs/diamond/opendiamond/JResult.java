@@ -4,15 +4,15 @@ import java.util.Map;
 
 public class JResult extends Result {
 
-    final private Connection connection;
+    final private String hostname;
 
-    public JResult(Map<String, byte[]> attributes, Connection connection) {
+    public JResult(Map<String, byte[]> attributes, String hostname) {
         this.attributes.putAll(attributes);
 
-        this.connection = connection;
+        this.hostname = hostname;
     }
 
-    public Connection getConnection() {
-        return connection;
+    public String getHostname() {
+        return hostname;
     }
 }
