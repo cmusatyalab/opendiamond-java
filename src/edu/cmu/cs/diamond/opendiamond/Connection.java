@@ -136,6 +136,7 @@ class Connection {
                 .duplicate()).doRPC();
         if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
             reply1.checkStatus();
+            return;
         }
 
         // device_set_blob = 11
@@ -156,6 +157,7 @@ class Connection {
                 .duplicate()).doRPC();
         if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
             reply1.checkStatus();
+            return;
         }
 
         // device_send_obj = 17
