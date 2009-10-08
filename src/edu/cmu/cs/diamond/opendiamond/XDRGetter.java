@@ -2,9 +2,9 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.nio.ByteBuffer;
 
-public class XDRBuffer {
+public class XDRGetter {
 
-    private static int roundup(int n) {
+    static int roundup(int n) {
         int roundup = n;
         if ((roundup & 0x3) != 0) {
             // round up
@@ -15,7 +15,7 @@ public class XDRBuffer {
 
     final private ByteBuffer data;
 
-    public XDRBuffer(ByteBuffer data) {
+    public XDRGetter(ByteBuffer data) {
         this.data = data;
     }
 
@@ -53,18 +53,5 @@ public class XDRBuffer {
 
     public String getString(int maxLength) {
         return new String(getOpaque(maxLength));
-    }
-
-    static public byte[] putString(String s) {
-        byte bytes[] = s.getBytes();
-        int len = bytes.length;
-        int roundup = roundup(len);
-
-        byte result[] = new byte[roundup + 4];
-        ByteBuffer buf = ByteBuffer.wrap(result);
-        buf.putInt(len);
-        buf.put(bytes);
-
-        return result;
     }
 }

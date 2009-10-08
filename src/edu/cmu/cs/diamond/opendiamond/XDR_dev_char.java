@@ -6,7 +6,7 @@ class XDR_dev_char {
     public static final int DEV_ISA_IA64 = 2;
     public static final int DEV_ISA_XSCALE = 3;
 
-    public XDR_dev_char(XDRBuffer buf) {
+    public XDR_dev_char(XDRGetter buf) {
         isa = buf.getInt();
         speed = buf.getInt();
         mem = buf.getLong();

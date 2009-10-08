@@ -10,7 +10,7 @@ class XDR_object {
     private final byte[] data;
     private final Map<String, byte[]> attributes;
 
-    public XDR_object(XDRBuffer buf) {
+    public XDR_object(XDRGetter buf) {
         searchID = buf.getInt() & 0xFFFFFFFFL;
         data = buf.getOpaque();
 

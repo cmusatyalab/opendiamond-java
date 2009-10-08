@@ -8,7 +8,7 @@ public class XDR_attribute {
 
     private final byte[] data;
 
-    public XDR_attribute(XDRBuffer buf) {
+    public XDR_attribute(XDRGetter buf) {
         name = buf.getString(MAX_ATTRIBUTE_NAME);
         data = buf.getOpaque();
     }
