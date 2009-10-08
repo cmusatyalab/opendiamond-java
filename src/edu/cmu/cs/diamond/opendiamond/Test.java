@@ -81,7 +81,7 @@ public class Test {
             }
         };
 
-        for (int ii = 0; ii < 1; ii++) {
+        for (int ii = 0; ii < 2; ii++) {
             // begin search
             System.out.println("starting search");
             search.start();
