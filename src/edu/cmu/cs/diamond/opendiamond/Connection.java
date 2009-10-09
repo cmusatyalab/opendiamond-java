@@ -19,6 +19,8 @@ class Connection {
 
     final private String hostname;
 
+    final private Cookie cookie;
+
     String getHostname() {
         return hostname;
     }
@@ -58,10 +60,11 @@ class Connection {
     }
 
     Connection(MiniRPCConnection control, MiniRPCConnection blast,
-            String hostname) {
+            String hostname, Cookie cookie) {
         this.control = control;
         this.blast = blast;
         this.hostname = hostname;
+        this.cookie = cookie;
     }
 
     static Connection createConnection(String host, Cookie cookie)
@@ -90,24 +93,20 @@ class Connection {
             throw e;
         }
 
-        Connection conn = new Connection(control, blast, host);
-        conn.sendCookie(cookie);
-        return conn;
-    }
-
-    private void sendCookie(Cookie c) throws IOException {
-        // clear scope
-        new RPC(this, hostname, 4, ByteBuffer.allocate(0)).doRPC()
-                .checkStatus();
-
-        // define scope
-        ByteBuffer data = XDREncoders.encodeString(c.getCookie());
-        new RPC(this, hostname, 24, data).doRPC().checkStatus();
+        return new Connection(control, blast, host, cookie);
     }
 
     public void sendPreStart(Set<String> pushAttributes,
             XDR_sig_and_data fspec, List<Filter> filters) throws IOException {
         try {
+            // clear scope
+            new RPC(this, hostname, 4, ByteBuffer.allocate(0)).doRPC()
+                    .checkStatus();
+
+            // define scope
+            ByteBuffer data = XDREncoders.encodeString(cookie.getCookie());
+            new RPC(this, hostname, 24, data).doRPC().checkStatus();
+
             // set the push attributes
             if (pushAttributes != null) {
                 ByteBuffer encodedAttributes = new XDR_attr_name_list(
@@ -143,7 +142,6 @@ class Connection {
             close();
             throw e;
         }
-
     }
 
     private void setBlob(Filter f) throws IOException {
