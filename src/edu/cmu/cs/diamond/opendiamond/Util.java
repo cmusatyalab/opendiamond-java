@@ -189,7 +189,8 @@ public class Util {
         return new String(value, 0, value.length - 1);
     }
 
-    public static void runSimpleSearch(SimpleSearchCallback s) {
+    public static void runSimpleSearch(SimpleSearchCallback s)
+            throws InterruptedException {
         // init OpenDiamond
         Search search = Search.getSharedInstance();
         search.defineScope();
@@ -207,8 +208,6 @@ public class Util {
                     break;
                 }
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         } finally {
             search.stop();
         }
@@ -283,12 +282,11 @@ public class Util {
     }
 
     static void checkResultsForIOException(int size,
-            CompletionService<?> connectionCreator) throws IOException {
+            CompletionService<?> connectionCreator) throws IOException,
+            InterruptedException {
         for (int i = 0; i < size; i++) {
             try {
                 connectionCreator.take().get();
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
             } catch (ExecutionException e1) {
                 Throwable cause = e1.getCause();
                 if (cause instanceof IOException) {
