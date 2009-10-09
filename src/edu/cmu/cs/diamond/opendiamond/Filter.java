@@ -89,12 +89,12 @@ public class Filter {
     byte[] getBlob() {
         return blob;
     }
-    
-    public String getName() {
+
+    String getName() {
         return name;
     }
 
-    public FilterCode getFilterCode() {
+    FilterCode getFilterCode() {
         return code;
     }
 }
