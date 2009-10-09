@@ -33,7 +33,7 @@ public class Filter {
     final private int threshold;
 
     final private byte blob[];
-    
+
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,
             String dependencies[], String arguments[], int merit, byte blob[]) {
@@ -53,7 +53,7 @@ public class Filter {
 
         this.arguments = new String[arguments.length];
         System.arraycopy(arguments, 0, this.arguments, 0, arguments.length);
-        
+
         this.blob = new byte[blob.length];
         System.arraycopy(blob, 0, this.blob, 0, blob.length);
     }
@@ -85,7 +85,7 @@ public class Filter {
 
         return sb.toString();
     }
-    
+
     byte[] getBlob() {
         return blob;
     }
