@@ -13,15 +13,10 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Search2 {
@@ -57,31 +52,24 @@ public class Search2 {
         }
     }
 
-    private static final int MAX_ATTRIBUTE_NAME = 256;
-
-    private Searchlet searchlet;
-
-    volatile private boolean isRunning;
+    final private Searchlet searchlet;
 
     final private AtomicInteger searchID = new AtomicInteger();
 
-    final private Set<SearchEventListener> searchEventListeners = new HashSet<SearchEventListener>();
+    final private Set<String> pushAttributes;
 
-    private Set<String> pushAttributes;
+    final private ConnectionSet cs;
 
-    final private ConnectionSet cs = new ConnectionSet();
-
-    private HashMap<String, Cookie> cookieMap;
-
-    public void setSearchlet(Searchlet searchlet) {
-        this.searchlet = searchlet;
-    }
+    private boolean closed;
 
     public void close() {
-        cs.clear();
+        closed = true;
+        cs.close();
     }
 
-    public void start() throws IOException {
+    public void start() throws InterruptedException, IOException {
+        checkClosed();
+
         byte spec[] = searchlet.toString().getBytes();
 
         final XDR_sig_and_data fspec = new XDR_sig_and_data(XDR_sig_val
@@ -104,57 +92,26 @@ public class Search2 {
                     }
                 });
 
-        setIsRunning(true);
-        Util.checkResultsForIOException(cs.size(), replies);
-    }
-
-    private static void checkAllReplies(
-            CompletionService<MiniRPCReply> replies, int len)
-            throws IOException {
-        for (int i = 0; i < len; i++) {
-            try {
-                MiniRPCReply reply = replies.take().get();
-                reply.checkStatus();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
+        try {
+            Util.checkResultsForIOException(cs.size(), replies);
+        } catch (InterruptedException e) {
+            close();
+            throw e;
+        } catch (IOException e) {
+            close();
+            throw e;
         }
     }
 
-    public void stop() throws IOException {
-        searchID.incrementAndGet();
-
-        setIsRunning(false);
-
-        ByteBuffer stop = new XDR_stop(0, 0, 0, 0, 0).encode();
-
-        CompletionService<MiniRPCReply> replies = cs.sendToAllControlChannels(
-                2, stop);
-        checkAllReplies(replies, cs.size());
-    }
-
-    private void setIsRunning(boolean running) {
-        boolean oldRunning = isRunning;
-
-        // XXX make dispatch thread?
-        if (oldRunning != running) {
-            synchronized (searchEventListeners) {
-                isRunning = running;
-                for (SearchEventListener s : searchEventListeners) {
-                    // SearchEvent e = new SearchEvent(this);
-                    // if (isRunning) {
-                    // s.searchStarted(e);
-                    // } else {
-                    // s.searchStopped(e);
-                    // }
-                }
-            }
+    private void checkClosed() {
+        if (closed) {
+            throw new SearchClosedException();
         }
     }
 
     public Result getNextResult() throws InterruptedException {
+        checkClosed();
+
         BlastChannelObject bco;
         do {
             bco = cs.getNextBlastChannelObject();
@@ -162,10 +119,14 @@ public class Search2 {
             System.out.println("obj searchID: " + bco.getObj().getSearchID());
         } while (bco.getObj().getSearchID() != (searchID.get() & 0xFFFFFFFFL));
 
-        return new JResult(bco.getObj().getAttributes(), bco.getHostname());
+        return new JResult(bco.getObj().getAttributes(), bco.getHostname(),
+                (int) bco.getObj().getSearchID());
     }
 
     public ServerStatistics[] getStatistics() {
+        checkClosed();
+
+        // TODO
         ServerStatistics noResult[] = new ServerStatistics[0];
 
         List<ServerStatistics> result = new ArrayList<ServerStatistics>();
@@ -173,12 +134,10 @@ public class Search2 {
         return result.toArray(noResult);
     }
 
-    public boolean isRunning() {
-        return isRunning;
-    }
-
     public Map<String, Double> mergeSessionVariables(
             Map<String, Double> globalValues, DoubleComposer composer) {
+        checkClosed();
+
         // collect all the session variables
         SessionVariables[] sv = getSessionVariables();
 
@@ -237,128 +196,10 @@ public class Search2 {
         // TODO
     }
 
-    public void addSearchEventListener(SearchEventListener listener) {
-        synchronized (searchEventListeners) {
-            searchEventListeners.add(listener);
-        }
-    }
-
-    public void removeSearchEventListener(SearchEventListener listener) {
-        synchronized (searchEventListeners) {
-            searchEventListeners.remove(listener);
-        }
-    }
-
-    public Result reevaluateResult(Result r, Set<String> attributes)
-            throws IOException {
-        JResult jr = (JResult) r;
-
-        String host = jr.getHostname();
-        String objID = jr.getObjectID();
-        Cookie c = cookieMap.get(host);
-
-        if (c == null) {
-            throw new IOException("No cookie found for host " + host);
-        }
-
-        Connection conn = Connection.createConnection(host);
-
-        // cookie
-        conn.sendCookie(c);
-
-        // prestart
-        byte[] spec = searchlet.toString().getBytes();
-        XDR_sig_and_data fspec = new XDR_sig_and_data(XDR_sig_val
-                .createSignature(spec), spec);
-        List<Filter> filters = searchlet.getFilters();
-        conn.sendPreStart(null, fspec, filters);
-
-        // send eval
-        ByteBuffer reexec = new XDR_reexecute(objID, attributes).encode();
-        MiniRPCReply reply = new RPC(conn.getControlConnection(), conn
-                .getHostname(), 21, reexec).doRPC();
-
-        // read reply
-        reply.checkStatus();
-        Map<String, byte[]> resultAttributes = new XDR_attr_list(reply
-                .getMessage().getData()).createMap();
-
-        // create result
-        JResult newResult = new JResult(resultAttributes, host);
-
-        // close
-        conn.close();
-
-        return newResult;
-    }
-
-    public void setPushAttributes(Set<String> attributes) {
-        // validate
-        HashSet<String> copyOfAttributes = new HashSet<String>(attributes);
-        for (String string : copyOfAttributes) {
-            if (string.length() > MAX_ATTRIBUTE_NAME) {
-                throw new IllegalArgumentException("\"" + string
-                        + "\" length is greater than MAX_ATTRIBUTE_NAME");
-            }
-        }
-        this.pushAttributes = copyOfAttributes;
-    }
-
-    public void defineScope() throws IOException {
-        // get newscope file
-        File home = new File(System.getProperty("user.home"));
-        File diamondDir = new File(home, ".diamond");
-        File newscope = new File(diamondDir, "NEWSCOPE");
-
-        InputStream in = new FileInputStream(newscope);
-        String megacookie = new String(Util.readFully(in));
-        in.close();
-
-        cookieMap = new HashMap<String, Cookie>();
-
-        // fill map from hostnames to cookies
-        List<String> cookies = splitCookies(megacookie);
-        for (String s : cookies) {
-            Cookie c = new Cookie(s);
-            System.out.println(c);
-
-            List<String> servers = c.getServers();
-            for (String server : servers) {
-                cookieMap.put(server, c);
-            }
-        }
-
-        // do it
-        cs.setConnectionsFromCookies(cookieMap);
-    }
-
-    private List<String> splitCookies(String megacookie) {
-        List<String> result = new ArrayList<String>();
-
-        String lines[] = megacookie.split("\n");
-        boolean inCookie = false;
-        StringBuilder sb = null;
-        for (String l : lines) {
-            if (l.equals(Cookie.BEGIN_COOKIE)) {
-                inCookie = true;
-                sb = new StringBuilder();
-            }
-
-            if (!inCookie) {
-                continue;
-            }
-
-            sb.append(l);
-            sb.append('\n');
-
-            if (!l.equals(Cookie.END_COOKIE)) {
-                continue;
-            }
-
-            inCookie = false;
-            result.add(sb.toString());
-        }
-
-        return result;
+    Search2(Searchlet searchlet, ConnectionSet connectionSet,
+            Set<String> pushAttributes) {
+        this.searchlet = searchlet;
+        this.cs = connectionSet;
+        this.pushAttributes = pushAttributes;
     }
 }

@@ -21,7 +21,7 @@ class RPC implements Callable<MiniRPCReply> {
 
     final public static int MAX_FILTERS = 64;
 
-    final private MiniRPCConnection connection;
+    final private Connection connection;
 
     final private int cmd;
 
@@ -29,8 +29,7 @@ class RPC implements Callable<MiniRPCReply> {
 
     final private String hostname;
 
-    public RPC(MiniRPCConnection connection, String hostname, int cmd,
-            ByteBuffer data) {
+    public RPC(Connection connection, String hostname, int cmd, ByteBuffer data) {
         this.connection = connection;
         this.hostname = hostname;
         this.cmd = cmd;
@@ -43,8 +42,8 @@ class RPC implements Callable<MiniRPCReply> {
     }
 
     public MiniRPCReply doRPC() throws IOException {
-        connection.sendRequest(cmd, data);
-        MiniRPCReply reply = new MiniRPCReply(connection.receive(), connection,
+        connection.sendControlRequest(cmd, data);
+        MiniRPCReply reply = new MiniRPCReply(connection.receiveControl(),
                 hostname);
 
         System.out.println(reply);

@@ -15,21 +15,18 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Searchlet {
-    final private List<Filter> filters = new ArrayList<Filter>();
+    final private List<Filter> filters;
 
-    private String[] dependencies;
+    final private List<String> dependencies;
 
-    public void addFilter(Filter f) {
-        filters.add(f);
-    }
-
-    public void setApplicationDependencies(String dependencies[]) {
-        this.dependencies = new String[dependencies.length];
-        System.arraycopy(dependencies, 0, this.dependencies, 0,
-                dependencies.length);
+    public Searchlet(List<Filter> filters, List<String> applicationDependencies) {
+        this.filters = Collections.unmodifiableList(new ArrayList<Filter>(
+                filters));
+        this.dependencies = new ArrayList<String>(applicationDependencies);
     }
 
     File createFilterSpecFile() throws IOException {

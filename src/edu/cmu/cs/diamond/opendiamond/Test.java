@@ -20,10 +20,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -33,44 +30,43 @@ import javax.swing.JLabel;
 
 public class Test {
 
-    /**
-     * @param args
-     * @throws IOException
-     */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException,
+            InterruptedException {
+        List<Filter> filters = new ArrayList<Filter>();
+
         // set up the rgb filter
-        Filter rgb = null;
-        Filter thumb = null;
         try {
             FilterCode c = new FilterCode(
                     new FileInputStream("/tmp/fil_rgb.so"));
-            rgb = new Filter("RGB", c, "f_eval_img2rgb", "f_init_img2rgb",
-                    "f_fini_img2rgb", 1, new String[0], new String[0], 400);
+            Filter rgb = new Filter("RGB", c, "f_eval_img2rgb",
+                    "f_init_img2rgb", "f_fini_img2rgb", 1, new String[0],
+                    new String[0], 400);
             System.out.println(rgb);
 
             c = new FilterCode(new FileInputStream("/tmp/fil_thumb.so"));
-            thumb = new Filter("thumb", c, "f_eval_thumbnailer",
+            Filter thumb = new Filter("thumb", c, "f_eval_thumbnailer",
                     "f_init_thumbnailer", "f_fini_thumbnailer", 1,
                     new String[] { "RGB" }, new String[] { "200", "150" }, 0);
+
+            filters.add(rgb);
+            filters.add(thumb);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        // init diamond
-        Search2 search = new Search2();
-        System.out.println("defining scope");
-        search.defineScope();
+        List<String> appDepends = new ArrayList<String>();
+        appDepends.add("RGB");
 
         // make a new searchlet
-        Searchlet searchlet = new Searchlet();
-        searchlet.addFilter(rgb);
-        searchlet.addFilter(thumb);
-        searchlet.setApplicationDependencies(new String[] { "RGB" });
-        search.setSearchlet(searchlet);
-        search.setPushAttributes(new HashSet<String>(Arrays
-                .asList(new String[] { "thumbnail.jpeg" })));
+        Searchlet searchlet = new Searchlet(filters, appDepends);
+
+        // make new factory
+        Set<String> pushAttributes = new HashSet<String>();
+        pushAttributes.add("thumbnail.jpeg");
+        SearchFactory factory = new SearchFactory(searchlet, pushAttributes,
+                SearchFactory.createDefaultCookieMap());
 
         Result r;
 
@@ -84,6 +80,7 @@ public class Test {
         for (int ii = 0; ii < 2; ii++) {
             // begin search
             System.out.println("starting search");
+            Search2 search = factory.createSearch();
             search.start();
 
             Map<String, Double> map = new HashMap<String, Double>();
@@ -96,7 +93,7 @@ public class Test {
             int count = 0;
             try {
                 while ((r = search.getNextResult()) != null && count < 10) {
-                    processResult(search, r);
+                    processResult(factory, r);
 
                     System.out.println(search.mergeSessionVariables(map, sum));
 
@@ -108,13 +105,15 @@ public class Test {
                 e.printStackTrace();
             }
 
-            search.stop();
+            search.close();
         }
     }
 
-    private static void processResult(final Search2 s, final Result r)
+    private static void processResult(final SearchFactory s, final Result r)
             throws IOException {
         System.out.println(r);
+        System.out.println("*** " + r.getObjectID());
+        System.out.println(((JResult) r).getSearchID());
 
         byte[] data = r.getValue("thumbnail.jpeg");
         BufferedImage img = ImageIO.read(new ByteArrayInputStream(data));
@@ -141,6 +140,7 @@ public class Test {
                     JLabel l = new JLabel(new ImageIcon(bigimg));
                     JFrame j = new JFrame();
                     j.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+                    j.setLocationByPlatform(true);
                     j.add(l);
                     j.pack();
                     j.setVisible(true);

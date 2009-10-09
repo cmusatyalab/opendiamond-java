@@ -23,6 +23,8 @@ class Connection {
         return hostname;
     }
 
+    // all public methods must close() on IOException!
+
     private static SocketChannel createOneChannel(InetSocketAddress address,
             byte nonce[]) throws IOException {
         if (nonce.length != NONCE_SIZE) {
@@ -62,61 +64,85 @@ class Connection {
         this.hostname = hostname;
     }
 
-    static Connection createConnection(String host) throws IOException {
+    static Connection createConnection(String host, Cookie cookie)
+            throws IOException {
         System.out.println("connecting to " + host);
 
         byte nonce[] = new byte[NONCE_SIZE];
 
-        // open control
-        MiniRPCConnection control = new MiniRPCConnection(createOneChannel(
-                new InetSocketAddress(host, DIAMOND_PORT), nonce));
+        MiniRPCConnection control;
+        MiniRPCConnection blast;
+
+        // open control (if exception is thrown here, it's ok)
+        control = new MiniRPCConnection(createOneChannel(new InetSocketAddress(
+                host, DIAMOND_PORT), nonce));
 
         // open data
-        MiniRPCConnection blast = new MiniRPCConnection(createOneChannel(
-                new InetSocketAddress(host, DIAMOND_PORT), nonce));
+        try {
+            blast = new MiniRPCConnection(createOneChannel(
+                    new InetSocketAddress(host, DIAMOND_PORT), nonce));
+        } catch (IOException e) {
+            try {
+                // close control and propagate
+                control.close();
+            } catch (IOException e2) {
+            }
+            throw e;
+        }
 
-        return new Connection(control, blast, host);
+        Connection conn = new Connection(control, blast, host);
+        conn.sendCookie(cookie);
+        return conn;
     }
 
-    public void sendCookie(Cookie c) throws IOException {
+    private void sendCookie(Cookie c) throws IOException {
         // clear scope
-        new RPC(getControlConnection(), hostname, 4, ByteBuffer.allocate(0))
-                .doRPC().checkStatus();
+        new RPC(this, hostname, 4, ByteBuffer.allocate(0)).doRPC()
+                .checkStatus();
 
         // define scope
         ByteBuffer data = XDREncoders.encodeString(c.getCookie());
-        new RPC(getControlConnection(), hostname, 24, data).doRPC()
-                .checkStatus();
+        new RPC(this, hostname, 24, data).doRPC().checkStatus();
     }
 
     public void sendPreStart(Set<String> pushAttributes,
             XDR_sig_and_data fspec, List<Filter> filters) throws IOException {
-        // set the push attributes
-        if (pushAttributes != null) {
-            ByteBuffer encodedAttributes = new XDR_attr_name_list(
-                    pushAttributes).encode();
-            new RPC(control, hostname, 20, encodedAttributes).doRPC()
-                    .checkStatus();
-        }
+        try {
+            // set the push attributes
+            if (pushAttributes != null) {
+                ByteBuffer encodedAttributes = new XDR_attr_name_list(
+                        pushAttributes).encode();
+                new RPC(this, hostname, 20, encodedAttributes).doRPC()
+                        .checkStatus();
+            }
 
-        // set the fspec
-        // device_set_spec = 6
-        new RPC(control, hostname, 6, fspec.encode()).doRPC().checkStatus();
+            // set the fspec
+            // device_set_spec = 6
+            new RPC(this, hostname, 6, fspec.encode()).doRPC().checkStatus();
 
-        // set the codes and blobs
-        for (Filter f : filters) {
-            setCode(f);
-            setBlob(f);
+            // set the codes and blobs
+            for (Filter f : filters) {
+                setCode(f);
+                setBlob(f);
+            }
+        } catch (IOException e) {
+            close();
+            throw e;
         }
     }
 
     public void sendStart(int searchID) throws IOException {
-        // start search
-        ByteBuffer encodedSearchId = ByteBuffer.allocate(4);
-        encodedSearchId.putInt(searchID).flip();
+        try {
+            // start search
+            ByteBuffer encodedSearchId = ByteBuffer.allocate(4);
+            encodedSearchId.putInt(searchID).flip();
 
-        // device_start_search = 1
-        new RPC(control, hostname, 1, encodedSearchId).doRPC().checkStatus();
+            // device_start_search = 1
+            new RPC(this, hostname, 1, encodedSearchId).doRPC().checkStatus();
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
 
     }
 
@@ -132,7 +158,7 @@ class Connection {
         System.out.println("blob sig: " + encodedBlobSig);
 
         // device_set_blob_by_signature = 22
-        MiniRPCReply reply1 = new RPC(control, hostname, 22, encodedBlobSig
+        MiniRPCReply reply1 = new RPC(this, hostname, 22, encodedBlobSig
                 .duplicate()).doRPC();
         if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
             reply1.checkStatus();
@@ -140,7 +166,7 @@ class Connection {
         }
 
         // device_set_blob = 11
-        new RPC(control, hostname, 11, encodedBlob.duplicate()).doRPC()
+        new RPC(this, hostname, 11, encodedBlob.duplicate()).doRPC()
                 .checkStatus();
     }
 
@@ -153,7 +179,7 @@ class Connection {
         final ByteBuffer encodedSigAndData = sigAndData.encode();
 
         // device_set_obj = 16
-        MiniRPCReply reply1 = new RPC(control, hostname, 16, encodedSig
+        MiniRPCReply reply1 = new RPC(this, hostname, 16, encodedSig
                 .duplicate()).doRPC();
         if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
             reply1.checkStatus();
@@ -161,11 +187,13 @@ class Connection {
         }
 
         // device_send_obj = 17
-        new RPC(control, hostname, 17, encodedSigAndData.duplicate()).doRPC()
+        new RPC(this, hostname, 17, encodedSigAndData.duplicate()).doRPC()
                 .checkStatus();
     }
 
     void close() {
+        System.out.println("closing " + toString());
+
         try {
             control.close();
         } catch (IOException e) {
@@ -178,11 +206,48 @@ class Connection {
         }
     }
 
-    MiniRPCConnection getControlConnection() {
-        return control;
+    private MiniRPCMessage receiveFrom(MiniRPCConnection c) throws IOException {
+        try {
+            return c.receive();
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
     }
 
-    MiniRPCConnection getDataConnection() {
-        return blast;
+    public MiniRPCMessage receiveBlast() throws IOException {
+        try {
+            return receiveFrom(blast);
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
+    }
+
+    public void sendMessageBlast(int cmd, ByteBuffer data) throws IOException {
+        try {
+            blast.sendMessage(cmd, data);
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
+    }
+
+    public void sendControlRequest(int cmd, ByteBuffer data) throws IOException {
+        try {
+            control.sendRequest(cmd, data);
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
+    }
+
+    public MiniRPCMessage receiveControl() throws IOException {
+        try {
+            return control.receive();
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
     }
 }
