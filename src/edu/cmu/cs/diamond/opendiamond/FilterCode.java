@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class FilterCode {
-    private byte[] code;
+    final private byte[] code;
 
     public FilterCode(byte code[]) {
         this.code = new byte[code.length];
