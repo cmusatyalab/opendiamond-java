@@ -14,10 +14,13 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Search2 {
     private static class SessionVariables {
@@ -52,12 +55,6 @@ public class Search2 {
         }
     }
 
-    final private Searchlet searchlet;
-
-    final private AtomicInteger searchID = new AtomicInteger();
-
-    final private Set<String> pushAttributes;
-
     final private ConnectionSet cs;
 
     private boolean closed;
@@ -69,14 +66,6 @@ public class Search2 {
 
     public void start() throws InterruptedException, IOException {
         checkClosed();
-
-        byte spec[] = searchlet.toString().getBytes();
-
-        final XDR_sig_and_data fspec = new XDR_sig_and_data(XDR_sig_val
-                .createSignature(spec), spec);
-        final List<Filter> filters = searchlet.getFilters();
-        final int searchID = this.searchID.get();
-
         CompletionService<?> replies = cs
                 .runOnAllServers(new ConnectionFunction<Object>() {
                     @Override
@@ -84,8 +73,7 @@ public class Search2 {
                         return new Callable<Object>() {
                             @Override
                             public Object call() throws Exception {
-                                c.sendPreStart(pushAttributes, fspec, filters);
-                                c.sendStart(searchID);
+                                c.sendStart();
                                 return null;
                             }
                         };
@@ -112,15 +100,9 @@ public class Search2 {
     public Result getNextResult() throws InterruptedException {
         checkClosed();
 
-        BlastChannelObject bco;
-        do {
-            bco = cs.getNextBlastChannelObject();
-            System.out.println("current searchID: " + searchID.get());
-            System.out.println("obj searchID: " + bco.getObj().getSearchID());
-        } while (bco.getObj().getSearchID() != (searchID.get() & 0xFFFFFFFFL));
+        BlastChannelObject bco = cs.getNextBlastChannelObject();
 
-        return new JResult(bco.getObj().getAttributes(), bco.getHostname(),
-                (int) bco.getObj().getSearchID());
+        return new JResult(bco.getObj().getAttributes(), bco.getHostname());
     }
 
     public ServerStatistics[] getStatistics() {
@@ -196,10 +178,7 @@ public class Search2 {
         // TODO
     }
 
-    Search2(Searchlet searchlet, ConnectionSet connectionSet,
-            Set<String> pushAttributes) {
-        this.searchlet = searchlet;
+    Search2(ConnectionSet connectionSet) {
         this.cs = connectionSet;
-        this.pushAttributes = pushAttributes;
     }
 }

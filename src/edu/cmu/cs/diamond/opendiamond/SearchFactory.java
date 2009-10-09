@@ -39,7 +39,9 @@ public class SearchFactory {
     }
 
     public Search2 createSearch() throws IOException, InterruptedException {
-        // start making all the connections
+        // make all the connections and prep everything to start
+        final XDR_sig_and_data fspec = searchlet.getFspec();
+        final List<Filter> filters = searchlet.getFilters();
 
         ArrayList<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         for (Map.Entry<String, Cookie> e : cookieMap.entrySet()) {
@@ -49,7 +51,8 @@ public class SearchFactory {
             futures.add(executor.submit(new Callable<Connection>() {
                 @Override
                 public Connection call() throws Exception {
-                    return Connection.createConnection(hostname, cookie);
+                    return Connection.createConnection(hostname, cookie,
+                            pushAttributes, fspec, filters);
                 }
             }));
         }
@@ -88,7 +91,7 @@ public class SearchFactory {
         // we're safe
         ConnectionSet cs = new ConnectionSet(executor, connections);
 
-        return new Search2(searchlet, cs, pushAttributes);
+        return new Search2(cs);
     }
 
     private void cleanup(ArrayList<Future<Connection>> futures)
@@ -181,14 +184,11 @@ public class SearchFactory {
             throw new IOException("No cookie found for host " + host);
         }
 
-        Connection conn = Connection.createConnection(host, c);
-
         // prestart
-        byte[] spec = searchlet.toString().getBytes();
-        XDR_sig_and_data fspec = new XDR_sig_and_data(XDR_sig_val
-                .createSignature(spec), spec);
+        XDR_sig_and_data fspec = searchlet.getFspec();
         List<Filter> filters = searchlet.getFilters();
-        conn.sendPreStart(null, fspec, filters);
+        Connection conn = Connection.createConnection(host, c, null, fspec,
+                filters);
 
         // send eval
         ByteBuffer reexec = new XDR_reexecute(objID, attributes).encode();
@@ -201,7 +201,7 @@ public class SearchFactory {
                 .getMessage().getData()).createMap();
 
         // create result
-        JResult newResult = new JResult(resultAttributes, host, -1);
+        JResult newResult = new JResult(resultAttributes, host);
 
         // close
         conn.close();

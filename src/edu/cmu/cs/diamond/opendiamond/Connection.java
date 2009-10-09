@@ -19,8 +19,6 @@ class Connection {
 
     final private String hostname;
 
-    final private Cookie cookie;
-
     String getHostname() {
         return hostname;
     }
@@ -60,15 +58,15 @@ class Connection {
     }
 
     Connection(MiniRPCConnection control, MiniRPCConnection blast,
-            String hostname, Cookie cookie) {
+            String hostname) {
         this.control = control;
         this.blast = blast;
         this.hostname = hostname;
-        this.cookie = cookie;
     }
 
-    static Connection createConnection(String host, Cookie cookie)
-            throws IOException {
+    static Connection createConnection(String host, Cookie cookie,
+            Set<String> pushAttributes, XDR_sig_and_data fspec,
+            List<Filter> filters) throws IOException {
         System.out.println("connecting to " + host);
 
         byte nonce[] = new byte[NONCE_SIZE];
@@ -93,10 +91,12 @@ class Connection {
             throw e;
         }
 
-        return new Connection(control, blast, host, cookie);
+        Connection conn = new Connection(control, blast, host);
+        conn.sendPreStart(cookie, pushAttributes, fspec, filters);
+        return conn;
     }
 
-    public void sendPreStart(Set<String> pushAttributes,
+    private void sendPreStart(Cookie cookie, Set<String> pushAttributes,
             XDR_sig_and_data fspec, List<Filter> filters) throws IOException {
         try {
             // clear scope
@@ -130,11 +130,11 @@ class Connection {
         }
     }
 
-    public void sendStart(int searchID) throws IOException {
+    public void sendStart() throws IOException {
         try {
             // start search
             ByteBuffer encodedSearchId = ByteBuffer.allocate(4);
-            encodedSearchId.putInt(searchID).flip();
+            encodedSearchId.putInt(0).flip();
 
             // device_start_search = 1
             new RPC(this, hostname, 1, encodedSearchId).doRPC().checkStatus();

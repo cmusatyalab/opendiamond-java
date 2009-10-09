@@ -113,7 +113,6 @@ public class Test {
             throws IOException {
         System.out.println(r);
         System.out.println("*** " + r.getObjectID());
-        System.out.println(((JResult) r).getSearchID());
 
         byte[] data = r.getValue("thumbnail.jpeg");
         BufferedImage img = ImageIO.read(new ByteArrayInputStream(data));
