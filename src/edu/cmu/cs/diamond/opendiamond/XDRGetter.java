@@ -1,6 +1,7 @@
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.nio.ByteBuffer;
+import java.io.DataInputStream;
+import java.io.IOException;
 
 public class XDRGetter {
 
@@ -13,22 +14,22 @@ public class XDRGetter {
         return roundup;
     }
 
-    final private ByteBuffer data;
+    final private DataInputStream data;
 
-    public XDRGetter(ByteBuffer data) {
+    public XDRGetter(DataInputStream data) {
         this.data = data;
     }
 
-    public int getInt() {
-        return data.getInt();
+    public int getInt() throws IOException {
+        return data.readInt();
     }
 
-    public byte[] getOpaque() {
+    public byte[] getOpaque() throws IOException {
         return getOpaque(Integer.MAX_VALUE);
     }
 
-    public byte[] getOpaque(int maxLength) {
-        int len = data.getInt();
+    public byte[] getOpaque(int maxLength) throws IOException {
+        int len = data.readInt();
         if (len > maxLength) {
             throw new IllegalStateException("length greater than max (" + len
                     + " > " + maxLength + ")");
@@ -36,22 +37,26 @@ public class XDRGetter {
         return getOpaqueFixed(len);
     }
 
-    public byte[] getOpaqueFixed(int len) {
+    public byte[] getOpaqueFixed(int len) throws IOException {
         int roundup = roundup(len);
         int slack = roundup - len;
 
         byte result[] = new byte[len];
-        data.get(result);
-        data.position(data.position() + slack);
+        data.read(result);
+
+        // skip slack
+        for (int i = 0; i < slack; i++) {
+            data.read();
+        }
 
         return result;
     }
 
-    public long getLong() {
-        return data.getLong();
+    public long getLong() throws IOException {
+        return data.readLong();
     }
 
-    public String getString(int maxLength) {
+    public String getString(int maxLength) throws IOException {
         return new String(getOpaque(maxLength));
     }
 }

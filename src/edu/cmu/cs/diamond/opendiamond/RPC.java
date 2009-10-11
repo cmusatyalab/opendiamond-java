@@ -1,7 +1,6 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.Callable;
 
 class RPC implements Callable<MiniRPCReply> {
@@ -25,11 +24,11 @@ class RPC implements Callable<MiniRPCReply> {
 
     final private int cmd;
 
-    final private ByteBuffer data;
+    final private byte data[];
 
     final private String hostname;
 
-    public RPC(Connection connection, String hostname, int cmd, ByteBuffer data) {
+    public RPC(Connection connection, String hostname, int cmd, byte[] data) {
         this.connection = connection;
         this.hostname = hostname;
         this.cmd = cmd;

@@ -1,6 +1,6 @@
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 public class XDR_blob_sig implements XDREncodeable {
 
@@ -18,13 +18,13 @@ public class XDR_blob_sig implements XDREncodeable {
     }
 
     @Override
-    public ByteBuffer encode() {
-        ByteBuffer b1 = XDREncoders.encodeString(name);
-        ByteBuffer b2 = sig.encode();
+    public byte[] encode() {
+        byte b1[] = XDREncoders.encodeString(name);
+        byte b2[] = sig.encode();
 
-        ByteBuffer result = ByteBuffer.allocate(b1.limit() + b2.limit())
-                .put(b1).put(b2);
-        result.flip();
-        return result.asReadOnlyBuffer();
+        byte result[] = Arrays.copyOf(b1, b1.length + b2.length);
+        System.arraycopy(b2, 0, result, b1.length, b2.length);
+
+        return result;
     }
 }

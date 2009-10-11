@@ -1,7 +1,8 @@
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.*;
@@ -31,10 +32,11 @@ class ConnectionSet {
 
             // ack
             System.out.println(hostname + ": sending credit");
-            ByteBuffer data = ByteBuffer.allocate(4);
-            data.putInt(1);
-            data.flip();
-            connection.sendMessageBlast(1, data);
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            DataOutputStream out = new DataOutputStream(baos);
+            out.writeInt(1); // 1 credit
+
+            connection.sendMessageBlast(1, baos.toByteArray());
             System.out.println(hostname + ":   credit done");
 
             return obj;
@@ -97,11 +99,11 @@ class ConnectionSet {
     }
 
     public CompletionService<MiniRPCReply> sendToAllControlChannels(
-            final int cmd, final ByteBuffer data) {
+            final int cmd, final byte[] data) {
         return runOnAllServers(new ConnectionFunction<MiniRPCReply>() {
             @Override
             public Callable<MiniRPCReply> createCallable(Connection c) {
-                return new RPC(c, c.getHostname(), cmd, data.asReadOnlyBuffer());
+                return new RPC(c, c.getHostname(), cmd, data);
             }
         });
     }

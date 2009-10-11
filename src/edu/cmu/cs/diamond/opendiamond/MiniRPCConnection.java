@@ -1,22 +1,26 @@
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+import java.net.Socket;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class MiniRPCConnection {
-    private static final int MINIRPC_HEADER_LENGTH = 16;
-
     final private AtomicInteger nextSequence = new AtomicInteger();
 
-    final private SocketChannel channel;
+    final private Socket socket;
+    final private DataInputStream in;
+    final private DataOutputStream out;
 
-    public MiniRPCConnection(SocketChannel channel) {
-        this.channel = channel;
+    public MiniRPCConnection(Socket socket) throws IOException {
+        this.socket = socket;
+        this.in = new DataInputStream(socket.getInputStream());
+        this.out = new DataOutputStream(socket.getOutputStream());
     }
 
-    private void send(long sequence, int status, int cmd, ByteBuffer data)
+    private void send(long sequence, int status, int cmd, byte data[])
             throws IOException {
         if ((sequence < 0) || (sequence > 0xFFFFFFFFL)) {
             throw new IllegalArgumentException(
@@ -24,26 +28,20 @@ final class MiniRPCConnection {
                             + ", given: " + sequence);
         }
 
+        System.out.println("sending: " + sequence + " " + status + " " + cmd
+                + " (" + data.length + ") " + Arrays.toString(data));
+
         // write header
-        int datalen = data.remaining();
-        ByteBuffer header = ByteBuffer.allocate(MINIRPC_HEADER_LENGTH);
-        header.putInt((int) sequence).putInt(status).putInt(cmd)
-                .putInt(datalen).flip();
-
-        System.out.println("sending " + sequence + " " + status + " " + cmd
-                + " " + datalen);
-
-        if ((channel.write(header) != MINIRPC_HEADER_LENGTH)) {
-            throw new IOException("Can't write miniRPC header");
-        }
+        out.writeInt((int) sequence);
+        out.writeInt(status);
+        out.writeInt(cmd);
+        out.writeInt(data.length);
 
         // write data
-        if ((channel.write(data)) != datalen) {
-            throw new IOException("Can't write miniRPC data");
-        }
+        out.write(data);
     }
 
-    public void sendRequest(int cmd, ByteBuffer data) throws IOException {
+    public void sendRequest(int cmd, byte data[]) throws IOException {
         if (cmd <= 0) {
             throw new IllegalArgumentException("cmd must be positive");
         }
@@ -51,7 +49,7 @@ final class MiniRPCConnection {
                 MiniRPCMessage.MINIRPC_PENDING, cmd, data);
     }
 
-    public void sendMessage(int cmd, ByteBuffer data) throws IOException {
+    public void sendMessage(int cmd, byte data[]) throws IOException {
         if (cmd <= 0) {
             throw new IllegalArgumentException("cmd must be positive");
         }
@@ -60,14 +58,14 @@ final class MiniRPCConnection {
                 MiniRPCMessage.MINIRPC_PENDING, -cmd, data);
     }
 
-    public void sendReply(MiniRPCMessage inReplyTo, ByteBuffer data)
+    public void sendReply(MiniRPCMessage inReplyTo, byte data[])
             throws IOException {
         send(inReplyTo.getSequence(), MiniRPCMessage.MINIRPC_OK, inReplyTo
                 .getCmd(), data);
     }
 
     public void sendReplyWithStatus(MiniRPCMessage inReplyTo, int status,
-            ByteBuffer data) throws IOException {
+            byte[] data) throws IOException {
         if ((status == MiniRPCMessage.MINIRPC_OK)
                 || (status == MiniRPCMessage.MINIRPC_PENDING)) {
             throw new IllegalArgumentException(
@@ -77,47 +75,33 @@ final class MiniRPCConnection {
     }
 
     public MiniRPCMessage receive() throws IOException {
-        ByteBuffer buf1 = ByteBuffer.allocate(MINIRPC_HEADER_LENGTH);
-        int bytesRead = 0;
-        do {
-            bytesRead += channel.read(buf1);
-        } while (bytesRead != MINIRPC_HEADER_LENGTH);
+        long sequence = in.readInt() & 0xFFFFFFFFL;
+        int status = in.readInt();
+        int cmd = in.readInt();
+        int datalen = in.readInt();
 
-        buf1.flip();
+        byte data[] = readXDRData(datalen);
 
-        long sequence = buf1.getInt() & 0xFFFFFFFFL;
-        int status = buf1.getInt();
-        int cmd = buf1.getInt();
-        int datalen = buf1.getInt();
-
-        ByteBuffer buf2 = readXDRData(datalen);
-        buf2.flip();
-
-        return new MiniRPCMessage(sequence, status, cmd, buf2);
+        return new MiniRPCMessage(sequence, status, cmd, data);
     }
 
-    private ByteBuffer readXDRData(int datalen) throws IOException {
+    private byte[] readXDRData(int datalen) throws IOException {
         // get slack required
-        int roundup = datalen;
-        if ((roundup & 0x3) != 0) {
-            // round up
-            roundup = (roundup + 4) & (~3);
-        }
+        int roundup = XDRGetter.roundup(datalen);
         int slack = roundup - datalen;
 
-        ByteBuffer buf2 = ByteBuffer.allocate(roundup);
-        int bytesRead = 0;
-        do {
-            bytesRead += channel.read(buf2);
-        } while (bytesRead != roundup);
+        byte buf[] = new byte[datalen];
+        in.readFully(buf);
 
-        // reposition
-        buf2.position(buf2.position() - slack);
+        // skip slack
+        for (int i = 0; i < slack; i++) {
+            in.read();
+        }
 
-        return buf2;
+        return buf;
     }
 
     public void close() throws IOException {
-        channel.close();
+        socket.close();
     }
 }

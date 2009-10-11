@@ -191,7 +191,7 @@ public class SearchFactory {
                 filters);
 
         // send eval
-        ByteBuffer reexec = new XDR_reexecute(objID, attributes).encode();
+        byte reexec[] = new XDR_reexecute(objID, attributes).encode();
         MiniRPCReply reply = new RPC(conn, conn.getHostname(), 21, reexec)
                 .doRPC();
 

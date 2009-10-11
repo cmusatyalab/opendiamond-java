@@ -1,47 +1,36 @@
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.nio.ByteBuffer;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class XDREncoders {
     private XDREncoders() {
     }
 
-    static public ByteBuffer encodeString(String s) {
-        byte bytes[] = s.getBytes();
-        int len = bytes.length;
-        int roundup = XDRGetter.roundup(len);
-
-        ByteBuffer buf = ByteBuffer.allocate(roundup + 4);
-        buf.putInt(len);
-        buf.put(bytes);
-
-        buf.limit(buf.capacity()).position(0);
-
-        return buf.asReadOnlyBuffer();
+    static public byte[] encodeString(String s) {
+        return encodeOpaque(s.getBytes());
     }
 
-    static public ByteBuffer encodeOpaqueFixed(byte[] data) {
+    public static byte[] encodeOpaque(byte[] data) {
         int len = data.length;
         int roundup = XDRGetter.roundup(len);
+        int slack = roundup - len;
 
-        ByteBuffer buf = ByteBuffer.allocate(roundup);
-        buf.put(data);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(baos);
 
-        buf.limit(buf.capacity()).position(0);
+        try {
+            out.writeInt(len);
+            out.write(data);
 
-        return buf.asReadOnlyBuffer();
-    }
+            for (int i = 0; i < slack; i++) {
+                out.write(0);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-    public static ByteBuffer encodeOpaque(byte[] data) {
-        int len = data.length;
-        int roundup = XDRGetter.roundup(len);
-
-        ByteBuffer buf = ByteBuffer.allocate(roundup + 4);
-        buf.putInt(len);
-        buf.put(data);
-
-        buf.limit(buf.capacity()).position(0);
-
-        return buf.asReadOnlyBuffer();
+        return baos.toByteArray();
     }
 }

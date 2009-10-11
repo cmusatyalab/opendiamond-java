@@ -1,6 +1,8 @@
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.nio.ByteBuffer;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,30 +16,33 @@ public class XDR_attr_name_list implements XDREncodeable {
     }
 
     @Override
-    public ByteBuffer encode() {
+    public byte[] encode() {
         // length + strings
 
         int finalSize = 4;
-        List<ByteBuffer> bufs = new ArrayList<ByteBuffer>();
+        List<byte[]> bufs = new ArrayList<byte[]>();
         for (String s : strings) {
-            ByteBuffer bb = XDREncoders.encodeString(s);
+            byte[] bb = XDREncoders.encodeString(s);
             bufs.add(bb);
-            finalSize += bb.limit();
+            finalSize += bb.length;
         }
 
-        ByteBuffer finalBuf = ByteBuffer.allocate(finalSize);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(baos);
 
-        // length
-        finalBuf.putInt(strings.length);
+        try {
+            // length
+            out.writeInt(strings.length);
 
-        // strings
-        for (ByteBuffer b : bufs) {
-            finalBuf.put(b);
+            // strings
+            for (byte b[] : bufs) {
+                out.write(b);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        finalBuf.flip();
-
-        return finalBuf.asReadOnlyBuffer();
+        return baos.toByteArray();
     }
 
 }

@@ -1,12 +1,14 @@
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.io.IOException;
+
 class XDR_dev_char {
     public static final int DEV_ISA_UNKNOWN = 0;
     public static final int DEV_ISA_IA32 = 1;
     public static final int DEV_ISA_IA64 = 2;
     public static final int DEV_ISA_XSCALE = 3;
 
-    public XDR_dev_char(XDRGetter buf) {
+    public XDR_dev_char(XDRGetter buf) throws IOException {
         isa = buf.getInt();
         speed = buf.getInt();
         mem = buf.getLong();

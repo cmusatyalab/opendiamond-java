@@ -1,5 +1,6 @@
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -10,7 +11,7 @@ class XDR_object {
     private final byte[] data;
     private final Map<String, byte[]> attributes;
 
-    public XDR_object(XDRGetter buf) {
+    public XDR_object(XDRGetter buf) throws IOException {
         searchID = buf.getInt() & 0xFFFFFFFFL;
         data = buf.getOpaque();
 

@@ -1,9 +1,10 @@
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
+import java.net.Socket;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -25,36 +26,29 @@ class Connection {
 
     // all public methods must close() on IOException!
 
-    private static SocketChannel createOneChannel(InetSocketAddress address,
-            byte nonce[]) throws IOException {
+    private static Socket createOneChannel(String address, byte nonce[])
+            throws IOException {
         if (nonce.length != NONCE_SIZE) {
             throw new IllegalArgumentException("nonce[] must be NONCE_SIZE ("
                     + NONCE_SIZE + "), actual size " + nonce.length);
         }
 
-        SocketChannel sc = SocketChannel.open(address);
-
-        ByteBuffer buf = ByteBuffer.wrap(nonce);
-
-        int size;
+        Socket socket = new Socket(address, DIAMOND_PORT);
+        System.out.println(address);
+        System.out.println(socket);
+        DataInputStream in = new DataInputStream(socket.getInputStream());
+        DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 
         // write nonce
-        // System.out.println("writing " + Arrays.toString(nonce));
-        size = sc.write(buf);
-        if (size != NONCE_SIZE) {
-            throw new IOException("Could not write nonce, size: " + size);
-        }
+        System.out.println("writing " + Arrays.toString(nonce));
+        out.write(nonce);
+
         // read nonce
-        buf.clear();
+        in.readFully(nonce);
 
-        size = 0;
-        do {
-            size += sc.read(buf);
-        } while (size != NONCE_SIZE);
+        System.out.println("read " + Arrays.toString(nonce));
 
-        // System.out.println("read " + Arrays.toString(nonce));
-
-        return sc;
+        return socket;
     }
 
     Connection(MiniRPCConnection control, MiniRPCConnection blast,
@@ -75,13 +69,11 @@ class Connection {
         MiniRPCConnection blast;
 
         // open control (if exception is thrown here, it's ok)
-        control = new MiniRPCConnection(createOneChannel(new InetSocketAddress(
-                host, DIAMOND_PORT), nonce));
+        control = new MiniRPCConnection(createOneChannel(host, nonce));
 
         // open data
         try {
-            blast = new MiniRPCConnection(createOneChannel(
-                    new InetSocketAddress(host, DIAMOND_PORT), nonce));
+            blast = new MiniRPCConnection(createOneChannel(host, nonce));
         } catch (IOException e) {
             try {
                 // close control and propagate
@@ -100,16 +92,15 @@ class Connection {
             XDR_sig_and_data fspec, List<Filter> filters) throws IOException {
         try {
             // clear scope
-            new RPC(this, hostname, 4, ByteBuffer.allocate(0)).doRPC()
-                    .checkStatus();
+            new RPC(this, hostname, 4, new byte[0]).doRPC().checkStatus();
 
             // define scope
-            ByteBuffer data = XDREncoders.encodeString(cookie.getCookie());
+            byte[] data = XDREncoders.encodeString(cookie.getCookie());
             new RPC(this, hostname, 24, data).doRPC().checkStatus();
 
             // set the push attributes
             if (pushAttributes != null) {
-                ByteBuffer encodedAttributes = new XDR_attr_name_list(
+                byte[] encodedAttributes = new XDR_attr_name_list(
                         pushAttributes).encode();
                 new RPC(this, hostname, 20, encodedAttributes).doRPC()
                         .checkStatus();
@@ -133,8 +124,7 @@ class Connection {
     public void sendStart() throws IOException {
         try {
             // start search
-            ByteBuffer encodedSearchId = ByteBuffer.allocate(4);
-            encodedSearchId.putInt(0).flip();
+            byte encodedSearchId[] = new byte[4]; // 0
 
             // device_start_search = 1
             new RPC(this, hostname, 1, encodedSearchId).doRPC().checkStatus();
@@ -150,22 +140,21 @@ class Connection {
 
         XDR_sig_val sig = XDR_sig_val.createSignature(blobData);
 
-        final ByteBuffer encodedBlobSig = new XDR_blob_sig(name, sig).encode();
-        final ByteBuffer encodedBlob = new XDR_blob(name, blobData).encode();
+        final byte[] encodedBlobSig = new XDR_blob_sig(name, sig).encode();
+        final byte[] encodedBlob = new XDR_blob(name, blobData).encode();
 
         System.out.println("blob sig: " + encodedBlobSig);
 
         // device_set_blob_by_signature = 22
-        MiniRPCReply reply1 = new RPC(this, hostname, 22, encodedBlobSig
-                .duplicate()).doRPC();
+        MiniRPCReply reply1 = new RPC(this, hostname, 22, encodedBlobSig)
+                .doRPC();
         if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
             reply1.checkStatus();
             return;
         }
 
         // device_set_blob = 11
-        new RPC(this, hostname, 11, encodedBlob.duplicate()).doRPC()
-                .checkStatus();
+        new RPC(this, hostname, 11, encodedBlob).doRPC().checkStatus();
     }
 
     private void setCode(Filter f) throws IOException {
@@ -173,20 +162,18 @@ class Connection {
         XDR_sig_val sig = XDR_sig_val.createSignature(code);
         XDR_sig_and_data sigAndData = new XDR_sig_and_data(sig, code);
 
-        final ByteBuffer encodedSig = sig.encode();
-        final ByteBuffer encodedSigAndData = sigAndData.encode();
+        final byte[] encodedSig = sig.encode();
+        final byte[] encodedSigAndData = sigAndData.encode();
 
         // device_set_obj = 16
-        MiniRPCReply reply1 = new RPC(this, hostname, 16, encodedSig
-                .duplicate()).doRPC();
+        MiniRPCReply reply1 = new RPC(this, hostname, 16, encodedSig).doRPC();
         if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
             reply1.checkStatus();
             return;
         }
 
         // device_send_obj = 17
-        new RPC(this, hostname, 17, encodedSigAndData.duplicate()).doRPC()
-                .checkStatus();
+        new RPC(this, hostname, 17, encodedSigAndData).doRPC().checkStatus();
     }
 
     void close() {
@@ -222,7 +209,7 @@ class Connection {
         }
     }
 
-    public void sendMessageBlast(int cmd, ByteBuffer data) throws IOException {
+    public void sendMessageBlast(int cmd, byte data[]) throws IOException {
         try {
             blast.sendMessage(cmd, data);
         } catch (IOException e) {
@@ -231,7 +218,7 @@ class Connection {
         }
     }
 
-    public void sendControlRequest(int cmd, ByteBuffer data) throws IOException {
+    public void sendControlRequest(int cmd, byte[] data) throws IOException {
         try {
             control.sendRequest(cmd, data);
         } catch (IOException e) {

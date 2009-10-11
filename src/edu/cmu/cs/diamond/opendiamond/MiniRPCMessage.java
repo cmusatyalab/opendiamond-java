@@ -1,6 +1,7 @@
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.nio.ByteBuffer;
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 
 final class MiniRPCMessage {
     public final static int MINIRPC_OK = 0;
@@ -25,7 +26,7 @@ final class MiniRPCMessage {
 
     private final XDRGetter data;
 
-    MiniRPCMessage(long sequence, int status, int cmd, ByteBuffer data) {
+    MiniRPCMessage(long sequence, int status, int cmd, byte[] data) {
         if ((sequence < 0) || (sequence > 0xFFFFFFFFL)) {
             throw new IllegalArgumentException(
                     "sequence must be between 0 and " + 0xFFFFFFFFL
@@ -35,7 +36,8 @@ final class MiniRPCMessage {
         this.sequence = sequence;
         this.status = status;
         this.cmd = cmd;
-        this.data = new XDRGetter(data);
+        this.data = new XDRGetter(new DataInputStream(new ByteArrayInputStream(
+                data)));
     }
 
     long getSequence() {

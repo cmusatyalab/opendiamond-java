@@ -1,6 +1,5 @@
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -20,7 +19,7 @@ public class XDR_sig_val implements XDREncodeable {
         this.digest = Arrays.copyOf(digest, digest.length);
     }
 
-    public ByteBuffer encode() {
+    public byte[] encode() {
         return XDREncoders.encodeOpaque(digest);
     }
 
