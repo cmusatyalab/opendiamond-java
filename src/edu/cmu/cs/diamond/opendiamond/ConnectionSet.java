@@ -90,18 +90,30 @@ class ConnectionSet {
                     }
                 } catch (InterruptedException e) {
                     // ok, we're leaving now
+                    e.printStackTrace();
                 } catch (ExecutionException e) {
                     Throwable cause = e.getCause();
                     if (cause instanceof IOException) {
                         IOException e2 = (IOException) cause;
 
                         // inject into blast queue
-                        blastQueue.add(new BlastChannelObject(null, null, e2));
+                        try {
+                            blastQueue.put(new BlastChannelObject(null, null,
+                                    e2));
+                        } catch (InterruptedException e1) {
+                            // we're going to exit anyway
+                            e1.printStackTrace();
+                        }
                     }
                 }
 
                 // all tasks done, inject final object and close
-                addNoMoreResultsToBlastQueue();
+                try {
+                    addNoMoreResultsToBlastQueue();
+                } catch (InterruptedException e) {
+                    // nothing we can do, just close and exit
+                    e.printStackTrace();
+                }
                 close();
             }
         });
@@ -142,7 +154,7 @@ class ConnectionSet {
         return connections.size();
     }
 
-    public void addNoMoreResultsToBlastQueue() {
-        blastQueue.add(BlastChannelObject.NO_MORE_RESULTS);
+    public void addNoMoreResultsToBlastQueue() throws InterruptedException {
+        blastQueue.put(BlastChannelObject.NO_MORE_RESULTS);
     }
 }
