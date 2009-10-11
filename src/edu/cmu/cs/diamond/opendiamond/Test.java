@@ -52,8 +52,6 @@ public class Test {
             filters.add(thumb);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
         List<String> appDepends = new ArrayList<String>();
@@ -100,8 +98,6 @@ public class Test {
                     count++;
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
                 e.printStackTrace();
             }
 
