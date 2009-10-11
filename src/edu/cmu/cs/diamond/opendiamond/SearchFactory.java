@@ -42,12 +42,14 @@ public class SearchFactory {
         final XDR_sig_and_data fspec = searchlet.getFspec();
         final List<Filter> filters = searchlet.getFilters();
 
-        ArrayList<Future<Connection>> futures = new ArrayList<Future<Connection>>();
+        List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
+        CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
+                executor);
         for (Map.Entry<String, Cookie> e : cookieMap.entrySet()) {
             final String hostname = e.getKey();
             final Cookie cookie = e.getValue();
 
-            futures.add(executor.submit(new Callable<Connection>() {
+            futures.add(connectService.submit(new Callable<Connection>() {
                 @Override
                 public Connection call() throws Exception {
                     return Connection.createConnection(hostname, cookie,
@@ -63,7 +65,8 @@ public class SearchFactory {
 
         Set<Connection> connections = new HashSet<Connection>();
         try {
-            for (Future<Connection> f : futures) {
+            for (int i = 0; i < futures.size(); i++) {
+                Future<Connection> f = connectService.take();
                 System.out.println(f);
                 connections.add(f.get());
             }
@@ -93,7 +96,7 @@ public class SearchFactory {
         return new Search2(cs);
     }
 
-    private void cleanup(ArrayList<Future<Connection>> futures)
+    private void cleanup(List<Future<Connection>> futures)
             throws InterruptedException {
         System.out.println("cleanup of " + futures);
         InterruptedException ie = null;
