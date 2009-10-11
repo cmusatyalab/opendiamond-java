@@ -14,24 +14,17 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 public class ServerStatistics {
-    final private String hostname;
-
     final private int totalObjects;
 
     final private int processedObjects;
 
     final private int droppedObjects;
 
-    public ServerStatistics(String hostname, int totalObjects,
-            int processedObjects, int droppedObjects) {
-        this.hostname = hostname;
+    public ServerStatistics(int totalObjects, int processedObjects,
+            int droppedObjects) {
         this.totalObjects = totalObjects;
         this.processedObjects = processedObjects;
         this.droppedObjects = droppedObjects;
-    }
-
-    public String getHostname() {
-        return hostname;
     }
 
     public int getDroppedObjects() {
@@ -48,7 +41,7 @@ public class ServerStatistics {
 
     @Override
     public String toString() {
-        return hostname + ": " + totalObjects + " total, " + processedObjects
-                + " processed, " + droppedObjects + " dropped";
+        return totalObjects + " total, " + processedObjects + " processed, "
+                + droppedObjects + " dropped";
     }
 }

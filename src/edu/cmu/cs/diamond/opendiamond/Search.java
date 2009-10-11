@@ -222,7 +222,7 @@ public class Search {
 
                 String deviceName = OpenDiamond.ls_get_dev_name(handle, dev);
 
-                ServerStatistics s = new ServerStatistics(deviceName, dst
+                ServerStatistics s = new ServerStatistics(dst
                         .getDs_objs_total(), dst.getDs_objs_processed(), dst
                         .getDs_objs_dropped());
                 result.add(s);
