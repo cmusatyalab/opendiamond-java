@@ -25,6 +25,7 @@ final class MiniRPCReply {
         return "miniRPC reply from " + hostname + ": " + message;
     }
 
+    // TODO throw different exceptions based on status
     public void checkStatus() throws IOException {
         int status = getMessage().getStatus();
         if (status != MiniRPCMessage.MINIRPC_OK) {

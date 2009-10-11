@@ -88,6 +88,7 @@ class Connection {
         return conn;
     }
 
+    // TODO pipeline
     private void sendPreStart(Cookie cookie, Set<String> pushAttributes,
             XDR_sig_and_data fspec, List<Filter> filters) throws IOException {
         try {
