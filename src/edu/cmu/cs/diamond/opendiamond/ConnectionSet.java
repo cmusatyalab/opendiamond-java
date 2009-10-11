@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.concurrent.*;
 
 class ConnectionSet {
-    private static class BlastGetter implements Runnable {
+    private static class BlastGetter implements Callable<Object> {
 
         private final BlockingQueue<BlastChannelObject> q;
 
@@ -43,19 +43,17 @@ class ConnectionSet {
         }
 
         @Override
-        public void run() {
-            XDR_object obj;
+        public Object call() throws Exception {
             // block, waiting for blast channel object, then stick into queue
-            try {
-                while ((obj = getAndAcknowldgeBlastChannelObject()) != null) {
-                    q.put(new BlastChannelObject(obj, hostname));
+            while (true) {
+                XDR_object obj = getAndAcknowldgeBlastChannelObject();
+
+                // no more objects?
+                if (obj.getAttributes().isEmpty()) {
+                    return null;
                 }
-            } catch (IOException e) {
-                // bye bye
-                e.printStackTrace();
-            } catch (InterruptedException e) {
-                // bye bye
-                e.printStackTrace();
+
+                q.put(new BlastChannelObject(obj, hostname, null));
             }
         }
     }
@@ -71,10 +69,42 @@ class ConnectionSet {
         this.executor = executor;
         this.connections = new HashSet<Connection>(connections);
 
-        for (Connection c : connections) {
-            // create task for getting blast messages
-            executor.execute(new BlastGetter(c, c.getHostname(), blastQueue));
-        }
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                CompletionService<Object> blastTasks = new ExecutorCompletionService<Object>(
+                        ConnectionSet.this.executor);
+
+                int blastCount = 0;
+                for (Connection c : ConnectionSet.this.connections) {
+                    // create tasks for getting blast messages
+                    blastTasks.submit(new BlastGetter(c, c.getHostname(),
+                            blastQueue));
+                    blastCount++;
+                }
+
+                // wait for things to finish
+                try {
+                    for (int i = 0; i < blastCount; i++) {
+                        blastTasks.take().get();
+                    }
+                } catch (InterruptedException e) {
+                    // ok, we're leaving now
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof IOException) {
+                        IOException e2 = (IOException) cause;
+
+                        // inject into blast queue
+                        blastQueue.add(new BlastChannelObject(null, null, e2));
+                    }
+                }
+
+                // all tasks done, inject final object and close
+                addNoMoreResultsToBlastQueue();
+                close();
+            }
+        });
     }
 
     public void close() {
@@ -110,5 +140,9 @@ class ConnectionSet {
 
     public int size() {
         return connections.size();
+    }
+
+    public void addNoMoreResultsToBlastQueue() {
+        blastQueue.add(BlastChannelObject.NO_MORE_RESULTS);
     }
 }

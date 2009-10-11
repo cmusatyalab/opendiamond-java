@@ -97,10 +97,28 @@ public class Search2 {
         }
     }
 
-    public Result getNextResult() throws InterruptedException {
+    public Result getNextResult() throws InterruptedException, IOException {
         checkClosed();
 
         BlastChannelObject bco = cs.getNextBlastChannelObject();
+
+        // check for exception
+        IOException e = bco.getException();
+        if (e != null) {
+            close();
+
+            // make sure there is at least one more sentinel, in case of
+            // other waiting threads
+            cs.addNoMoreResultsToBlastQueue();
+
+            throw e;
+        }
+
+        if (bco == BlastChannelObject.NO_MORE_RESULTS) {
+            close();
+            cs.addNoMoreResultsToBlastQueue();
+            return null;
+        }
 
         return new JResult(bco.getObj().getAttributes(), bco.getHostname());
     }
