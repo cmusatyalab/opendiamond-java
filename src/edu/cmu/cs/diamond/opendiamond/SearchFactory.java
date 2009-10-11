@@ -96,13 +96,13 @@ public class SearchFactory {
         try {
             for (int i = 0; i < futures.size(); i++) {
                 Future<Connection> f = connectService.take();
-                System.out.println(f);
+                // System.out.println(f);
                 connections.add(f.get());
             }
         } catch (ExecutionException e1) {
             Throwable cause = e1.getCause();
             if (cause instanceof IOException) {
-                System.out.println("*********");
+                // System.out.println("*********");
                 IOException e = (IOException) cause;
                 ioe = e;
             }
@@ -129,11 +129,11 @@ public class SearchFactory {
 
     private void cleanup(List<Future<Connection>> futures)
             throws InterruptedException {
-        System.out.println("cleanup of " + futures);
+        // System.out.println("cleanup of " + futures);
         InterruptedException ie = null;
         for (Future<Connection> future : futures) {
             try {
-                System.out.println(" cleanup ");
+                // System.out.println(" cleanup ");
                 Connection c = future.get();
                 c.close();
             } catch (ExecutionException e) {
@@ -164,7 +164,7 @@ public class SearchFactory {
         List<String> cookies = splitCookies(megacookie);
         for (String s : cookies) {
             Cookie c = new Cookie(s);
-            System.out.println(c);
+            // System.out.println(c);
 
             List<String> servers = c.getServers();
             for (String server : servers) {

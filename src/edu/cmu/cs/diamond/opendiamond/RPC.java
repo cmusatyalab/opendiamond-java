@@ -45,7 +45,7 @@ class RPC implements Callable<MiniRPCReply> {
         MiniRPCReply reply = new MiniRPCReply(connection.receiveControl(),
                 hostname);
 
-        System.out.println(reply);
+        // System.out.println(reply);
 
         return reply;
     }

@@ -4,7 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicInteger;
 
 final class MiniRPCConnection {
@@ -28,8 +27,8 @@ final class MiniRPCConnection {
                             + ", given: " + sequence);
         }
 
-        System.out.println("sending: " + sequence + " " + status + " " + cmd
-                + " (" + data.length + ") " + Arrays.toString(data));
+        // System.out.println("sending: " + sequence + " " + status + " " + cmd
+        // + " (" + data.length + ") " + Arrays.toString(data));
 
         // write header
         out.writeInt((int) sequence);

@@ -41,7 +41,7 @@ class Cookie {
         s = s.substring(BEGIN_COOKIE.length(), end);
 
         String cookie = new String(Base64.decode(s));
-        System.out.println(cookie);
+        // System.out.println(cookie);
 
         // split into header and body
         int boundary = cookie.indexOf("\n\n");

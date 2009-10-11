@@ -25,19 +25,19 @@ class ConnectionSet {
 
         private XDR_object getAndAcknowldgeBlastChannelObject()
                 throws IOException {
-            System.out.println(hostname + ": waiting for blast object");
+            // System.out.println(hostname + ": waiting for blast object");
             MiniRPCMessage incoming = connection.receiveBlast();
             XDR_object obj = new XDR_object(incoming.getData());
-            System.out.println(hostname + ":   blast object done");
+            // System.out.println(hostname + ":   blast object done");
 
             // ack
-            System.out.println(hostname + ": sending credit");
+            // System.out.println(hostname + ": sending credit");
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             DataOutputStream out = new DataOutputStream(baos);
             out.writeInt(1); // 1 credit
 
             connection.sendMessageBlast(1, baos.toByteArray());
-            System.out.println(hostname + ":   credit done");
+            // System.out.println(hostname + ":   credit done");
 
             return obj;
         }

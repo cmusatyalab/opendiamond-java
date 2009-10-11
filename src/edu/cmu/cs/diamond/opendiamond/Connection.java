@@ -4,7 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -34,19 +33,19 @@ class Connection {
         }
 
         Socket socket = new Socket(address, DIAMOND_PORT);
-        System.out.println(address);
-        System.out.println(socket);
+        // System.out.println(address);
+        // System.out.println(socket);
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 
         // write nonce
-        System.out.println("writing " + Arrays.toString(nonce));
+        // System.out.println("writing " + Arrays.toString(nonce));
         out.write(nonce);
 
         // read nonce
         in.readFully(nonce);
 
-        System.out.println("read " + Arrays.toString(nonce));
+        // System.out.println("read " + Arrays.toString(nonce));
 
         return socket;
     }
@@ -61,7 +60,7 @@ class Connection {
     static Connection createConnection(String host, Cookie cookie,
             Set<String> pushAttributes, XDR_sig_and_data fspec,
             List<Filter> filters) throws IOException {
-        System.out.println("connecting to " + host);
+        // System.out.println("connecting to " + host);
 
         byte nonce[] = new byte[NONCE_SIZE];
 
@@ -144,7 +143,7 @@ class Connection {
         final byte[] encodedBlobSig = new XDR_blob_sig(name, sig).encode();
         final byte[] encodedBlob = new XDR_blob(name, blobData).encode();
 
-        System.out.println("blob sig: " + encodedBlobSig);
+        // System.out.println("blob sig: " + encodedBlobSig);
 
         // device_set_blob_by_signature = 22
         MiniRPCReply reply1 = new RPC(this, hostname, 22, encodedBlobSig)
@@ -178,7 +177,7 @@ class Connection {
     }
 
     void close() {
-        System.out.println("closing " + toString());
+        // System.out.println("closing " + toString());
 
         try {
             control.close();
