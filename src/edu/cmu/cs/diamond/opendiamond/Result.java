@@ -5,8 +5,15 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public abstract class Result {
-    final protected Map<String, byte[]> attributes = new HashMap<String, byte[]>();
+public class Result {
+    final private Map<String, byte[]> attributes = new HashMap<String, byte[]>();
+    private final String hostname;
+
+    public Result(Map<String, byte[]> attributes, String hostname) {
+        this.attributes.putAll(attributes);
+
+        this.hostname = hostname;
+    }
 
     public byte[] getData() {
         return getValue("");
@@ -53,5 +60,9 @@ public abstract class Result {
 
     String getObjectID() {
         return Util.extractString(getValue("_ObjectID"));
+    }
+
+    String getHostname() {
+        return hostname;
     }
 }

@@ -189,30 +189,6 @@ public class Util {
         return new String(value, 0, value.length - 1);
     }
 
-    public static void runSimpleSearch(SimpleSearchCallback s)
-            throws InterruptedException {
-        // init OpenDiamond
-        Search search = Search.getSharedInstance();
-        search.defineScope();
-        search.setSearchlet(s.getSearchlet());
-
-        // begin search
-        search.start();
-
-        // process results
-        try {
-            Result r;
-            while ((r = search.getNextResult()) != null) {
-                boolean keepGoing = s.processResult(r);
-                if (!keepGoing) {
-                    break;
-                }
-            }
-        } finally {
-            search.stop();
-        }
-    }
-
     public static byte[] readFully(InputStream in) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 

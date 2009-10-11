@@ -60,7 +60,7 @@ public class SearchFactory {
         return new XDR_sig_and_data(XDR_sig_val.createSignature(spec), spec);
     }
 
-    public Search2 createSearch() throws IOException, InterruptedException {
+    public Search createSearch() throws IOException, InterruptedException {
         // make all the connections and prep everything to start
         final XDR_sig_and_data fspec = getFspec();
 
@@ -115,7 +115,7 @@ public class SearchFactory {
         // we're safe
         ConnectionSet cs = new ConnectionSet(executor, connections);
 
-        Search2 search = new Search2(cs);
+        Search search = new Search(cs);
         search.start();
         return search;
     }
@@ -200,10 +200,8 @@ public class SearchFactory {
 
     public Result reevaluateResult(Result r, Set<String> attributes)
             throws IOException {
-        JResult jr = (JResult) r;
-
-        String host = jr.getHostname();
-        String objID = jr.getObjectID();
+        String host = r.getHostname();
+        String objID = r.getObjectID();
         Cookie c = cookieMap.get(host);
 
         if (c == null) {
@@ -226,7 +224,7 @@ public class SearchFactory {
                 .getMessage().getData()).createMap();
 
         // create result
-        JResult newResult = new JResult(resultAttributes, host);
+        Result newResult = new Result(resultAttributes, host);
 
         // close
         conn.close();
