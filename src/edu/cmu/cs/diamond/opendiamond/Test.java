@@ -61,7 +61,7 @@ public class Test {
         Set<String> pushAttributes = new HashSet<String>();
         pushAttributes.add("thumbnail.jpeg");
         SearchFactory factory = new SearchFactory(filters, appDepends,
-                pushAttributes, SearchFactory.createDefaultCookieMap());
+                SearchFactory.createDefaultCookieMap());
 
         Result r;
 
@@ -75,7 +75,7 @@ public class Test {
         for (int ii = 0; ii < 2; ii++) {
             // begin search
             System.out.println("starting search");
-            Search search = factory.createSearch();
+            Search search = factory.createSearch(pushAttributes);
 
             Map<String, Double> map = new HashMap<String, Double>();
             map.put("Hi", 42.0);

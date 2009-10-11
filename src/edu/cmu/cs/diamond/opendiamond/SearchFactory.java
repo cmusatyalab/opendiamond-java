@@ -18,29 +18,27 @@ public class SearchFactory {
 
     private final List<String> applicationDependencies;
 
-    private final Set<String> pushAttributes;
-
     private Map<String, Cookie> cookieMap;
 
     public SearchFactory(List<Filter> filters,
-            List<String> applicationDependencies, Set<String> pushAttributes,
-            Map<String, Cookie> cookieMap) {
+            List<String> applicationDependencies, Map<String, Cookie> cookieMap) {
         this.filters = new ArrayList<Filter>(filters);
 
         this.applicationDependencies = new ArrayList<String>(
                 applicationDependencies);
 
-        // validate attributes
-        Set<String> copyOfAttributes = new HashSet<String>(pushAttributes);
+        this.cookieMap = new HashMap<String, Cookie>(cookieMap);
+    }
+
+    private Set<String> copyAndValidateAttributes(Set<String> attributes) {
+        Set<String> copyOfAttributes = new HashSet<String>(attributes);
         for (String string : copyOfAttributes) {
             if (string.length() > MAX_ATTRIBUTE_NAME) {
                 throw new IllegalArgumentException("\"" + string
                         + "\" length is greater than MAX_ATTRIBUTE_NAME");
             }
         }
-
-        this.pushAttributes = copyOfAttributes;
-        this.cookieMap = new HashMap<String, Cookie>(cookieMap);
+        return copyOfAttributes;
     }
 
     private XDR_sig_and_data getFspec() {
@@ -60,7 +58,16 @@ public class SearchFactory {
         return new XDR_sig_and_data(XDR_sig_val.createSignature(spec), spec);
     }
 
-    public Search createSearch() throws IOException, InterruptedException {
+    public Search createSearch(Set<String> desiredAttributes)
+            throws IOException, InterruptedException {
+        final Set<String> pushAttributes;
+        if (desiredAttributes == null) {
+            // no filtering requested
+            pushAttributes = null;
+        } else {
+            pushAttributes = copyAndValidateAttributes(desiredAttributes);
+        }
+
         // make all the connections and prep everything to start
         final XDR_sig_and_data fspec = getFspec();
 
@@ -198,8 +205,9 @@ public class SearchFactory {
         return result;
     }
 
-    public Result reevaluateResult(Result r, Set<String> attributes)
+    public Result reevaluateResult(Result r, Set<String> desiredAttributes)
             throws IOException {
+        Set<String> attributes = copyAndValidateAttributes(desiredAttributes);
         String host = r.getHostname();
         String objID = r.getObjectID();
         Cookie c = cookieMap.get(host);
