@@ -135,4 +135,8 @@ class Cookie {
                 + serial + ", keyId: " + Arrays.toString(keyId) + ", expires: "
                 + expires;
     }
+
+    public String getScopeData() {
+        return scopeData;
+    }
 }

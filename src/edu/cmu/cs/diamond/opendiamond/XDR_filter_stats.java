@@ -6,6 +6,47 @@ public class XDR_filter_stats {
     private final String name;
     private final int objsProcessed;
     private final int objsDropped;
+
+    public String getName() {
+        return name;
+    }
+
+    public int getObjsProcessed() {
+        return objsProcessed;
+    }
+
+    public int getObjsDropped() {
+        return objsDropped;
+    }
+
+    public int getObjsCacheDropped() {
+        return objsCacheDropped;
+    }
+
+    public int getObjsCachePassed() {
+        return objsCachePassed;
+    }
+
+    public int getObjsCompute() {
+        return objsCompute;
+    }
+
+    public int getHitsInterSession() {
+        return hitsInterSession;
+    }
+
+    public int getHitsInterQuery() {
+        return hitsInterQuery;
+    }
+
+    public int getHitsIntraQuery() {
+        return hitsIntraQuery;
+    }
+
+    public long getAvgExecTime() {
+        return avgExecTime;
+    }
+
     private final int objsCacheDropped;
     private final int objsCachePassed;
     private final int objsCompute;

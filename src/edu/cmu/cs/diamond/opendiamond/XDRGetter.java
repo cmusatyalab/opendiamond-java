@@ -59,4 +59,12 @@ public class XDRGetter {
     public String getString(int maxLength) throws IOException {
         return new String(getOpaque(maxLength));
     }
+
+    public String getString() throws IOException {
+        return getString(Integer.MAX_VALUE);
+    }
+
+    public double getDouble() throws IOException {
+        return data.readDouble();
+    }
 }
