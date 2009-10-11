@@ -76,7 +76,6 @@ public class Test {
             // begin search
             System.out.println("starting search");
             Search2 search = factory.createSearch();
-            search.start();
 
             Map<String, Double> map = new HashMap<String, Double>();
             map.put("Hi", 42.0);

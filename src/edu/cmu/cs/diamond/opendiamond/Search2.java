@@ -65,7 +65,7 @@ public class Search2 {
         cs.close();
     }
 
-    public void start() throws InterruptedException, IOException {
+    void start() throws InterruptedException, IOException {
         checkClosed();
         CompletionService<?> replies = cs
                 .runOnAllServers(new ConnectionFunction<Object>() {

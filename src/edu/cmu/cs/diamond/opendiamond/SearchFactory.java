@@ -115,7 +115,9 @@ public class SearchFactory {
         // we're safe
         ConnectionSet cs = new ConnectionSet(executor, connections);
 
-        return new Search2(cs);
+        Search2 search = new Search2(cs);
+        search.start();
+        return search;
     }
 
     private void cleanup(List<Future<Connection>> futures)
