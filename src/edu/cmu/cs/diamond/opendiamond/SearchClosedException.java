@@ -1,5 +1,7 @@
 package edu.cmu.cs.diamond.opendiamond;
 
-public class SearchClosedException extends IllegalStateException {
+import java.io.IOException;
+
+public class SearchClosedException extends IOException {
 
 }
