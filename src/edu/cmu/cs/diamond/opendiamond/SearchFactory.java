@@ -4,13 +4,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.*;
 
 public class SearchFactory {
     private final ExecutorService executor = new ThreadPoolExecutor(0,
-            Integer.MAX_VALUE, 2, TimeUnit.SECONDS,
+            Integer.MAX_VALUE, 500, TimeUnit.MILLISECONDS,
             new SynchronousQueue<Runnable>());
 
     public static final int MAX_ATTRIBUTE_NAME = 256;
