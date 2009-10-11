@@ -88,6 +88,7 @@ public class Test {
             int count = 0;
             try {
                 while ((r = search.getNextResult()) != null && count < 10) {
+                    System.out.println(search.getStatistics());
                     processResult(factory, r);
 
                     System.out.println(search.mergeSessionVariables(map, sum));

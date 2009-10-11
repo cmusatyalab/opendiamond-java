@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
+import java.util.concurrent.ExecutionException;
 
 public class Search2 {
     private static class SessionVariables {
@@ -123,15 +124,43 @@ public class Search2 {
         return new JResult(bco.getObj().getAttributes(), bco.getHostname());
     }
 
-    public ServerStatistics[] getStatistics() {
+    public Map<String, ServerStatistics> getStatistics() throws IOException,
+            InterruptedException {
         checkClosed();
 
-        // TODO
-        ServerStatistics noResult[] = new ServerStatistics[0];
+        Map<String, ServerStatistics> result = new HashMap<String, ServerStatistics>();
 
-        List<ServerStatistics> result = new ArrayList<ServerStatistics>();
+        // request_stats = 15
+        CompletionService<MiniRPCReply> results = cs.sendToAllControlChannels(
+                15, new byte[0]);
+        try {
+            for (int i = 0; i < cs.size(); i++) {
+                try {
+                    MiniRPCReply reply = results.take().get();
 
-        return result.toArray(noResult);
+                    reply.checkStatus();
+
+                    String host = reply.getHostname();
+                    MiniRPCMessage msg = reply.getMessage();
+                    XDR_dev_stats stats = new XDR_dev_stats(msg.getData());
+
+                    // add
+                    result.put(host, new ServerStatistics(stats.getObjsTotal(),
+                            stats.getObjsProcessed(), stats.getObjsDropped()));
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof IOException) {
+                        IOException e2 = (IOException) cause;
+                        throw e2;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
+
+        return result;
     }
 
     public Map<String, Double> mergeSessionVariables(
