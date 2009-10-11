@@ -29,21 +29,11 @@ public class Search2 {
 
         final private Map<String, Double> map;
 
-        public SessionVariables(String hostname, String names[],
-                double values[]) {
+        public SessionVariables(String hostname, Map<String, Double> vars) {
             this.hostname = hostname;
 
-            Map<String, Double> m = new HashMap<String, Double>();
-
-            for (int i = 0; i < names.length; i++) {
-                m.put(names[i], values[i]);
-            }
-
-            map = Collections.unmodifiableMap(m);
-        }
-
-        public String getHostname() {
-            return hostname;
+            map = Collections
+                    .unmodifiableMap(new HashMap<String, Double>(vars));
         }
 
         public Map<String, Double> getVariables() {
@@ -92,7 +82,7 @@ public class Search2 {
         }
     }
 
-    private void checkClosed() {
+    private void checkClosed() throws SearchClosedException {
         if (closed) {
             throw new SearchClosedException();
         }
@@ -164,11 +154,12 @@ public class Search2 {
     }
 
     public Map<String, Double> mergeSessionVariables(
-            Map<String, Double> globalValues, DoubleComposer composer) {
+            Map<String, Double> globalValues, DoubleComposer composer)
+            throws IOException, InterruptedException {
         checkClosed();
 
         // collect all the session variables
-        SessionVariables[] sv = getSessionVariables();
+        List<SessionVariables> sv = getSessionVariables();
 
         // build new state
         composeVariables(globalValues, composer, sv);
@@ -180,7 +171,7 @@ public class Search2 {
     }
 
     private void composeVariables(Map<String, Double> globalValues,
-            DoubleComposer composer, SessionVariables[] sv) {
+            DoubleComposer composer, List<SessionVariables> sv) {
 
         // System.out.println("INPUT: " + Arrays.toString(sv));
 
@@ -212,17 +203,77 @@ public class Search2 {
         // System.out.println("OUTPUT: " + globalValues);
     }
 
-    private SessionVariables[] getSessionVariables() {
-        SessionVariables noResult[] = new SessionVariables[0];
+    private List<SessionVariables> getSessionVariables() throws IOException,
+            InterruptedException {
+        checkClosed();
+
         List<SessionVariables> result = new ArrayList<SessionVariables>();
 
-        // TODO
+        // session_variables_get = 18
+        CompletionService<MiniRPCReply> results = cs.sendToAllControlChannels(
+                18, new byte[0]);
+        try {
+            for (int i = 0; i < cs.size(); i++) {
+                try {
+                    MiniRPCReply reply = results.take().get();
 
-        return result.toArray(noResult);
+                    reply.checkStatus();
+
+                    List<XDR_diamond_session_var> vars = new XDR_diamond_session_vars(
+                            reply.getMessage().getData()).getVars();
+
+                    // add
+                    Map<String, Double> serverVars = new HashMap<String, Double>();
+                    for (XDR_diamond_session_var v : vars) {
+                        serverVars.put(v.getName(), v.getValue());
+                    }
+                    result.add(new SessionVariables(reply.getHostname(),
+                            serverVars));
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof IOException) {
+                        IOException e2 = (IOException) cause;
+                        throw e2;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
+
+        return result;
+
     }
 
-    private void setSessionVariables(Map<String, Double> map) {
-        // TODO
+    private void setSessionVariables(Map<String, Double> map)
+            throws InterruptedException, IOException {
+        // encode
+        List<XDR_diamond_session_var> vars = new ArrayList<XDR_diamond_session_var>();
+        for (Map.Entry<String, Double> e : map.entrySet()) {
+            vars.add(new XDR_diamond_session_var(e.getKey(), e.getValue()));
+        }
+        byte data[] = new XDR_diamond_session_vars(vars).encode();
+
+        // session_variables_set = 19
+        CompletionService<MiniRPCReply> results = cs.sendToAllControlChannels(
+                19, data);
+        try {
+            for (int i = 0; i < cs.size(); i++) {
+                try {
+                    results.take().get().checkStatus();
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof IOException) {
+                        IOException e2 = (IOException) cause;
+                        throw e2;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
     }
 
     Search2(ConnectionSet connectionSet) {
