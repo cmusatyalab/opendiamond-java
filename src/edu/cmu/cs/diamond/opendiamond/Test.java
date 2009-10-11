@@ -57,14 +57,11 @@ public class Test {
         List<String> appDepends = new ArrayList<String>();
         appDepends.add("RGB");
 
-        // make a new searchlet
-        Searchlet searchlet = new Searchlet(filters, appDepends);
-
         // make new factory
         Set<String> pushAttributes = new HashSet<String>();
         pushAttributes.add("thumbnail.jpeg");
-        SearchFactory factory = new SearchFactory(searchlet, pushAttributes,
-                SearchFactory.createDefaultCookieMap());
+        SearchFactory factory = new SearchFactory(filters, appDepends,
+                pushAttributes, SearchFactory.createDefaultCookieMap());
 
         Result r;
 

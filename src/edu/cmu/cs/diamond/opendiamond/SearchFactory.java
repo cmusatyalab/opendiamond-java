@@ -14,15 +14,21 @@ public class SearchFactory {
 
     public static final int MAX_ATTRIBUTE_NAME = 256;
 
-    final private Searchlet searchlet;
+    private final List<Filter> filters;
 
-    final private Set<String> pushAttributes;
+    private final List<String> applicationDependencies;
+
+    private final Set<String> pushAttributes;
 
     private Map<String, Cookie> cookieMap;
 
-    public SearchFactory(Searchlet searchlet, Set<String> pushAttributes,
+    public SearchFactory(List<Filter> filters,
+            List<String> applicationDependencies, Set<String> pushAttributes,
             Map<String, Cookie> cookieMap) {
-        this.searchlet = searchlet;
+        this.filters = new ArrayList<Filter>(filters);
+
+        this.applicationDependencies = new ArrayList<String>(
+                applicationDependencies);
 
         // validate attributes
         Set<String> copyOfAttributes = new HashSet<String>(pushAttributes);
@@ -37,10 +43,26 @@ public class SearchFactory {
         this.cookieMap = new HashMap<String, Cookie>(cookieMap);
     }
 
+    private XDR_sig_and_data getFspec() {
+        StringBuilder sb = new StringBuilder();
+        for (Filter f : filters) {
+            sb.append(f.toString());
+        }
+
+        if (!applicationDependencies.isEmpty()) {
+            sb.append("FILTER APPLICATION\n");
+            for (String d : applicationDependencies) {
+                sb.append("REQUIRES " + d + "\n");
+            }
+        }
+
+        byte spec[] = sb.toString().getBytes();
+        return new XDR_sig_and_data(XDR_sig_val.createSignature(spec), spec);
+    }
+
     public Search2 createSearch() throws IOException, InterruptedException {
         // make all the connections and prep everything to start
-        final XDR_sig_and_data fspec = searchlet.getFspec();
-        final List<Filter> filters = searchlet.getFilters();
+        final XDR_sig_and_data fspec = getFspec();
 
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
@@ -187,8 +209,7 @@ public class SearchFactory {
         }
 
         // prestart
-        XDR_sig_and_data fspec = searchlet.getFspec();
-        List<Filter> filters = searchlet.getFilters();
+        XDR_sig_and_data fspec = getFspec();
         Connection conn = Connection.createConnection(host, c, null, fspec,
                 filters);
 

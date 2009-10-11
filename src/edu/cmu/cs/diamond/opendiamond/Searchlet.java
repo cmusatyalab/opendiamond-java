@@ -78,9 +78,4 @@ public class Searchlet {
     List<Filter> getFilters() {
         return filters;
     }
-
-    XDR_sig_and_data getFspec() {
-        byte spec[] = toString().getBytes();
-        return new XDR_sig_and_data(XDR_sig_val.createSignature(spec), spec);
-    }
 }
