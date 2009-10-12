@@ -38,15 +38,20 @@ public class Test {
         try {
             FilterCode c = new FilterCode(
                     new FileInputStream("/tmp/fil_rgb.so"));
+
+            List<String> dependencies = Collections.emptyList();
+            List<String> arguments = Collections.emptyList();
+
             Filter rgb = new Filter("RGB", c, "f_eval_img2rgb",
-                    "f_init_img2rgb", "f_fini_img2rgb", 1, new String[0],
-                    new String[0], 400);
+                    "f_init_img2rgb", "f_fini_img2rgb", 1, dependencies,
+                    arguments, 400);
             System.out.println(rgb);
 
             c = new FilterCode(new FileInputStream("/tmp/fil_thumb.so"));
             Filter thumb = new Filter("thumb", c, "f_eval_thumbnailer",
-                    "f_init_thumbnailer", "f_fini_thumbnailer", 1,
-                    new String[] { "RGB" }, new String[] { "200", "150" }, 0);
+                    "f_init_thumbnailer", "f_fini_thumbnailer", 1, Arrays
+                            .asList(new String[] { "RGB" }), Arrays
+                            .asList(new String[] { "200", "150" }), 0);
 
             filters.add(rgb);
             filters.add(thumb);

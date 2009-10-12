@@ -13,12 +13,16 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 public class Filter {
     final private FilterCode code;
 
-    final private String[] dependencies;
+    final private List<String> dependencies;
 
-    final private String[] arguments;
+    final private List<String> arguments;
 
     final private String evalFunction;
 
@@ -36,7 +40,8 @@ public class Filter {
 
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,
-            String dependencies[], String arguments[], int merit, byte blob[]) {
+            Collection<String> dependencies, List<String> arguments, int merit,
+            byte blob[]) {
 
         // TODO check for valid characters as in filter_spec.l
         this.name = name.trim();
@@ -47,12 +52,8 @@ public class Filter {
         this.threshold = threshold;
         this.merit = merit;
 
-        this.dependencies = new String[dependencies.length];
-        System.arraycopy(dependencies, 0, this.dependencies, 0,
-                dependencies.length);
-
-        this.arguments = new String[arguments.length];
-        System.arraycopy(arguments, 0, this.arguments, 0, arguments.length);
+        this.dependencies = new ArrayList<String>(dependencies);
+        this.arguments = new ArrayList<String>(arguments);
 
         this.blob = new byte[blob.length];
         System.arraycopy(blob, 0, this.blob, 0, blob.length);
@@ -60,7 +61,7 @@ public class Filter {
 
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,
-            String dependencies[], String arguments[], int merit) {
+            Collection<String> dependencies, List<String> arguments, int merit) {
         this(name, code, evalFunction, initFunction, finiFunction, threshold,
                 dependencies, arguments, merit, new byte[0]);
     }
