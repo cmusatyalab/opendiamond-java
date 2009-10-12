@@ -147,64 +147,6 @@ public class SearchFactory {
         }
     }
 
-    public static Map<String, Cookie> createDefaultCookieMap()
-            throws IOException {
-        // get newscope file
-        File home = new File(System.getProperty("user.home"));
-        File diamondDir = new File(home, ".diamond");
-        File newscope = new File(diamondDir, "NEWSCOPE");
-
-        InputStream in = new FileInputStream(newscope);
-        String megacookie = new String(Util.readFully(in));
-        in.close();
-
-        Map<String, Cookie> cookieMap = new HashMap<String, Cookie>();
-
-        // fill map from hostnames to cookies
-        List<String> cookies = splitCookies(megacookie);
-        for (String s : cookies) {
-            Cookie c = new Cookie(s);
-            // System.out.println(c);
-
-            List<String> servers = c.getServers();
-            for (String server : servers) {
-                cookieMap.put(server, c);
-            }
-        }
-
-        return cookieMap;
-    }
-
-    private static List<String> splitCookies(String megacookie) {
-        List<String> result = new ArrayList<String>();
-
-        String lines[] = megacookie.split("\n");
-        boolean inCookie = false;
-        StringBuilder sb = null;
-        for (String l : lines) {
-            if (l.equals(Cookie.BEGIN_COOKIE)) {
-                inCookie = true;
-                sb = new StringBuilder();
-            }
-
-            if (!inCookie) {
-                continue;
-            }
-
-            sb.append(l);
-            sb.append('\n');
-
-            if (!l.equals(Cookie.END_COOKIE)) {
-                continue;
-            }
-
-            inCookie = false;
-            result.add(sb.toString());
-        }
-
-        return result;
-    }
-
     public Result reevaluateResult(Result r, Set<String> desiredAttributes)
             throws IOException {
         Set<String> attributes = copyAndValidateAttributes(desiredAttributes);
