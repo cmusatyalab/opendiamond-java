@@ -111,7 +111,20 @@ public class Search {
             return null;
         }
 
-        return new Result(bco.getObj().getAttributes(), bco.getHostname());
+        // compose new Result
+        XDR_object obj = bco.getObj();
+        Map<String, byte[]> attrs = obj.getAttributes();
+        byte[] data = obj.getData();
+
+        // when push attributes are not set, data is in data, not "" in
+        // attributes
+        if (data.length != 0) {
+            HashMap<String, byte[]> newMap = new HashMap<String, byte[]>(attrs);
+            newMap.put("", data);
+            attrs = Collections.unmodifiableMap(newMap);
+        }
+
+        return new Result(attrs, bco.getHostname());
     }
 
     public Map<String, ServerStatistics> getStatistics() throws IOException,
