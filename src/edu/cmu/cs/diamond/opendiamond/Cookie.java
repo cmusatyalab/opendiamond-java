@@ -10,7 +10,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-class Cookie {
+public class Cookie {
     final static String BEGIN_COOKIE = "-----BEGIN OPENDIAMOND SCOPECOOKIE-----";
 
     final static String END_COOKIE = "-----END OPENDIAMOND SCOPECOOKIE-----";
