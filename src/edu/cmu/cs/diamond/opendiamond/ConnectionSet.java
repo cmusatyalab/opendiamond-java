@@ -37,8 +37,7 @@ class ConnectionSet {
                         blastTasks.take().get();
                     }
                 } catch (InterruptedException e) {
-                    // ok, we're leaving now
-                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
                 } catch (ExecutionException e) {
                     Throwable cause = e.getCause();
                     if (cause instanceof IOException) {
@@ -49,8 +48,7 @@ class ConnectionSet {
                             blastQueue.put(new BlastChannelObject(null, null,
                                     e2));
                         } catch (InterruptedException e1) {
-                            // we're going to exit anyway
-                            e1.printStackTrace();
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
@@ -59,8 +57,7 @@ class ConnectionSet {
                 try {
                     addNoMoreResultsToBlastQueue();
                 } catch (InterruptedException e) {
-                    // nothing we can do, just close and exit
-                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
                 }
                 close();
             }
