@@ -1,9 +1,6 @@
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -20,8 +17,9 @@ public class SearchFactory {
 
     private Map<String, Cookie> cookieMap;
 
-    public SearchFactory(List<Filter> filters,
-            List<String> applicationDependencies, Map<String, Cookie> cookieMap) {
+    public SearchFactory(Collection<Filter> filters,
+            Collection<String> applicationDependencies,
+            Map<String, Cookie> cookieMap) {
         this.filters = new ArrayList<Filter>(filters);
 
         this.applicationDependencies = new ArrayList<String>(
