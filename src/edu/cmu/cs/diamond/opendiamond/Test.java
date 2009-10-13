@@ -1,8 +1,8 @@
 /*
  *  The OpenDiamond Platform for Interactive Search
- *  Version 3
+ *  Version 5
  *
- *  Copyright (c) 2007 Carnegie Mellon University
+ *  Copyright (c) 2007, 2009 Carnegie Mellon University
  *  All rights reserved.
  *
  *  This software is distributed under the terms of the Eclipse Public
@@ -65,8 +65,8 @@ public class Test {
         // make new factory
         Set<String> pushAttributes = new HashSet<String>();
         pushAttributes.add("thumbnail.jpeg");
-        SearchFactory factory = new SearchFactory(filters, appDepends,
-                Cookie.createDefaultCookieMap());
+        SearchFactory factory = new SearchFactory(filters, appDepends, Cookie
+                .createDefaultCookieMap());
 
         Result r;
 
