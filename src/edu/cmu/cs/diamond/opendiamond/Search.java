@@ -48,11 +48,17 @@ public class Search {
 
     final private ConnectionSet cs;
 
-    private boolean closed;
+    private volatile boolean closed;
 
-    public void close() {
-        closed = true;
-        cs.close();
+    private final Object closeLock = new Object();
+
+    public void close() throws InterruptedException {
+        synchronized (closeLock) {
+            if (!closed) {
+                closed = true;
+                cs.close();
+            }
+        }
     }
 
     void start() throws InterruptedException, IOException {
