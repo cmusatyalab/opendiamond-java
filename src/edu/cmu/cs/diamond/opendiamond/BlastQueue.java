@@ -30,6 +30,10 @@ class BlastQueue {
 
     public void put(BlastChannelObject blastChannelObject)
             throws InterruptedException {
+        if (shutdown) {
+            throw new IllegalStateException("queue is shut down");
+        }
+
         q.put(blastChannelObject);
     }
 
