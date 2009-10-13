@@ -93,22 +93,16 @@ public class Search {
 
         BlastChannelObject bco = cs.getNextBlastChannelObject();
 
+        // done?
+        if (bco == BlastChannelObject.NO_MORE_RESULTS) {
+            return null;
+        }
+
         // check for exception
         IOException e = bco.getException();
         if (e != null) {
             close();
-
-            // make sure there is at least one more sentinel, in case of
-            // other waiting threads
-            cs.addNoMoreResultsToBlastQueue();
-
             throw e;
-        }
-
-        if (bco == BlastChannelObject.NO_MORE_RESULTS) {
-            close();
-            cs.addNoMoreResultsToBlastQueue();
-            return null;
         }
 
         // compose new Result

@@ -6,19 +6,18 @@ package edu.cmu.cs.diamond.opendiamond;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 
 class BlastGetter implements Callable<Object> {
 
-    private final BlockingQueue<BlastChannelObject> q;
+    private final BlastQueue q;
 
     private final Connection connection;
 
     private final String hostname;
 
     public BlastGetter(Connection connection, String hostname,
-            BlockingQueue<BlastChannelObject> blastQueue) {
+            BlastQueue blastQueue) {
         this.connection = connection;
         this.hostname = hostname;
         this.q = blastQueue;

@@ -1,49 +1,56 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
 
 class ConnectionSet {
     private final Set<Connection> connections;
 
-    private final BlockingQueue<BlastChannelObject> blastQueue = new ArrayBlockingQueue<BlastChannelObject>(
-            20);
+    private final BlastQueue blastQueue = new BlastQueue(20);
 
     private final ExecutorService executor;
+
+    private final List<Future<?>> blastFutures = new ArrayList<Future<?>>();
+
+    private final Future<?> connectionSetFuture;
+
+    private volatile boolean closing;
 
     ConnectionSet(ExecutorService executor, Set<Connection> connections) {
         this.executor = executor;
         this.connections = new HashSet<Connection>(connections);
 
-        executor.execute(new Runnable() {
+        // create tasks for getting blast messages
+        final CompletionService<Object> blastTasks = new ExecutorCompletionService<Object>(
+                executor);
+        for (Connection c : connections) {
+            blastFutures.add(blastTasks.submit(new BlastGetter(c, c
+                    .getHostname(), blastQueue)));
+        }
+        final int tasksCount = blastFutures.size();
+
+        // wait for things to finish
+        connectionSetFuture = executor.submit(new Callable<Object>() {
             @Override
-            public void run() {
-                CompletionService<Object> blastTasks = new ExecutorCompletionService<Object>(
-                        ConnectionSet.this.executor);
-
-                int blastCount = 0;
-                for (Connection c : ConnectionSet.this.connections) {
-                    // create tasks for getting blast messages
-                    blastTasks.submit(new BlastGetter(c, c.getHostname(),
-                            blastQueue));
-                    blastCount++;
-                }
-
-                // wait for things to finish
+            public Object call() {
                 try {
-                    for (int i = 0; i < blastCount; i++) {
+                    for (int i = 0; i < tasksCount; i++) {
                         blastTasks.take().get();
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (ExecutionException e) {
+                    cancelAllBlastTasks();
+
                     Throwable cause = e.getCause();
-                    if (cause instanceof IOException) {
+                    if ((cause instanceof IOException) && !closing) {
                         IOException e2 = (IOException) cause;
 
-                        // inject into blast queue
+                        // inject into blast queue, only if we are not closing
                         try {
                             blastQueue.put(new BlastChannelObject(null, null,
                                     e2));
@@ -51,22 +58,38 @@ class ConnectionSet {
                             Thread.currentThread().interrupt();
                         }
                     }
+                } finally {
+                    // all tasks done, shut down queue
+                    blastQueue.shutdown();
                 }
 
-                // all tasks done, inject final object and close
-                try {
-                    addNoMoreResultsToBlastQueue();
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-                close();
+                return null;
             }
         });
     }
 
-    public void close() {
+    public void close() throws InterruptedException {
+        closing = true;
+
+        // cancel all blast tasks
+        cancelAllBlastTasks();
+
+        // close all connections
         for (Connection c : connections) {
             c.close();
+        }
+
+        // wait for cancellations and shutdown
+        try {
+            connectionSetFuture.get();
+        } catch (ExecutionException e) {
+            // ignore
+        }
+    }
+
+    private void cancelAllBlastTasks() {
+        for (Future<?> f : blastFutures) {
+            f.cancel(true);
         }
     }
 
@@ -97,9 +120,5 @@ class ConnectionSet {
 
     public int size() {
         return connections.size();
-    }
-
-    public void addNoMoreResultsToBlastQueue() throws InterruptedException {
-        blastQueue.put(BlastChannelObject.NO_MORE_RESULTS);
     }
 }
