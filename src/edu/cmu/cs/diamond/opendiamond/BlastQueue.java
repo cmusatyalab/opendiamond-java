@@ -22,7 +22,7 @@ class BlastQueue {
 
     private final Object lock = new Object();
 
-    private boolean shutdown;
+    private volatile boolean shutdown;
 
     public BlastQueue(int size) {
         q = new ArrayBlockingQueue<BlastChannelObject>(size);
