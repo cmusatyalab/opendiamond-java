@@ -10,7 +10,7 @@ public class BlastChannelObject {
 
     final private IOException exception;
 
-    public static final BlastChannelObject NO_MORE_RESULTS = new BlastChannelObject(
+    static final BlastChannelObject NO_MORE_RESULTS = new BlastChannelObject(
             null, null, null);
 
     public BlastChannelObject(XDR_object obj, String hostname,
