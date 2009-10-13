@@ -28,17 +28,16 @@ public class SearchFactory {
 
     private final List<String> applicationDependencies;
 
-    private Map<String, Cookie> cookieMap;
+    private CookieMap cookieMap;
 
     public SearchFactory(Collection<Filter> filters,
-            Collection<String> applicationDependencies,
-            Map<String, Cookie> cookieMap) {
+            Collection<String> applicationDependencies, CookieMap cookieMap) {
         this.filters = new ArrayList<Filter>(filters);
 
         this.applicationDependencies = new ArrayList<String>(
                 applicationDependencies);
 
-        this.cookieMap = new HashMap<String, Cookie>(cookieMap);
+        this.cookieMap = cookieMap;
     }
 
     private Set<String> copyAndValidateAttributes(Set<String> attributes) {

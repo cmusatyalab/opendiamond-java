@@ -65,7 +65,7 @@ public class Test {
         // make new factory
         Set<String> pushAttributes = new HashSet<String>();
         pushAttributes.add("thumbnail.jpeg");
-        SearchFactory factory = new SearchFactory(filters, appDepends, Cookie
+        SearchFactory factory = new SearchFactory(filters, appDepends, CookieMap
                 .createDefaultCookieMap());
 
         Result r;
