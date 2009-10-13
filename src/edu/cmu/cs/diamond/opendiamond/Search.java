@@ -52,6 +52,8 @@ public class Search {
 
     private final Object closeLock = new Object();
 
+    private final Object rpcLock = new Object();
+
     public void close() throws InterruptedException {
         synchronized (closeLock) {
             if (!closed) {
@@ -133,34 +135,38 @@ public class Search {
 
         Map<String, ServerStatistics> result = new HashMap<String, ServerStatistics>();
 
-        // request_stats = 15
-        CompletionService<MiniRPCReply> results = cs.sendToAllControlChannels(
-                15, new byte[0]);
-        try {
-            for (int i = 0; i < cs.size(); i++) {
-                try {
-                    MiniRPCReply reply = results.take().get();
+        synchronized (rpcLock) {
+            // request_stats = 15
+            CompletionService<MiniRPCReply> results = cs
+                    .sendToAllControlChannels(15, new byte[0]);
+            try {
+                for (int i = 0; i < cs.size(); i++) {
+                    try {
+                        MiniRPCReply reply = results.take().get();
 
-                    reply.checkStatus();
+                        reply.checkStatus();
 
-                    String host = reply.getHostname();
-                    MiniRPCMessage msg = reply.getMessage();
-                    XDR_dev_stats stats = new XDR_dev_stats(msg.getData());
+                        String host = reply.getHostname();
+                        MiniRPCMessage msg = reply.getMessage();
+                        XDR_dev_stats stats = new XDR_dev_stats(msg.getData());
 
-                    // add
-                    result.put(host, new ServerStatistics(stats.getObjsTotal(),
-                            stats.getObjsProcessed(), stats.getObjsDropped()));
-                } catch (ExecutionException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof IOException) {
-                        IOException e2 = (IOException) cause;
-                        throw e2;
+                        // add
+                        result.put(host, new ServerStatistics(stats
+                                .getObjsTotal(), stats.getObjsProcessed(),
+                                stats.getObjsDropped()));
+                    } catch (ExecutionException e) {
+                        Throwable cause = e.getCause();
+                        if (cause instanceof IOException) {
+                            IOException e2 = (IOException) cause;
+                            throw e2;
+                        }
                     }
                 }
+
+            } catch (IOException e) {
+                close();
+                throw e;
             }
-        } catch (IOException e) {
-            close();
-            throw e;
         }
 
         return result;
@@ -222,37 +228,39 @@ public class Search {
 
         List<SessionVariables> result = new ArrayList<SessionVariables>();
 
-        // session_variables_get = 18
-        CompletionService<MiniRPCReply> results = cs.sendToAllControlChannels(
-                18, new byte[0]);
-        try {
-            for (int i = 0; i < cs.size(); i++) {
-                try {
-                    MiniRPCReply reply = results.take().get();
+        synchronized (rpcLock) {
+            // session_variables_get = 18
+            CompletionService<MiniRPCReply> results = cs
+                    .sendToAllControlChannels(18, new byte[0]);
+            try {
+                for (int i = 0; i < cs.size(); i++) {
+                    try {
+                        MiniRPCReply reply = results.take().get();
 
-                    reply.checkStatus();
+                        reply.checkStatus();
 
-                    List<XDR_diamond_session_var> vars = new XDR_diamond_session_vars(
-                            reply.getMessage().getData()).getVars();
+                        List<XDR_diamond_session_var> vars = new XDR_diamond_session_vars(
+                                reply.getMessage().getData()).getVars();
 
-                    // add
-                    Map<String, Double> serverVars = new HashMap<String, Double>();
-                    for (XDR_diamond_session_var v : vars) {
-                        serverVars.put(v.getName(), v.getValue());
-                    }
-                    result.add(new SessionVariables(reply.getHostname(),
-                            serverVars));
-                } catch (ExecutionException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof IOException) {
-                        IOException e2 = (IOException) cause;
-                        throw e2;
+                        // add
+                        Map<String, Double> serverVars = new HashMap<String, Double>();
+                        for (XDR_diamond_session_var v : vars) {
+                            serverVars.put(v.getName(), v.getValue());
+                        }
+                        result.add(new SessionVariables(reply.getHostname(),
+                                serverVars));
+                    } catch (ExecutionException e) {
+                        Throwable cause = e.getCause();
+                        if (cause instanceof IOException) {
+                            IOException e2 = (IOException) cause;
+                            throw e2;
+                        }
                     }
                 }
+            } catch (IOException e) {
+                close();
+                throw e;
             }
-        } catch (IOException e) {
-            close();
-            throw e;
         }
 
         return result;
@@ -268,24 +276,26 @@ public class Search {
         }
         byte data[] = new XDR_diamond_session_vars(vars).encode();
 
-        // session_variables_set = 19
-        CompletionService<MiniRPCReply> results = cs.sendToAllControlChannels(
-                19, data);
-        try {
-            for (int i = 0; i < cs.size(); i++) {
-                try {
-                    results.take().get().checkStatus();
-                } catch (ExecutionException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof IOException) {
-                        IOException e2 = (IOException) cause;
-                        throw e2;
+        synchronized (rpcLock) {
+            // session_variables_set = 19
+            CompletionService<MiniRPCReply> results = cs
+                    .sendToAllControlChannels(19, data);
+            try {
+                for (int i = 0; i < cs.size(); i++) {
+                    try {
+                        results.take().get().checkStatus();
+                    } catch (ExecutionException e) {
+                        Throwable cause = e.getCause();
+                        if (cause instanceof IOException) {
+                            IOException e2 = (IOException) cause;
+                            throw e2;
+                        }
                     }
                 }
+            } catch (IOException e) {
+                close();
+                throw e;
             }
-        } catch (IOException e) {
-            close();
-            throw e;
         }
     }
 
