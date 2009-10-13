@@ -13,6 +13,6 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-public interface XDREncodeable {
+interface XDREncodeable {
     byte[] encode();
 }

@@ -15,7 +15,7 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
 
-public class XDR_attribute {
+class XDR_attribute {
 
     private final static int MAX_ATTRIBUTE_NAME = 256;
 

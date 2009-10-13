@@ -20,8 +20,7 @@ public class ServerStatistics {
 
     final private int droppedObjects;
 
-    public ServerStatistics(int totalObjects, int processedObjects,
-            int droppedObjects) {
+    ServerStatistics(int totalObjects, int processedObjects, int droppedObjects) {
         this.totalObjects = totalObjects;
         this.processedObjects = processedObjects;
         this.droppedObjects = droppedObjects;

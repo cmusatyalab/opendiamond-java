@@ -17,7 +17,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-public class XDR_sig_val implements XDREncodeable {
+class XDR_sig_val implements XDREncodeable {
 
     public static final int SIG_SIZE = 16;
 

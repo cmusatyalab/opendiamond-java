@@ -17,7 +17,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class XDR_dev_stats {
+class XDR_dev_stats {
 
     public int getObjsTotal() {
         return objsTotal;
@@ -48,10 +48,15 @@ public class XDR_dev_stats {
     }
 
     private final int objsTotal;
+
     private final int objsProcessed;
+
     private final int objsDropped;
+
     private final int objsNproc;
+
     private final int systemLoad;
+
     private final long avgObjTime;
 
     private final List<XDR_filter_stats> filterStats = new ArrayList<XDR_filter_stats>();

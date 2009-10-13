@@ -15,7 +15,7 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
 
-public class BlastChannelObject {
+class BlastChannelObject {
 
     final private XDR_object obj;
 

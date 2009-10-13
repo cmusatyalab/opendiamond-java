@@ -16,7 +16,7 @@ package edu.cmu.cs.diamond.opendiamond;
 import java.util.Arrays;
 import java.util.Set;
 
-public class XDR_reexecute implements XDREncodeable {
+class XDR_reexecute implements XDREncodeable {
     private final String objectID;
 
     private final XDR_attr_name_list attributes;

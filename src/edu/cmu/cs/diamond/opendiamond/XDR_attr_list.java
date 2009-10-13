@@ -14,13 +14,9 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class XDR_attr_list {
+class XDR_attr_list {
 
     private final List<XDR_attribute> attributes = new ArrayList<XDR_attribute>();
 

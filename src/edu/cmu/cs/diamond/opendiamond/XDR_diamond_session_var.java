@@ -17,9 +17,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class XDR_diamond_session_var implements XDREncodeable {
+class XDR_diamond_session_var implements XDREncodeable {
 
     private final String name;
+
     private final double value;
 
     public XDR_diamond_session_var(XDRGetter data) throws IOException {

@@ -15,8 +15,9 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.util.Arrays;
 
-public class XDR_sig_and_data implements XDREncodeable {
+class XDR_sig_and_data implements XDREncodeable {
     private final XDR_sig_val sig;
+
     private final byte data[];
 
     public XDR_sig_and_data(XDR_sig_val sig, byte data[]) {

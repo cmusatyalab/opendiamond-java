@@ -14,9 +14,11 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
 
-public class XDR_filter_stats {
+class XDR_filter_stats {
     private final String name;
+
     private final int objsProcessed;
+
     private final int objsDropped;
 
     public String getName() {
@@ -60,11 +62,17 @@ public class XDR_filter_stats {
     }
 
     private final int objsCacheDropped;
+
     private final int objsCachePassed;
+
     private final int objsCompute;
+
     private final int hitsInterSession;
+
     private final int hitsInterQuery;
+
     private final int hitsIntraQuery;
+
     private final long avgExecTime;
 
     public XDR_filter_stats(XDRGetter data) throws IOException {

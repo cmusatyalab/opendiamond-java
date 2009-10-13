@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public class XDR_attr_name_list implements XDREncodeable {
+class XDR_attr_name_list implements XDREncodeable {
 
     private final String strings[];
 

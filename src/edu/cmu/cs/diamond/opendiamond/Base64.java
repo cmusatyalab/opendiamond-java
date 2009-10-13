@@ -158,7 +158,7 @@ package edu.cmu.cs.diamond.opendiamond;
  * @author rob@iharder.net
  * @version 2.3.3
  */
-public class Base64 {
+class Base64 {
 
     /* ********  P U B L I C   F I E L D S  ******** */
 

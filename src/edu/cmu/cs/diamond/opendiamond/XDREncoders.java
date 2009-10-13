@@ -17,7 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class XDREncoders {
+class XDREncoders {
     private XDREncoders() {
     }
 

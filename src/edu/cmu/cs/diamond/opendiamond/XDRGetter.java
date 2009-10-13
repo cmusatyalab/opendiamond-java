@@ -16,7 +16,7 @@ package edu.cmu.cs.diamond.opendiamond;
 import java.io.DataInputStream;
 import java.io.IOException;
 
-public class XDRGetter {
+class XDRGetter {
 
     static int roundup(int n) {
         int roundup = n;

@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class XDR_diamond_session_vars implements XDREncodeable {
+class XDR_diamond_session_vars implements XDREncodeable {
 
     private final List<XDR_diamond_session_var> vars = new ArrayList<XDR_diamond_session_var>();
 

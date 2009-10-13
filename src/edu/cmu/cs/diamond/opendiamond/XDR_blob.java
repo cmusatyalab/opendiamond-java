@@ -15,9 +15,10 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.util.Arrays;
 
-public class XDR_blob implements XDREncodeable {
+class XDR_blob implements XDREncodeable {
 
     final private String name;
+
     final private byte[] blobData;
 
     public XDR_blob(String name, byte[] blobData) {
