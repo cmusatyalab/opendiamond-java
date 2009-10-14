@@ -68,7 +68,7 @@ public class Result {
         return Util.extractString(getValue("Device-Name"));
     }
 
-    public String getObjectName() {
+    public String getName() {
         return Util.extractString(getValue("Display-Name"));
     }
 
