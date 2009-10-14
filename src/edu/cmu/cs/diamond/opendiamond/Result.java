@@ -33,7 +33,8 @@ public class Result {
     }
 
     public byte[] getValue(String key) {
-        return attributes.get(key);
+        byte[] v = attributes.get(key);
+        return Arrays.copyOf(v, v.length);
     }
 
     public Set<String> getKeys() {
