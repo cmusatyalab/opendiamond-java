@@ -17,6 +17,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * A partially-applied Diamond filter. Use with {@link SearchFactory} to perform
+ * Diamond searches.
+ * 
+ */
 public class Filter {
     final private FilterCode code;
 
@@ -38,6 +43,33 @@ public class Filter {
 
     final private byte blob[];
 
+    /**
+     * Constructs a new Filter with the given parameters (including blob).
+     * 
+     * @param name
+     *            the name of this Filter.
+     * @param code
+     *            the binary code that implements the Filter.
+     * @param evalFunction
+     *            the name of the eval function in the shared object referred to
+     *            by <code>code</code>.
+     * @param initFunction
+     *            the name of the init function in the shared object referred to
+     *            by <code>code</code>.
+     * @param finiFunction
+     *            the name of the fini function in the shared object referred to
+     *            by <code>code</code>.
+     * @param threshold
+     *            a value that sets the filter drop threshold.
+     * @param dependencies
+     *            a list of other filter names that this filter depends on.
+     * @param arguments
+     *            a list of arguments to the filter.
+     * @param merit
+     *            a hint to the filter optimizer.
+     * @param blob
+     *            a binary argument to this filter.
+     */
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,
             Collection<String> dependencies, List<String> arguments, int merit,
@@ -59,6 +91,31 @@ public class Filter {
         System.arraycopy(blob, 0, this.blob, 0, blob.length);
     }
 
+    /**
+     * Constructs a new Filter with the given parameters.
+     * 
+     * @param name
+     *            the name of this Filter.
+     * @param code
+     *            the binary code that implements the Filter.
+     * @param evalFunction
+     *            the name of the eval function in the shared object referred to
+     *            by <code>code</code>.
+     * @param initFunction
+     *            the name of the init function in the shared object referred to
+     *            by <code>code</code>.
+     * @param finiFunction
+     *            the name of the fini function in the shared object referred to
+     *            by <code>code</code>.
+     * @param threshold
+     *            a value that sets the filter drop threshold.
+     * @param dependencies
+     *            a list of other filter names that this filter depends on.
+     * @param arguments
+     *            a list of arguments to the filter.
+     * @param merit
+     *            a hint to the filter optimizer.
+     */
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,
             Collection<String> dependencies, List<String> arguments, int merit) {

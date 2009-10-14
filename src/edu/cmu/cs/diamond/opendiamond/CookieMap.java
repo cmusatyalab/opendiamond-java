@@ -4,13 +4,28 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
+/**
+ * Representation of a set of Diamond "cookies" for authenticating to Diamond
+ * servers.
+ * 
+ */
 public class CookieMap {
 
     private final Map<String, Cookie> cookieMap;
 
+    /**
+     * Creates a CookieMap with the defaults.
+     * 
+     * @return a new CookieMap.
+     * @throws IOException
+     */
     public static CookieMap createDefaultCookieMap() throws IOException {
         // get newscope file
         File home = new File(System.getProperty("user.home"));
@@ -24,6 +39,13 @@ public class CookieMap {
         return new CookieMap(megacookie);
     }
 
+    /**
+     * Constructs a new CookieMap from a string representation.
+     * 
+     * @param megacookie
+     *            the string to construct the CookieMap from.
+     * @throws IOException
+     */
     public CookieMap(String megacookie) throws IOException {
         Map<String, Cookie> cookieMap = new HashMap<String, Cookie>();
 
