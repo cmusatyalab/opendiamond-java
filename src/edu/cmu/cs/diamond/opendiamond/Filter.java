@@ -18,8 +18,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * A partially-applied Diamond filter. Use with {@link SearchFactory} to perform
- * Diamond searches.
+ * A Diamond filter. Use with {@link SearchFactory} to perform Diamond searches.
  * 
  */
 public class Filter {

@@ -4,11 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.Map.Entry;
 
 /**
@@ -21,10 +17,11 @@ public class CookieMap {
     private final Map<String, Cookie> cookieMap;
 
     /**
-     * Creates a CookieMap with the defaults.
+     * Creates a CookieMap with settings taken from the current environment.
      * 
      * @return a new CookieMap.
      * @throws IOException
+     *             if the source of the default map cannot be found or used.
      */
     public static CookieMap createDefaultCookieMap() throws IOException {
         // get newscope file
@@ -45,6 +42,7 @@ public class CookieMap {
      * @param megacookie
      *            the string to construct the CookieMap from.
      * @throws IOException
+     *             if the string representation is malformed.
      */
     public CookieMap(String megacookie) throws IOException {
         Map<String, Cookie> cookieMap = new HashMap<String, Cookie>();

@@ -14,15 +14,25 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Representation of a running or closed Diamond search.
+ * <p>
+ * The initial state of a search is "running", meaning connections are live to
+ * Diamond servers and results are being retrieved. If <code>close()</code> is
+ * called, or an <code>IOException</code> is thrown from a call to any of its
+ * methods, the search will transition to the "closed" state. In this state,
+ * calls to any method (except <code>close()</code>) will result in a
+ * <code>SearchClosedException</code> being thrown.
+ * <p>
+ * When a search object is no longer needed, <code>close()</code> must be
+ * called, or internal resources will leak.
+ * 
+ */
 public class Search {
     private static class SessionVariables {
         final private String hostname;
@@ -54,6 +64,14 @@ public class Search {
 
     private final Object rpcLock = new Object();
 
+    /**
+     * Closes the Search. After calling this method, all other methods will
+     * throw a <code>SearchClosedException</code>. <code>close()</code> must be
+     * called at some point, or internal resources will leak.
+     * 
+     * @throws InterruptedException
+     *             if the close is interrupted.
+     */
     public void close() throws InterruptedException {
         synchronized (closeLock) {
             if (!closed) {
@@ -96,6 +114,21 @@ public class Search {
         }
     }
 
+    /**
+     * Blocks and returns with the next {@link Result} of this search, or
+     * <code>null</code> if there are no more results. The method will block
+     * until a result is available or until an exception is thrown. This method
+     * is thread safe and can be used simultaneously from multiple threads.
+     * 
+     * @return the next result, or <code>null</code> if there are no more
+     *         results.
+     * @throws InterruptedException
+     *             if the thread is interrupted.
+     * @throws IOException
+     *             if an IO error occurs.
+     * @throws SearchClosedException
+     *             if this <code>Search</code> is closed.
+     */
     public Result getNextResult() throws InterruptedException, IOException {
         checkClosed();
 
@@ -129,6 +162,17 @@ public class Search {
         return new Result(attrs, bco.getHostname());
     }
 
+    /**
+     * Gets the per-host statistics of a currently running search.
+     * 
+     * @return a map of hostnames to search statistics for each host.
+     * @throws InterruptedException
+     *             if the thread is interrupted.
+     * @throws IOException
+     *             if an IO error occurs.
+     * @throws SearchClosedException
+     *             if this <code>Search</code> is closed.
+     */
     public Map<String, ServerStatistics> getStatistics() throws IOException,
             InterruptedException {
         checkClosed();
@@ -172,6 +216,26 @@ public class Search {
         return result;
     }
 
+    /**
+     * Takes a map of named doubles and a <code>DoubleComposer</code> and
+     * composes the values with those on each server. This operation is highly
+     * dependent on the particulars of the filters running on the server.
+     * 
+     * @param globalValues
+     *            a map of named doubles, representing the master copy of
+     *            values.
+     * @param composer
+     *            a <code>DoubleComposer</code> that will be used locally to
+     *            merge values. The filters in use on the server may use
+     *            different composers.
+     * @return a new map of updated session variables.
+     * @throws InterruptedException
+     *             if the thread is interrupted.
+     * @throws IOException
+     *             if an IO error occurs.
+     * @throws SearchClosedException
+     *             if this <code>Search</code> is closed.
+     */
     public Map<String, Double> mergeSessionVariables(
             Map<String, Double> globalValues, DoubleComposer composer)
             throws IOException, InterruptedException {

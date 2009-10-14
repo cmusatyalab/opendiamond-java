@@ -13,13 +13,16 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
+/**
+ * A single result from a {@link Search}, consisting of key-value pairs
+ * (attributes).
+ * 
+ */
 public class Result {
     final private Map<String, byte[]> attributes = new HashMap<String, byte[]>();
+
     private final String hostname;
 
     Result(Map<String, byte[]> attributes, String hostname) {
@@ -28,15 +31,33 @@ public class Result {
         this.hostname = hostname;
     }
 
+    /**
+     * Gets the "data" attribute of this Result. Equivalent to
+     * <code>getData("")</code>.
+     * 
+     * @return a byte array with the data of this Result.
+     */
     public byte[] getData() {
         return getValue("");
     }
 
+    /**
+     * Gets the value associated with a particular key.
+     * 
+     * @param key
+     *            the name of the attribute to get the value for.
+     * @return the value.
+     */
     public byte[] getValue(String key) {
         byte[] v = attributes.get(key);
         return Arrays.copyOf(v, v.length);
     }
 
+    /**
+     * Gets the keys of this Result, for use in <code>getValue</code>.
+     * 
+     * @return a set of keys.
+     */
     public Set<String> getKeys() {
         return Collections.unmodifiableSet(attributes.keySet());
     }
@@ -64,10 +85,22 @@ public class Result {
         return sb.toString();
     }
 
+    /**
+     * Gets the "server name" of this result. The server name is a
+     * server-defined string stored in the <code>Device-Name</code> attribute.
+     * 
+     * @return the server-defined server name of this result.
+     */
     public String getServerName() {
         return Util.extractString(getValue("Device-Name"));
     }
 
+    /**
+     * Gets the "name" of this result. The name is a server-defined string
+     * stored in the <code>Display-Name</code> attribute.
+     * 
+     * @return the server-defined name of this result.
+     */
     public String getName() {
         return Util.extractString(getValue("Display-Name"));
     }
