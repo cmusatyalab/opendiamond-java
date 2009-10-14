@@ -22,7 +22,7 @@ public class Result {
     final private Map<String, byte[]> attributes = new HashMap<String, byte[]>();
     private final String hostname;
 
-    public Result(Map<String, byte[]> attributes, String hostname) {
+    Result(Map<String, byte[]> attributes, String hostname) {
         this.attributes.putAll(attributes);
 
         this.hostname = hostname;
