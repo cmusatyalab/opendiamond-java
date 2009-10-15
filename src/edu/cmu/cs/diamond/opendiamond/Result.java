@@ -33,7 +33,7 @@ public class Result {
 
     /**
      * Gets the "data" attribute of this result. Equivalent to
-     * <code>getData("")</code>.
+     * <code>getValue("")</code>.
      * 
      * @return a byte array with the data of this result
      */
@@ -87,7 +87,8 @@ public class Result {
 
     /**
      * Gets the "server name" of this result. The server name is a
-     * server-defined string stored in the <code>Device-Name</code> attribute.
+     * server-defined string. Equivalent to
+     * <code>Util.extractString(getValue("Device-Name"))</code>.
      * 
      * @return the server-defined server name of this result
      */
@@ -96,8 +97,8 @@ public class Result {
     }
 
     /**
-     * Gets the "name" of this result. The name is a server-defined string
-     * stored in the <code>Display-Name</code> attribute.
+     * Gets the "name" of this result. The name is a server-defined string.
+     * Equivalent to <code>Util.extractString(getValue("Display-Name"))</code>.
      * 
      * @return the server-defined name of this result
      */
