@@ -43,31 +43,31 @@ public class Filter {
     final private byte blob[];
 
     /**
-     * Constructs a new Filter with the given parameters (including blob).
+     * Constructs a new filter with the given parameters (including blob).
      * 
      * @param name
-     *            the name of this Filter.
+     *            the name of this filter
      * @param code
-     *            the binary code that implements the Filter.
+     *            the binary code that implements the Filter
      * @param evalFunction
      *            the name of the eval function in the shared object referred to
-     *            by <code>code</code>.
+     *            by <code>code</code>
      * @param initFunction
      *            the name of the init function in the shared object referred to
-     *            by <code>code</code>.
+     *            by <code>code</code>
      * @param finiFunction
      *            the name of the fini function in the shared object referred to
-     *            by <code>code</code>.
+     *            by <code>code</code>
      * @param threshold
-     *            a value that sets the filter drop threshold.
+     *            a value that sets the filter drop threshold
      * @param dependencies
-     *            a list of other filter names that this filter depends on.
+     *            a list of other filter names that this filter depends on
      * @param arguments
-     *            a list of arguments to the filter.
+     *            a list of arguments to the filter
      * @param merit
-     *            a hint to the filter optimizer.
+     *            a hint to the filter optimizer
      * @param blob
-     *            a binary argument to this filter.
+     *            a binary argument to this filter
      */
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,
@@ -94,26 +94,26 @@ public class Filter {
      * Constructs a new Filter with the given parameters.
      * 
      * @param name
-     *            the name of this Filter.
+     *            the name of the new filter
      * @param code
-     *            the binary code that implements the Filter.
+     *            the binary code that implements the filter
      * @param evalFunction
      *            the name of the eval function in the shared object referred to
-     *            by <code>code</code>.
+     *            by <code>code</code>
      * @param initFunction
      *            the name of the init function in the shared object referred to
-     *            by <code>code</code>.
+     *            by <code>code</code>
      * @param finiFunction
      *            the name of the fini function in the shared object referred to
-     *            by <code>code</code>.
+     *            by <code>code</code>
      * @param threshold
-     *            a value that sets the filter drop threshold.
+     *            a value that sets the filter drop threshold
      * @param dependencies
-     *            a list of other filter names that this filter depends on.
+     *            a list of other filter names that this filter depends on
      * @param arguments
-     *            a list of arguments to the filter.
+     *            a list of arguments to the filter
      * @param merit
-     *            a hint to the filter optimizer.
+     *            a hint to the filter optimizer
      */
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,

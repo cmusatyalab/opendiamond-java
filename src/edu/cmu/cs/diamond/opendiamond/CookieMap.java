@@ -19,9 +19,9 @@ public class CookieMap {
     /**
      * Creates a CookieMap with settings taken from the current environment.
      * 
-     * @return a new CookieMap.
+     * @return a new CookieMap
      * @throws IOException
-     *             if the source of the default map cannot be found or used.
+     *             if the source of the default map cannot be found or used
      */
     public static CookieMap createDefaultCookieMap() throws IOException {
         // get newscope file
@@ -40,9 +40,9 @@ public class CookieMap {
      * Constructs a new CookieMap from a string representation.
      * 
      * @param megacookie
-     *            the string to construct the CookieMap from.
+     *            the string to construct the CookieMap from
      * @throws IOException
-     *             if the string representation is malformed.
+     *             if the string representation is malformed
      */
     public CookieMap(String megacookie) throws IOException {
         Map<String, Cookie> cookieMap = new HashMap<String, Cookie>();

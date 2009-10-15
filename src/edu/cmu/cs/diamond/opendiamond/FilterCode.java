@@ -27,7 +27,7 @@ public class FilterCode {
      * Constructs a new FilterCode from the given byte array.
      * 
      * @param code
-     *            the byte array representing filter code.
+     *            the byte array representing filter code
      */
     public FilterCode(byte code[]) {
         this.code = new byte[code.length];
@@ -39,9 +39,9 @@ public class FilterCode {
      * be read completely.
      * 
      * @param in
-     *            the InputStream to read filter code from.
+     *            the InputStream to read filter code from
      * @throws IOException
-     *             if the InputStream cannot be read.
+     *             if the InputStream cannot be read
      */
     public FilterCode(InputStream in) throws IOException {
         code = Util.readFully(in);

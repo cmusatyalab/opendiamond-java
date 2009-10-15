@@ -17,11 +17,19 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
 
+/**
+ * Factory to create one or more {@link Search} instances. Instances of this
+ * class can also be used to reevaluate a <code>Result</code>.
+ * 
+ */
 public class SearchFactory {
     private final ExecutorService executor = new ThreadPoolExecutor(0,
             Integer.MAX_VALUE, 500, TimeUnit.MILLISECONDS,
             new SynchronousQueue<Runnable>());
 
+    /**
+     * The maximum length of an attribute name.
+     */
     public static final int MAX_ATTRIBUTE_NAME = 256;
 
     private final List<Filter> filters;
@@ -30,6 +38,18 @@ public class SearchFactory {
 
     private CookieMap cookieMap;
 
+    /**
+     * Constructs a search factory from a collection of filters, application
+     * dependencies, and a cookie map.
+     * 
+     * @param filters
+     *            a collection of filters to run during a search
+     * @param applicationDependencies
+     *            a poorly-specified construct that will hopefully go away
+     * @param cookieMap
+     *            the cookie map to use to look up servers and authenticate
+     *            against
+     */
     public SearchFactory(Collection<Filter> filters,
             Collection<String> applicationDependencies, CookieMap cookieMap) {
         this.filters = new ArrayList<Filter>(filters);
@@ -68,6 +88,20 @@ public class SearchFactory {
         return new XDR_sig_and_data(XDR_sig_val.createSignature(spec), spec);
     }
 
+    /**
+     * Creates a search from the parameters given when constructing the
+     * <code>SearchFactory</code>.
+     * 
+     * @param desiredAttributes
+     *            a set of attribute names to specify which attributes to appear
+     *            in results. May be <code>null</code>, in which case all
+     *            attributes will be included.
+     * @return a running <code>Search</code>
+     * @throws IOException
+     *             if an IO error occurs
+     * @throws InterruptedException
+     *             if the thread is interrupted
+     */
     public Search createSearch(Set<String> desiredAttributes)
             throws IOException, InterruptedException {
         final Set<String> pushAttributes;
@@ -157,6 +191,17 @@ public class SearchFactory {
         }
     }
 
+    /**
+     * Reevaluates a result, possibly with different attributes returned.
+     * 
+     * @param r
+     *            the existing result
+     * @param desiredAttributes
+     *            a set of attribute names to specify which attributes to appear
+     * @return a new result
+     * @throws IOException
+     *             if an IO error occurs
+     */
     public Result reevaluateResult(Result r, Set<String> desiredAttributes)
             throws IOException {
         Set<String> attributes = copyAndValidateAttributes(desiredAttributes);

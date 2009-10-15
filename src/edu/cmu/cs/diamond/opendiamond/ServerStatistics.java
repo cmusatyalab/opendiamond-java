@@ -13,6 +13,9 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
+/**
+ * A class representing some runtime statistics for a single server.
+ */
 public class ServerStatistics {
     final private int totalObjects;
 
@@ -26,14 +29,29 @@ public class ServerStatistics {
         this.droppedObjects = droppedObjects;
     }
 
+    /**
+     * Gets the count of dropped objects.
+     * 
+     * @return dropped object count
+     */
     public int getDroppedObjects() {
         return droppedObjects;
     }
 
+    /**
+     * Gets the count of processed objects.
+     * 
+     * @return processed object count
+     */
     public int getProcessedObjects() {
         return processedObjects;
     }
 
+    /**
+     * Gets the count of total objects.
+     * 
+     * @return total object count
+     */
     public int getTotalObjects() {
         return totalObjects;
     }

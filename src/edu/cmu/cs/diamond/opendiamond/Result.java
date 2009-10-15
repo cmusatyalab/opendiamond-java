@@ -32,10 +32,10 @@ public class Result {
     }
 
     /**
-     * Gets the "data" attribute of this Result. Equivalent to
+     * Gets the "data" attribute of this result. Equivalent to
      * <code>getData("")</code>.
      * 
-     * @return a byte array with the data of this Result.
+     * @return a byte array with the data of this result
      */
     public byte[] getData() {
         return getValue("");
@@ -45,8 +45,8 @@ public class Result {
      * Gets the value associated with a particular key.
      * 
      * @param key
-     *            the name of the attribute to get the value for.
-     * @return the value.
+     *            the name of the attribute to get the value for
+     * @return the value
      */
     public byte[] getValue(String key) {
         byte[] v = attributes.get(key);
@@ -54,9 +54,9 @@ public class Result {
     }
 
     /**
-     * Gets the keys of this Result, for use in <code>getValue</code>.
+     * Gets the keys of this result, for use in <code>getValue</code>.
      * 
-     * @return a set of keys.
+     * @return a set of keys
      */
     public Set<String> getKeys() {
         return Collections.unmodifiableSet(attributes.keySet());
@@ -89,7 +89,7 @@ public class Result {
      * Gets the "server name" of this result. The server name is a
      * server-defined string stored in the <code>Device-Name</code> attribute.
      * 
-     * @return the server-defined server name of this result.
+     * @return the server-defined server name of this result
      */
     public String getServerName() {
         return Util.extractString(getValue("Device-Name"));
@@ -99,7 +99,7 @@ public class Result {
      * Gets the "name" of this result. The name is a server-defined string
      * stored in the <code>Display-Name</code> attribute.
      * 
-     * @return the server-defined name of this result.
+     * @return the server-defined name of this result
      */
     public String getName() {
         return Util.extractString(getValue("Display-Name"));

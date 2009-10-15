@@ -27,16 +27,33 @@ import javax.swing.SpringLayout;
 
 import org.jdesktop.swingx.graphics.GraphicsUtilities;
 
+/**
+ * A class containing some static utility methods.
+ */
 public class Util {
     private Util() {
     }
 
     // XXX endian specific
+    /**
+     * Extracts a little-endian <code>int</code> from a <code>byte[]</code>.
+     * 
+     * @param value
+     *            the <code>byte</code> array
+     * @return the <code>int</code>
+     */
     public static int extractInt(byte[] value) {
         return (value[3] & 0xFF) << 24 | (value[2] & 0xFF) << 16
                 | (value[1] & 0xFF) << 8 | (value[0] & 0xFF);
     }
 
+    /**
+     * Extracts a little-endian <code>long</code> from a <code>byte[]</code>.
+     * 
+     * @param value
+     *            the <code>byte</code> array
+     * @return the <code>long</code>
+     */
     public static long extractLong(byte[] value) {
         return ((long) (value[7] & 0xFF) << 56)
                 | ((long) (value[6] & 0xFF) << 48)
@@ -47,10 +64,30 @@ public class Util {
                 | ((long) (value[1] & 0xFF) << 8) | (value[0] & 0xFF);
     }
 
+    /**
+     * Extracts a little-endian <code>double</code> from a <code>byte[]</code>.
+     * 
+     * @param value
+     *            the <code>byte</code> array
+     * @return the <code>double</code>
+     */
     public static double extractDouble(byte[] value) {
         return Double.longBitsToDouble(extractLong(value));
     }
 
+    /**
+     * Gets a scale value for resizing images.
+     * 
+     * @param w
+     *            the existing width
+     * @param h
+     *            the existing height
+     * @param maxW
+     *            the desired maximum width
+     * @param maxH
+     *            the desired maximum height
+     * @return a scale value
+     */
     public static double getScaleForResize(int w, int h, int maxW, int maxH) {
         double scale = 1.0;
 
@@ -72,6 +109,15 @@ public class Util {
         return scale;
     }
 
+    /**
+     * Scales an image.
+     * 
+     * @param img
+     *            existing image
+     * @param scale
+     *            scale factor
+     * @return a new scaled image
+     */
     public static BufferedImage scaleImage(BufferedImage img, double scale) {
         BufferedImage dest = GraphicsUtilities
                 .createCompatibleImage(img, (int) (img.getWidth() * scale),
@@ -80,6 +126,15 @@ public class Util {
         return scaleImage(img, dest);
     }
 
+    /**
+     * Scales an image into an existing <code>BufferedImage</code>
+     * 
+     * @param img
+     *            existing image
+     * @param dest
+     *            destination image
+     * @return destination image
+     */
     private static BufferedImage scaleImage(BufferedImage img,
             BufferedImage dest) {
 
@@ -92,6 +147,15 @@ public class Util {
         return dest;
     }
 
+    /**
+     * Scales an image using a fast, low quality algorithm.
+     * 
+     * @param img
+     *            existing image
+     * @param scale
+     *            scale factor
+     * @return a new scaled image
+     */
     public static BufferedImage scaleImageFast(BufferedImage img, double scale) {
         BufferedImage dest = GraphicsUtilities
                 .createCompatibleImage(img, (int) (img.getWidth() * scale),
@@ -185,10 +249,26 @@ public class Util {
         pCons.setConstraint(SpringLayout.EAST, x);
     }
 
+    /**
+     * Extracts a <code>String</code> from a <code>byte[]</code>.
+     * 
+     * @param value
+     *            the <code>byte[]</code>
+     * @return a string
+     */
     public static String extractString(byte[] value) {
         return new String(value, 0, value.length - 1);
     }
 
+    /**
+     * Reads an <code>InputStream</code> until EOF.
+     * 
+     * @param in
+     *            the <code>InputStream</code> to read
+     * @return the read data
+     * @throws IOException
+     *             if an IO error occurs
+     */
     public static byte[] readFully(InputStream in) throws IOException {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
@@ -202,6 +282,20 @@ public class Util {
         return out.toByteArray();
     }
 
+    /**
+     * Streams one entry into a quick tar archive.
+     * 
+     * @param out
+     *            the quick tar output stream
+     * @param in
+     *            the input
+     * @param length
+     *            number of bytes to read from <code>in</code>
+     * @param name
+     *            the name of this entry
+     * @throws IOException
+     *             if an IO error occurs
+     */
     public static void quickTar1(DataOutputStream out, InputStream in,
             int length, String name) throws IOException {
 
@@ -222,6 +316,15 @@ public class Util {
         }
     }
 
+    /**
+     * Creates a quick tar archive from an array of files.
+     * 
+     * @param files
+     *            the input
+     * @return the quick tar data
+     * @throws IOException
+     *             if an IO error occurs
+     */
     public static byte[] quickTar(File files[]) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(bos);
@@ -243,6 +346,18 @@ public class Util {
         return bos.toByteArray();
     }
 
+    /**
+     * Creates a quick tar archive from the files in a directory
+     * (non-recursive).
+     * 
+     * @param directory
+     *            the directory to create an archive from
+     * @return the archive
+     * @throws IllegalArgumentException
+     *             if <code>directory</code> is not a directory
+     * @throws IOException
+     *             if an IO error occurs
+     */
     public static byte[] quickTar(File directory) throws IOException {
         if (!directory.isDirectory()) {
             throw new IllegalArgumentException(directory + " must be directory");
@@ -251,6 +366,18 @@ public class Util {
         return quickTar(directory.listFiles());
     }
 
+    /**
+     * Streams one entry into a quick tar archive.
+     * 
+     * @param out
+     *            the quick tar output stream
+     * @param buf
+     *            the input
+     * @param name
+     *            the name of this entry
+     * @throws IOException
+     *             if an IO error occurs
+     */
     public static void quickTar1(DataOutputStream out, byte[] buf, String name)
             throws IOException {
         ByteArrayInputStream in = new ByteArrayInputStream(buf);

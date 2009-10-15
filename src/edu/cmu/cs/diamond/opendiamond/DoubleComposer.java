@@ -25,12 +25,12 @@ public interface DoubleComposer {
      * Performs a binary operation on a named pair of doubles.
      * 
      * @param key
-     *            the name of the pair of doubles.
+     *            the name of the pair of doubles
      * @param a
-     *            the first double.
+     *            the first double
      * @param b
-     *            the second double.
-     * @return the new double value.
+     *            the second double
+     * @return the new double value
      */
     double compose(String key, double a, double b);
 }

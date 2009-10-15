@@ -70,7 +70,7 @@ public class Search {
      * called at some point, or internal resources will leak.
      * 
      * @throws InterruptedException
-     *             if the close is interrupted.
+     *             if the close is interrupted
      */
     public void close() throws InterruptedException {
         synchronized (closeLock) {
@@ -121,13 +121,13 @@ public class Search {
      * is thread safe and can be used simultaneously from multiple threads.
      * 
      * @return the next result, or <code>null</code> if there are no more
-     *         results.
+     *         results
      * @throws InterruptedException
-     *             if the thread is interrupted.
+     *             if the thread is interrupted
      * @throws IOException
-     *             if an IO error occurs.
+     *             if an IO error occurs
      * @throws SearchClosedException
-     *             if this <code>Search</code> is closed.
+     *             if this <code>Search</code> is closed
      */
     public Result getNextResult() throws InterruptedException, IOException {
         checkClosed();
@@ -165,13 +165,13 @@ public class Search {
     /**
      * Gets the per-host statistics of a currently running search.
      * 
-     * @return a map of hostnames to search statistics for each host.
+     * @return a map of hostnames to statistics for each host
      * @throws InterruptedException
-     *             if the thread is interrupted.
+     *             if the thread is interrupted
      * @throws IOException
-     *             if an IO error occurs.
+     *             if an IO error occurs
      * @throws SearchClosedException
-     *             if this <code>Search</code> is closed.
+     *             if this <code>Search</code> is closed
      */
     public Map<String, ServerStatistics> getStatistics() throws IOException,
             InterruptedException {
@@ -222,19 +222,18 @@ public class Search {
      * dependent on the particulars of the filters running on the server.
      * 
      * @param globalValues
-     *            a map of named doubles, representing the master copy of
-     *            values.
+     *            a map of named doubles, representing the master copy of values
      * @param composer
      *            a <code>DoubleComposer</code> that will be used locally to
      *            merge values. The filters in use on the server may use
      *            different composers.
-     * @return a new map of updated session variables.
+     * @return a new map of updated session variables
      * @throws InterruptedException
-     *             if the thread is interrupted.
+     *             if the thread is interrupted
      * @throws IOException
-     *             if an IO error occurs.
+     *             if an IO error occurs
      * @throws SearchClosedException
-     *             if this <code>Search</code> is closed.
+     *             if this <code>Search</code> is closed
      */
     public Map<String, Double> mergeSessionVariables(
             Map<String, Double> globalValues, DoubleComposer composer)

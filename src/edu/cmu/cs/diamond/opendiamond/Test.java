@@ -28,8 +28,22 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
+/**
+ * Test class.
+ * 
+ */
 public class Test {
 
+    /**
+     * Runs a simple test.
+     * 
+     * @param args
+     *            ignored
+     * @throws IOException
+     *             if an IO error occurs
+     * @throws InterruptedException
+     *             if something is interrupted
+     */
     public static void main(String[] args) throws IOException,
             InterruptedException {
         List<Filter> filters = new ArrayList<Filter>();
@@ -65,8 +79,8 @@ public class Test {
         // make new factory
         Set<String> pushAttributes = new HashSet<String>();
         pushAttributes.add("thumbnail.jpeg");
-        SearchFactory factory = new SearchFactory(filters, appDepends, CookieMap
-                .createDefaultCookieMap());
+        SearchFactory factory = new SearchFactory(filters, appDepends,
+                CookieMap.createDefaultCookieMap());
 
         Result r;
 
