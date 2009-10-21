@@ -34,6 +34,11 @@ class BlastQueue {
             throw new IllegalStateException("queue is shut down");
         }
 
+        if (blastChannelObject == BlastChannelObject.NO_MORE_RESULTS) {
+            throw new IllegalArgumentException(
+                    "cannot put the NO_MORE_RESULTS object");
+        }
+
         q.put(blastChannelObject);
     }
 
