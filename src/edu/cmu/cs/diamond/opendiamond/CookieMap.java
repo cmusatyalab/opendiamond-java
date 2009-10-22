@@ -99,4 +99,9 @@ public class CookieMap {
     Cookie get(String host) {
         return cookieMap.get(host);
     }
+
+    @Override
+    public String toString() {
+        return cookieMap.toString();
+    }
 }
