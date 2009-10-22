@@ -64,14 +64,12 @@ public class Filter {
      *            a list of other filter names that this filter depends on
      * @param arguments
      *            a list of arguments to the filter
-     * @param merit
-     *            a hint to the filter optimizer
      * @param blob
      *            a binary argument to this filter
      */
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,
-            Collection<String> dependencies, List<String> arguments, int merit,
+            Collection<String> dependencies, List<String> arguments,
             byte blob[]) {
 
         // TODO check for valid characters as in filter_spec.l
@@ -81,7 +79,7 @@ public class Filter {
         this.initFunction = initFunction.trim();
         this.finiFunction = finiFunction.trim();
         this.threshold = threshold;
-        this.merit = merit;
+        this.merit = 100;
 
         this.dependencies = new ArrayList<String>(dependencies);
         this.arguments = new ArrayList<String>(arguments);
@@ -112,14 +110,12 @@ public class Filter {
      *            a list of other filter names that this filter depends on
      * @param arguments
      *            a list of arguments to the filter
-     * @param merit
-     *            a hint to the filter optimizer
      */
     public Filter(String name, FilterCode code, String evalFunction,
             String initFunction, String finiFunction, int threshold,
-            Collection<String> dependencies, List<String> arguments, int merit) {
+            Collection<String> dependencies, List<String> arguments) {
         this(name, code, evalFunction, initFunction, finiFunction, threshold,
-                dependencies, arguments, merit, new byte[0]);
+                dependencies, arguments, new byte[0]);
     }
 
     @Override
