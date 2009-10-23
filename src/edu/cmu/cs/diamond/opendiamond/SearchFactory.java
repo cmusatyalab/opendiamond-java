@@ -19,7 +19,8 @@ import java.util.concurrent.*;
 
 /**
  * Factory to create one or more {@link Search} instances. Instances of this
- * class can also be used to reevaluate a <code>Result</code>.
+ * class can also be used to generate a <code>Result</code> from an
+ * <code>ObjectIdentifier</code>.
  * 
  */
 public class SearchFactory {
@@ -192,21 +193,21 @@ public class SearchFactory {
     }
 
     /**
-     * Reevaluates a result, possibly with different attributes returned.
+     * Generates a <code>Result</code> from an object identifier.
      * 
-     * @param r
-     *            the existing result
+     * @param identifier
+     *            the identifier representing the object to evaluate
      * @param desiredAttributes
      *            a set of attribute names to specify which attributes to appear
      * @return a new result
      * @throws IOException
      *             if an IO error occurs
      */
-    public Result reevaluateResult(Result r, Set<String> desiredAttributes)
-            throws IOException {
+    public Result generateResult(ObjectIdentifier identifier,
+            Set<String> desiredAttributes) throws IOException {
         Set<String> attributes = copyAndValidateAttributes(desiredAttributes);
-        String host = r.getHostname();
-        String objID = r.getObjectID();
+        String host = identifier.getHostname();
+        String objID = identifier.getObjectID();
         Cookie c = cookieMap.get(host);
 
         if (c == null) {

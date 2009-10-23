@@ -124,7 +124,6 @@ public class Test {
     private static void processResult(final SearchFactory s, final Result r)
             throws IOException {
         System.out.println(r);
-        System.out.println("*** " + r.getObjectID());
 
         byte[] data = r.getValue("thumbnail.jpeg");
         BufferedImage img = ImageIO.read(new ByteArrayInputStream(data));
@@ -141,8 +140,9 @@ public class Test {
             public void actionPerformed(ActionEvent e) {
                 Result r2;
                 try {
-                    r2 = s.reevaluateResult(r, new HashSet<String>(Arrays
-                            .asList(new String[] { "" })));
+                    r2 = s.generateResult(r.getObjectIdentifier(),
+                            new HashSet<String>(Arrays
+                                    .asList(new String[] { "" })));
                     System.out.println(r2);
 
                     byte data[] = r2.getData();

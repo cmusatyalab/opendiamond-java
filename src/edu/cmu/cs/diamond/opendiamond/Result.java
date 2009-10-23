@@ -23,12 +23,13 @@ import java.util.*;
 public class Result {
     final private Map<String, byte[]> attributes = new HashMap<String, byte[]>();
 
-    private final String hostname;
+    private final ObjectIdentifier objectIdentifier;
 
     Result(Map<String, byte[]> attributes, String hostname) {
         this.attributes.putAll(attributes);
 
-        this.hostname = hostname;
+        objectIdentifier = new ObjectIdentifier(Util
+                .extractString(getValue("_ObjectID")), hostname);
     }
 
     /**
@@ -106,11 +107,13 @@ public class Result {
         return Util.extractString(getValue("Display-Name"));
     }
 
-    String getObjectID() {
-        return Util.extractString(getValue("_ObjectID"));
-    }
-
-    String getHostname() {
-        return hostname;
+    /**
+     * Gets the server-defined identifier for this result. Useful for passing to
+     * {@link SearchFactory#generateResult(ObjectIdentifier, Set)}.
+     * 
+     * @return the identifier for this result
+     */
+    public ObjectIdentifier getObjectIdentifier() {
+        return objectIdentifier;
     }
 }
