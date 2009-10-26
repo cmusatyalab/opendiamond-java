@@ -120,6 +120,10 @@ public class Filter {
 
     @Override
     public String toString() {
+        return getName() + ", bloblen: " + getBlob().length;
+    }
+
+    String getFspec() {
         StringBuilder sb = new StringBuilder();
 
         sb.append("FILTER " + name + "\n");

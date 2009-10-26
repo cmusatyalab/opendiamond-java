@@ -74,9 +74,13 @@ public class SearchFactory {
 
     @Override
     public String toString() {
+        return getFspec();
+    }
+
+    private String getFspec() {
         StringBuilder sb = new StringBuilder();
         for (Filter f : filters) {
-            sb.append(f.toString());
+            sb.append(f.getFspec());
         }
 
         if (!applicationDependencies.isEmpty()) {
@@ -89,8 +93,8 @@ public class SearchFactory {
         return sb.toString();
     }
 
-    private XDR_sig_and_data getFspec() {
-        byte spec[] = toString().getBytes();
+    private XDR_sig_and_data encodeFspec() {
+        byte spec[] = getFspec().getBytes();
         return new XDR_sig_and_data(XDR_sig_val.createSignature(spec), spec);
     }
 
@@ -119,7 +123,7 @@ public class SearchFactory {
         }
 
         // make all the connections and prep everything to start
-        final XDR_sig_and_data fspec = getFspec();
+        final XDR_sig_and_data fspec = encodeFspec();
 
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
@@ -220,7 +224,7 @@ public class SearchFactory {
         }
 
         // prestart
-        XDR_sig_and_data fspec = getFspec();
+        XDR_sig_and_data fspec = encodeFspec();
         Connection conn = Connection.createConnection(host, c, null, fspec,
                 filters);
 
