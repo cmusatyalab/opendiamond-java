@@ -72,7 +72,8 @@ public class SearchFactory {
         return copyOfAttributes;
     }
 
-    private XDR_sig_and_data getFspec() {
+    @Override
+    public String toString() {
         StringBuilder sb = new StringBuilder();
         for (Filter f : filters) {
             sb.append(f.toString());
@@ -85,7 +86,11 @@ public class SearchFactory {
             }
         }
 
-        byte spec[] = sb.toString().getBytes();
+        return sb.toString();
+    }
+
+    private XDR_sig_and_data getFspec() {
+        byte spec[] = toString().getBytes();
         return new XDR_sig_and_data(XDR_sig_val.createSignature(spec), spec);
     }
 
