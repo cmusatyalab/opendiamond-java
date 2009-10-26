@@ -74,7 +74,7 @@ public class SearchFactory {
 
     @Override
     public String toString() {
-        return getFspec();
+        return filters.toString();
     }
 
     private String getFspec() {
