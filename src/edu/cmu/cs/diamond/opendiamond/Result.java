@@ -13,7 +13,11 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A single result from a {@link Search}, consisting of key-value pairs
@@ -51,7 +55,11 @@ public class Result {
      */
     public byte[] getValue(String key) {
         byte[] v = attributes.get(key);
-        return Arrays.copyOf(v, v.length);
+        if (v == null) {
+            return null;
+        } else {
+            return Arrays.copyOf(v, v.length);
+        }
     }
 
     /**
