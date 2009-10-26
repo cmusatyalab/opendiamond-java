@@ -143,7 +143,12 @@ public class Filter {
         return blob;
     }
 
-    String getName() {
+    /**
+     * Gets the name of this filter.
+     * 
+     * @return the name of this filter
+     */
+    public String getName() {
         return name;
     }
 
