@@ -13,10 +13,7 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.concurrent.CompletionService;
@@ -24,8 +21,6 @@ import java.util.concurrent.ExecutionException;
 
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
-
-import org.jdesktop.swingx.graphics.GraphicsUtilities;
 
 /**
  * A class containing some static utility methods.
@@ -119,9 +114,8 @@ public class Util {
      * @return a new scaled image
      */
     public static BufferedImage scaleImage(BufferedImage img, double scale) {
-        BufferedImage dest = GraphicsUtilities
-                .createCompatibleImage(img, (int) (img.getWidth() * scale),
-                        (int) (img.getHeight() * scale));
+        BufferedImage dest = createCompatibleImage(img,
+                (int) (img.getWidth() * scale), (int) (img.getHeight() * scale));
 
         return scaleImage(img, dest);
     }
@@ -147,6 +141,18 @@ public class Util {
         return dest;
     }
 
+    private static BufferedImage createCompatibleImage(BufferedImage image,
+            int width, int height) {
+        if (GraphicsEnvironment.isHeadless()) {
+            return new BufferedImage(width, height, image.getType());
+        } else {
+            return GraphicsEnvironment.getLocalGraphicsEnvironment()
+                    .getDefaultScreenDevice().getDefaultConfiguration()
+                    .createCompatibleImage(width, height,
+                            image.getTransparency());
+        }
+    }
+
     /**
      * Scales an image using a fast, low quality algorithm.
      * 
@@ -157,9 +163,8 @@ public class Util {
      * @return a new scaled image
      */
     public static BufferedImage scaleImageFast(BufferedImage img, double scale) {
-        BufferedImage dest = GraphicsUtilities
-                .createCompatibleImage(img, (int) (img.getWidth() * scale),
-                        (int) (img.getHeight() * scale));
+        BufferedImage dest = createCompatibleImage(img,
+                (int) (img.getWidth() * scale), (int) (img.getHeight() * scale));
         Graphics2D g = dest.createGraphics();
         g.drawImage(img, 0, 0, dest.getWidth(), dest.getHeight(), null);
         g.dispose();
