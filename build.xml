@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project basedir="." default="jar" name="OpenDiamond java">
+<project basedir="." default="build" name="OpenDiamond java">
     <property environment="env"/>
     <property name="debuglevel" value="source,lines,vars"/>
-    <property name="target" value="1.5"/>
-    <property name="source" value="1.5"/>
+    <property name="target" value="1.6"/>
+    <property name="source" value="1.6"/>
     <path id="OpenDiamond java.classpath">
         <pathelement location="bin"/>
     </path>
@@ -14,15 +14,15 @@
         </copy>
     </target>
     <target name="clean">
-        <delete dir="bin"/>
-	<delete file="opendiamondjava.jar"/>
+      <delete dir="bin"/>
+      <delete dir="doc"/>
+      <delete file="opendiamond.jar"/>
+    </target>
+    <target depends="build" name="jar">
+      <jar destfile="opendiamond.jar" basedir="bin"/>
     </target>
     <target depends="clean" name="cleanall"/>
-    <target depends="build" name="jar">
-      <jar destfile="opendiamondjava.jar" basedir="bin"/>
-    </target>
-    <target depends="build-subprojects,build-project" name="build"/>
-    <target name="build-subprojects"/>
+    <target depends="build-project" name="build"/>
     <target depends="init" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
@@ -30,5 +30,12 @@
             <classpath refid="OpenDiamond java.classpath"/>
         </javac>
     </target>
-    <target description="Build all projects which reference this project. Useful to propagate changes." name="build-refprojects"/>
+<target name="javadoc">
+    <javadoc access="public" destdir="doc" author="true" version="true"
+	     use="true">
+      <fileset dir="src" defaultexcludes="yes">
+	<include name="**/*.java"/>
+      </fileset>
+    </javadoc>
+</target>
 </project>
