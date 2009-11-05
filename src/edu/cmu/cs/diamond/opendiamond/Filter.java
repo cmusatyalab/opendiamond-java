@@ -40,7 +40,9 @@ public class Filter {
 
     final private int threshold;
 
-    final private byte blob[];
+    final private byte encodedBlob[];
+
+    final private byte encodedBlobSig[];
 
     /**
      * Constructs a new filter with the given parameters (including blob).
@@ -84,8 +86,9 @@ public class Filter {
         this.dependencies = new ArrayList<String>(dependencies);
         this.arguments = new ArrayList<String>(arguments);
 
-        this.blob = new byte[blob.length];
-        System.arraycopy(blob, 0, this.blob, 0, blob.length);
+        XDR_sig_val sig = XDR_sig_val.createSignature(blob);
+        encodedBlobSig = new XDR_blob_sig(name, sig).encode();
+        encodedBlob = new XDR_blob(name, blob).encode();
     }
 
     /**
@@ -120,7 +123,7 @@ public class Filter {
 
     @Override
     public String toString() {
-        return getName() + ", bloblen: " + getBlob().length;
+        return getName() + ", encoded bloblen: " + getEncodedBlob().length;
     }
 
     String getFspec() {
@@ -143,10 +146,6 @@ public class Filter {
         return sb.toString();
     }
 
-    byte[] getBlob() {
-        return blob;
-    }
-
     /**
      * Gets the name of this filter.
      * 
@@ -158,5 +157,13 @@ public class Filter {
 
     FilterCode getFilterCode() {
         return code;
+    }
+
+    byte[] getEncodedBlobSig() {
+        return encodedBlobSig;
+    }
+
+    byte[] getEncodedBlob() {
+        return encodedBlob;
     }
 }

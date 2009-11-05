@@ -148,13 +148,8 @@ class Connection {
     }
 
     private void setBlob(Filter f) throws IOException {
-        byte blobData[] = f.getBlob();
-        String name = f.getName();
-
-        XDR_sig_val sig = XDR_sig_val.createSignature(blobData);
-
-        final byte[] encodedBlobSig = new XDR_blob_sig(name, sig).encode();
-        final byte[] encodedBlob = new XDR_blob(name, blobData).encode();
+        final byte encodedBlobSig[] = f.getEncodedBlobSig();
+        final byte encodedBlob[] = f.getEncodedBlob();
 
         // System.out.println("blob sig: " + encodedBlobSig);
 
