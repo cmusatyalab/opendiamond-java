@@ -70,7 +70,7 @@ class Connection {
         this.hostname = hostname;
     }
 
-    static Connection createConnection(String host, Cookie cookie,
+    static Connection createConnection(String host, List<Cookie> cookieList,
             Set<String> pushAttributes, XDR_sig_and_data fspec,
             List<Filter> filters) throws IOException {
         // System.out.println("connecting to " + host);
@@ -96,20 +96,20 @@ class Connection {
         }
 
         Connection conn = new Connection(control, blast, host);
-        conn.sendPreStart(cookie, pushAttributes, fspec, filters);
+        conn.sendPreStart(cookieList, pushAttributes, fspec, filters);
         return conn;
     }
 
     // TODO pipeline
-    private void sendPreStart(Cookie cookie, Set<String> pushAttributes,
-            XDR_sig_and_data fspec, List<Filter> filters) throws IOException {
+    private void sendPreStart(List<Cookie> cookieList,
+            Set<String> pushAttributes, XDR_sig_and_data fspec,
+            List<Filter> filters) throws IOException {
         try {
-            // clear scope
-            new RPC(this, hostname, 4, new byte[0]).doRPC().checkStatus();
-
             // define scope
-            byte[] data = XDREncoders.encodeString(cookie.getCookie());
-            new RPC(this, hostname, 24, data).doRPC().checkStatus();
+            for (Cookie cookie : cookieList) {
+                byte[] data = XDREncoders.encodeString(cookie.getCookie());
+                new RPC(this, hostname, 24, data).doRPC().checkStatus();
+            }
 
             // set the push attributes
             if (pushAttributes != null) {

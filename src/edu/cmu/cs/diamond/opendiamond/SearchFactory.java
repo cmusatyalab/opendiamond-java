@@ -128,14 +128,14 @@ public class SearchFactory {
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
                 executor);
-        for (Map.Entry<String, Cookie> e : cookieMap.entrySet()) {
+        for (Map.Entry<String, List<Cookie>> e : cookieMap.entrySet()) {
             final String hostname = e.getKey();
-            final Cookie cookie = e.getValue();
+            final List<Cookie> cookieList = e.getValue();
 
             futures.add(connectService.submit(new Callable<Connection>() {
                 @Override
                 public Connection call() throws Exception {
-                    return Connection.createConnection(hostname, cookie,
+                    return Connection.createConnection(hostname, cookieList,
                             pushAttributes, fspec, filters);
                 }
             }));
@@ -217,7 +217,7 @@ public class SearchFactory {
         Set<String> attributes = copyAndValidateAttributes(desiredAttributes);
         String host = identifier.getHostname();
         String objID = identifier.getObjectID();
-        Cookie c = cookieMap.get(host);
+        List<Cookie> c = cookieMap.get(host);
 
         if (c == null) {
             throw new IOException("No cookie found for host " + host);

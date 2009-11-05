@@ -4,7 +4,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Map.Entry;
 
 /**
@@ -14,7 +18,7 @@ import java.util.Map.Entry;
  */
 public class CookieMap {
 
-    private final Map<String, Cookie> cookieMap;
+    private final Map<String, List<Cookie>> cookieMap;
 
     /**
      * Creates a CookieMap with settings taken from the current environment.
@@ -45,7 +49,7 @@ public class CookieMap {
      *             if the string representation is malformed
      */
     public CookieMap(String megacookie) throws IOException {
-        Map<String, Cookie> cookieMap = new HashMap<String, Cookie>();
+        Map<String, List<Cookie>> cookieMap = new HashMap<String, List<Cookie>>();
 
         // fill map from hostnames to cookies
         List<String> cookies = splitCookies(megacookie);
@@ -55,7 +59,13 @@ public class CookieMap {
 
             List<String> servers = c.getServers();
             for (String server : servers) {
-                cookieMap.put(server, c);
+                List<Cookie> cookieList = cookieMap.get(server);
+                if (cookieList == null) {
+                    cookieList = new ArrayList<Cookie>();
+                    cookieMap.put(server, cookieList);
+                }
+
+                cookieList.add(c);
             }
         }
 
@@ -92,11 +102,11 @@ public class CookieMap {
         return result;
     }
 
-    Set<Entry<String, Cookie>> entrySet() {
+    Set<Entry<String, List<Cookie>>> entrySet() {
         return cookieMap.entrySet();
     }
 
-    Cookie get(String host) {
+    List<Cookie> get(String host) {
         return cookieMap.get(host);
     }
 
