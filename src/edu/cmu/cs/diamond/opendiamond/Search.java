@@ -188,6 +188,11 @@ public class Search {
                     try {
                         MiniRPCReply reply = results.take().get();
 
+                        // don't fail on NOSTATSAVAIL
+                        if (reply.getMessage().getStatus() == RPC.DIAMOND_NOSTATSAVAIL) {
+                            continue;
+                        }
+
                         reply.checkStatus();
 
                         String host = reply.getHostname();
