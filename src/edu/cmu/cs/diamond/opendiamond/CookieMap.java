@@ -17,11 +17,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.Map.Entry;
 
 /**
@@ -30,6 +26,8 @@ import java.util.Map.Entry;
  * 
  */
 public class CookieMap {
+
+    private static final CookieMap EMPTY_COOKIE_MAP = new CookieMap();
 
     private final Map<String, List<Cookie>> cookieMap;
 
@@ -51,6 +49,15 @@ public class CookieMap {
         in.close();
 
         return new CookieMap(megacookie);
+    }
+
+    /**
+     * Returns an empty CookieMap.
+     * 
+     * @return an empty CookieMap
+     */
+    public static CookieMap emptyCookieMap() {
+        return EMPTY_COOKIE_MAP;
     }
 
     /**
@@ -83,6 +90,10 @@ public class CookieMap {
         }
 
         this.cookieMap = cookieMap;
+    }
+
+    private CookieMap() {
+        cookieMap = Collections.emptyMap();
     }
 
     private static List<String> splitCookies(String megacookie) {
