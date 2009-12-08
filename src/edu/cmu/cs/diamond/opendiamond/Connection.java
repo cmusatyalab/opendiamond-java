@@ -72,7 +72,7 @@ class Connection {
 
     static Connection createConnection(String host, List<Cookie> cookieList,
             Set<String> pushAttributes, XDR_sig_and_data fspec,
-            List<Filter> filters) throws IOException {
+            List<Filter> filters) throws ServerException {
         // System.out.println("connecting to " + host);
 
         byte nonce[] = new byte[NONCE_SIZE];
@@ -80,24 +80,28 @@ class Connection {
         MiniRPCConnection control;
         MiniRPCConnection blast;
 
-        // open control (if exception is thrown here, it's ok)
-        control = new MiniRPCConnection(createOneChannel(host, nonce));
-
-        // open data
         try {
-            blast = new MiniRPCConnection(createOneChannel(host, nonce));
-        } catch (IOException e) {
-            try {
-                // close control and propagate
-                control.close();
-            } catch (IOException e2) {
-            }
-            throw e;
-        }
+            // open control (if exception is thrown here, it's ok)
+            control = new MiniRPCConnection(createOneChannel(host, nonce));
 
-        Connection conn = new Connection(control, blast, host);
-        conn.sendPreStart(cookieList, pushAttributes, fspec, filters);
-        return conn;
+            // open data
+            try {
+                blast = new MiniRPCConnection(createOneChannel(host, nonce));
+            } catch (IOException e) {
+                try {
+                    // close control and propagate
+                    control.close();
+                } catch (IOException e2) {
+                }
+                throw e;
+            }
+
+            Connection conn = new Connection(control, blast, host);
+            conn.sendPreStart(cookieList, pushAttributes, fspec, filters);
+            return conn;
+        } catch (IOException e) {
+            throw new ServerException(host, e);
+        }
     }
 
     // TODO pipeline
@@ -208,39 +212,39 @@ class Connection {
         }
     }
 
-    public MiniRPCMessage receiveBlast() throws IOException {
+    public MiniRPCMessage receiveBlast() throws ServerException {
         try {
             return receiveFrom(blast);
         } catch (IOException e) {
             close();
-            throw e;
+            throw new ServerException(hostname, e);
         }
     }
 
-    public void sendMessageBlast(int cmd, byte data[]) throws IOException {
+    public void sendMessageBlast(int cmd, byte data[]) throws ServerException {
         try {
             blast.sendMessage(cmd, data);
         } catch (IOException e) {
             close();
-            throw e;
+            throw new ServerException(hostname, e);
         }
     }
 
-    public void sendControlRequest(int cmd, byte[] data) throws IOException {
+    public void sendControlRequest(int cmd, byte[] data) throws ServerException {
         try {
             control.sendRequest(cmd, data);
         } catch (IOException e) {
             close();
-            throw e;
+            throw new ServerException(hostname, e);
         }
     }
 
-    public MiniRPCMessage receiveControl() throws IOException {
+    public MiniRPCMessage receiveControl() throws ServerException {
         try {
             return control.receive();
         } catch (IOException e) {
             close();
-            throw e;
+            throw new ServerException(hostname, e);
         }
     }
 }
