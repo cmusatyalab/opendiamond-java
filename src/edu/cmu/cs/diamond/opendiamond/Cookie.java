@@ -14,7 +14,10 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -50,7 +53,7 @@ class Cookie {
         int end = s.indexOf(END_COOKIE);
         s = s.substring(BEGIN_COOKIE.length(), end);
 
-        String cookie = new String(Base64.decode(s));
+        String cookie = new String(Base64.decode(s), "UTF-8");
         // System.out.println(cookie);
 
         // split into header and body
@@ -119,12 +122,12 @@ class Cookie {
         }
     }
 
-    private byte[] hexDecode(String string) {
+    private byte[] hexDecode(String string) throws IOException {
         byte input[] = string.getBytes();
         byte result[] = new byte[input.length / 2];
 
         for (int i = 0; i < input.length; i += 2) {
-            String s = new String(input, i, 2);
+            String s = new String(input, i, 2, "UTF-8");
             result[i / 2] = (byte) Integer.parseInt(s, 16);
         }
 

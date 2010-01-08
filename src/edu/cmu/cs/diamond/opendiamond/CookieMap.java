@@ -45,7 +45,7 @@ public class CookieMap {
         File newscope = new File(diamondDir, "NEWSCOPE");
 
         InputStream in = new FileInputStream(newscope);
-        String megacookie = new String(Util.readFully(in));
+        String megacookie = new String(Util.readFully(in), "UTF-8");
         in.close();
 
         return new CookieMap(megacookie);

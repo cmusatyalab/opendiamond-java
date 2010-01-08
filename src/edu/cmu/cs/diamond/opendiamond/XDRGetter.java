@@ -70,7 +70,7 @@ class XDRGetter {
     }
 
     public String getString(int maxLength) throws IOException {
-        return new String(getOpaque(maxLength));
+        return new String(getOpaque(maxLength), "UTF-8");
     }
 
     public String getString() throws IOException {

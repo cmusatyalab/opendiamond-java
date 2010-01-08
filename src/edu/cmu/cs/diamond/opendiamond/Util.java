@@ -262,7 +262,12 @@ public class Util {
      * @return a string
      */
     public static String extractString(byte[] value) {
-        return new String(value, 0, value.length - 1);
+        try {
+            return new String(value, 0, value.length - 1, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 
     /**
