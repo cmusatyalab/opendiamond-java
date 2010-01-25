@@ -55,7 +55,7 @@ class XDRGetter {
         int slack = roundup - len;
 
         byte result[] = new byte[len];
-        data.read(result);
+        data.readFully(result);
 
         // skip slack
         for (int i = 0; i < slack; i++) {
