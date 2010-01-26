@@ -15,10 +15,16 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBufferInt;
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 
+import javax.imageio.ImageIO;
 import javax.swing.Spring;
 import javax.swing.SpringLayout;
 
@@ -408,5 +414,96 @@ public class Util {
                 e1.printStackTrace();
             }
         }
+    }
+
+    /**
+     * Extracts a BufferedImage from a Result.
+     * 
+     * @param r
+     *            the result to extract an image from
+     * @return an image, or <code>null</code> if no image can be decoded
+     */
+    public static BufferedImage extractImageFromResult(Result r) {
+        // first, try rgbimage
+        byte[] rgbimage = r.getValue("_rgb_image.rgbimage");
+        if (rgbimage != null) {
+            return decodeRGBImage(rgbimage);
+        }
+
+        // then, try ImageIO
+        byte[] data = r.getData();
+        if (data != null) {
+            InputStream in = new ByteArrayInputStream(data);
+            try {
+                return ImageIO.read(in);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private static BufferedImage decodeRGBImage(byte[] rgbimage) {
+        ByteBuffer buf = ByteBuffer.wrap(rgbimage);
+        buf.order(ByteOrder.LITTLE_ENDIAN);
+
+        // skip header
+        buf.position(8);
+
+        // sizes
+        int h = buf.getInt();
+        int w = buf.getInt();
+
+        // do it
+        BufferedImage result = new BufferedImage(w, h,
+                BufferedImage.TYPE_INT_RGB);
+        int data[] = ((DataBufferInt) result.getRaster().getDataBuffer())
+                .getData();
+        for (int i = 0; i < data.length; i++) {
+            byte r = buf.get();
+            byte g = buf.get();
+            byte b = buf.get();
+            buf.get();
+
+            data[i] = ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF);
+        }
+
+        return result;
+    }
+
+    /**
+     * Retrieves an object from a server and extracts a BufferedImage from it.
+     * 
+     * @param objectIdentifier
+     *            the identifier for the object to extract an image from
+     * @param factory
+     *            the factory to use to retrieve the object
+     * @param hasRGBImage
+     *            if <code>true</code>, this method will attempt to retrieve
+     *            <code>_rgb_image.rgbimage</code> attribute from the server to
+     *            decode, otherwise ImageIO will be used to attempt to decode
+     *            the compressed data of the object
+     * @return an image, or <code>null</code> if no image can be decoded
+     * @throws IOException
+     *             if an IO error occurs while retrieving the object
+     */
+    public static BufferedImage extractImageFromResultIdentifier(
+            ObjectIdentifier objectIdentifier, SearchFactory factory,
+            boolean hasRGBImage) throws IOException {
+        Set<String> desiredAttributes = new HashSet<String>();
+
+        // either get the decoded image, or the undecoded image, not both
+        if (hasRGBImage) {
+            desiredAttributes.add("_rgb_image.rgbimage");
+        } else {
+            desiredAttributes.add("");
+        }
+
+        Result r2 = factory.generateResult(objectIdentifier, desiredAttributes);
+
+        // decode
+        return Util.extractImageFromResult(r2);
     }
 }
