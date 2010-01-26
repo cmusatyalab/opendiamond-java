@@ -480,28 +480,23 @@ public class Util {
      *            the identifier for the object to extract an image from
      * @param factory
      *            the factory to use to retrieve the object
-     * @param hasRGBImage
-     *            if <code>true</code>, this method will attempt to retrieve
-     *            <code>_rgb_image.rgbimage</code> attribute from the server to
-     *            decode, otherwise ImageIO will be used to attempt to decode
-     *            the compressed data of the object
      * @return an image, or <code>null</code> if no image can be decoded
      * @throws IOException
      *             if an IO error occurs while retrieving the object
      */
     public static BufferedImage extractImageFromResultIdentifier(
-            ObjectIdentifier objectIdentifier, SearchFactory factory,
-            boolean hasRGBImage) throws IOException {
+            ObjectIdentifier objectIdentifier, SearchFactory factory)
+            throws IOException {
         Set<String> desiredAttributes = new HashSet<String>();
 
-        // either get the decoded image, or the undecoded image, not both
-        if (hasRGBImage) {
-            desiredAttributes.add("_rgb_image.rgbimage");
-        } else {
-            desiredAttributes.add("");
-        }
-
+        // try to get the decoded image first, then the undecoded image
+        desiredAttributes.add("_rgb_image.rgbimage");
         Result r2 = factory.generateResult(objectIdentifier, desiredAttributes);
+
+        if (r2.getValue("_rgb_image.rgbimage") == null) {
+            desiredAttributes.add("");
+            r2 = factory.generateResult(objectIdentifier, desiredAttributes);
+        }
 
         // decode
         return Util.extractImageFromResult(r2);
