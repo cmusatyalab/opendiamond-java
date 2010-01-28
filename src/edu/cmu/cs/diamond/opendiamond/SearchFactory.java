@@ -37,7 +37,7 @@ public class SearchFactory {
 
     private final List<String> applicationDependencies;
 
-    private CookieMap cookieMap;
+    private final CookieMap cookieMap;
 
     /**
      * Constructs a search factory from a collection of filters, application
