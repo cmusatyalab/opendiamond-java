@@ -60,6 +60,8 @@ public class Search {
 
     private volatile boolean closed;
 
+    private Throwable closeCause;
+
     private final Object closeLock = new Object();
 
     private final Object rpcLock = new Object();
@@ -73,10 +75,15 @@ public class Search {
      *             if the close is interrupted
      */
     public void close() throws InterruptedException {
+        close(null);
+    }
+
+    void close(Throwable cause) throws InterruptedException {
         synchronized (closeLock) {
             if (!closed) {
                 closed = true;
                 cs.close();
+                closeCause = cause;
             }
         }
     }
@@ -100,10 +107,10 @@ public class Search {
         try {
             Util.checkResultsForIOException(cs.size(), replies);
         } catch (InterruptedException e) {
-            close();
+            close(e);
             throw e;
         } catch (IOException e) {
-            close();
+            close(e);
             throw e;
         }
     }
@@ -142,7 +149,7 @@ public class Search {
         // check for exception
         IOException e = bco.getException();
         if (e != null) {
-            close();
+            close(e);
             throw new IOException(e);
         }
 
@@ -213,7 +220,7 @@ public class Search {
                 }
 
             } catch (IOException e) {
-                close();
+                close(e);
                 throw e;
             }
         }
@@ -326,7 +333,7 @@ public class Search {
                     }
                 }
             } catch (IOException e) {
-                close();
+                close(e);
                 throw e;
             }
         }
@@ -361,7 +368,7 @@ public class Search {
                     }
                 }
             } catch (IOException e) {
-                close();
+                close(e);
                 throw e;
             }
         }
