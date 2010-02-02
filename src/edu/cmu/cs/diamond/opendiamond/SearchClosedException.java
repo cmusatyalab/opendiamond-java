@@ -21,5 +21,10 @@ import java.io.IOException;
  */
 public class SearchClosedException extends IOException {
     SearchClosedException() {
+        super();
+    }
+
+    SearchClosedException(Throwable cause) {
+        super(cause);
     }
 }
