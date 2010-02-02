@@ -117,7 +117,11 @@ public class Search {
 
     private void checkClosed() throws SearchClosedException {
         if (closed) {
-            throw new SearchClosedException();
+            if (closeCause == null) {
+                throw new SearchClosedException();
+            } else {
+                throw new SearchClosedException(closeCause);
+            }
         }
     }
 
