@@ -78,19 +78,19 @@ final class MiniRPCMessage {
     static String statusToString(int s) {
         switch (s) {
         case MINIRPC_OK:
-            return "MINIRPC_OK";
+            return "OK";
         case MINIRPC_PENDING:
-            return "MINIRPC_PENDING";
+            return "pending";
         case MINIRPC_ENCODING_ERR:
-            return "MINIRPC_ENCODING_ERR";
+            return "encoding error";
         case MINIRPC_PROCEDURE_UNAVAIL:
-            return "MINIRPC_PROCEDURE_UNAVAIL";
+            return "procedure unavailable";
         case MINIRPC_INVALID_ARGUMENT:
-            return "MINIRPC_INVALID_ARGUMENT";
+            return "invalid argument";
         case MINIRPC_INVALID_PROTOCOL:
-            return "MINIRPC_INVALID_PROTOCOL";
+            return "invalid protocol";
         case MINIRPC_NETWORK_FAILURE:
-            return "MINIRPC_NETWORK_FAILURE";
+            return "network failure";
         default:
             return Integer.toString(s);
 

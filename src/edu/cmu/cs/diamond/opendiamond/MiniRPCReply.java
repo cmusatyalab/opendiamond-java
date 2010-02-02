@@ -43,8 +43,7 @@ final class MiniRPCReply {
         int status = getMessage().getStatus();
         if (status != MiniRPCMessage.MINIRPC_OK) {
             // TODO case on other statuses
-            throw new IOException("bad status on message from " + getHostname()
-                    + ": " + RPC.statusToString(status));
+            throw new IOException(RPC.statusToString(status));
         }
     }
 }

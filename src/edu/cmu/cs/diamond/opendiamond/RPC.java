@@ -66,22 +66,22 @@ class RPC implements Callable<MiniRPCReply> {
     public static String statusToString(int status) {
         switch (status) {
         case DIAMOND_SUCCESS:
-            return "DIAMOND_SUCCESS";
+            return "success";
 
         case DIAMOND_FAILURE:
-            return "DIAMOND_FAILURE";
+            return "failure";
 
         case DIAMOND_FCACHEMISS:
-            return "DIAMOND_FCACHEMISS";
+            return "cache miss";
 
         case DIAMOND_NOSTATSAVAIL:
-            return "DIAMOND_NOSTATSAVAIL";
+            return "no statistics available";
 
         case DIAMOND_NOMEM:
-            return "DIAMOND_NOMEM";
+            return "out of memory";
 
         case DIAMOND_COOKIE_EXPIRED:
-            return "DIAMOND_COOKIE_EXPIRED";
+            return "cookie expired";
 
         default:
             return MiniRPCMessage.statusToString(status);
