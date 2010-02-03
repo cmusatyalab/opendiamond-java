@@ -61,7 +61,7 @@ public class SearchFactory {
         this.cookieMap = cookieMap;
     }
 
-    private Set<String> copyAndValidateAttributes(Set<String> attributes) {
+    private static Set<String> copyAndValidateAttributes(Set<String> attributes) {
         Set<String> copyOfAttributes = new HashSet<String>(attributes);
         for (String string : copyOfAttributes) {
             if (string.length() > MAX_ATTRIBUTE_NAME) {
@@ -181,7 +181,7 @@ public class SearchFactory {
         return search;
     }
 
-    private void cleanup(List<Future<Connection>> futures)
+    private static void cleanup(List<Future<Connection>> futures)
             throws InterruptedException {
         // System.out.println("cleanup of " + futures);
         InterruptedException ie = null;
