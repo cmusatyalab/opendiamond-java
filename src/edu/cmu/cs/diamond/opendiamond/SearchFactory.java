@@ -16,6 +16,7 @@ package edu.cmu.cs.diamond.opendiamond;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
 
 /**
  * Factory to create one or more {@link Search} instances. Instances of this
@@ -38,6 +39,8 @@ public class SearchFactory {
     private final List<String> applicationDependencies;
 
     private final CookieMap cookieMap;
+    
+    private Logger logger;
 
     /**
      * Constructs a search factory from a collection of filters, application
@@ -59,6 +62,8 @@ public class SearchFactory {
                 applicationDependencies);
 
         this.cookieMap = cookieMap;
+
+        if (LoggingFramework.isEnabled()) this.logger = LoggingFramework.getLogger();
     }
 
     private static Set<String> copyAndValidateAttributes(Set<String> attributes) {
@@ -90,6 +95,10 @@ public class SearchFactory {
             }
         }
 
+    	if (this.logger != null) {
+    		this.logger.finest("Created fspec file: " + LoggingFramework.saveFspec(sb.toString().getBytes()));
+    	}
+        
         return sb.toString();
     }
 
