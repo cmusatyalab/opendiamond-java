@@ -16,6 +16,7 @@ package edu.cmu.cs.diamond.opendiamond;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -96,7 +97,7 @@ public class SearchFactory {
         }
 
     	if (this.logger != null) {
-    		this.logger.finest("Created fspec file: " + LoggingFramework.saveFspec(sb.toString().getBytes()));
+    		this.logger.log(Level.FINEST, "Created fspec file", LoggingFramework.saveFspec(sb));
     	}
         
         return sb.toString();
@@ -124,19 +125,21 @@ public class SearchFactory {
     public Search createSearch(Set<String> desiredAttributes)
             throws IOException, InterruptedException {
         final Set<String> pushAttributes;
+        LoggingFramework.saveAttributes(desiredAttributes);
         if (desiredAttributes == null) {
             // no filtering requested
             pushAttributes = null;
         } else {
             pushAttributes = copyAndValidateAttributes(desiredAttributes);
         }
-
+        
         // make all the connections and prep everything to start
         final XDR_sig_and_data fspec = encodeFspec();
 
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
                 executor);
+        LoggingFramework.saveFilters(filters);
         for (Map.Entry<String, List<Cookie>> e : cookieMap.entrySet()) {
             final String hostname = e.getKey();
             final List<Cookie> cookieList = e.getValue();

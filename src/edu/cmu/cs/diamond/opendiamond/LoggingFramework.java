@@ -13,13 +13,14 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,6 +31,8 @@ public class LoggingFramework {
 	static private ArrayList<String> files;
 	static private String date;
 	static private int fspec_counter;
+	static private int filter_counter;
+	static private int attribute_counter;
 
 	synchronized static public void setup() {
 		Date currentDate = new Date();
@@ -57,6 +60,7 @@ public class LoggingFramework {
 		}
 		enabled = true;
 		fspec_counter = 0;
+		filter_counter = 0;
 	}
 
 	synchronized static public Logger getLogger() {
@@ -66,8 +70,9 @@ public class LoggingFramework {
 		return Logger.getLogger(LoggingFramework.class.getPackage().getName());
 	}
 
-	synchronized static public String saveFspec(byte[] spec) {
+	synchronized static public String saveFspec(StringBuilder sbSpec) {
 		if (!enabled) return null;
+		byte[] spec = sbSpec.toString().getBytes();
 		FileOutputStream fileOut = null;
 		String fileName = "fspec_" + fspec_counter + "_" + date;
 		try {
@@ -105,5 +110,69 @@ public class LoggingFramework {
 			zipOut.storeFile(fileName);
 		}
 		zipOut.cleanUp();
+	}
+
+	synchronized public static void saveFilters(List<Filter> filters) {
+		if (!enabled) return;
+		FileOutputStream fileOut = null;
+		String fileName;
+		Logger theLogger =
+			Logger.getLogger(LoggingFramework.class.getPackage().getName());
+		for (Filter f : filters) {
+			fileName = "filter_" + filter_counter + "_" + date;
+			theLogger.finest("Saving Filter: " + fileName);
+			try {
+				fileOut = new FileOutputStream(fileName);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			try {
+				fileOut.write(f.getFilterCode().getBytes());
+				fileOut.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			files.add(fileName);
+			filter_counter++;
+		}
+	}
+
+	synchronized public static void saveAttributes(Set<String> desiredAttributes) {
+		if (!enabled) return;
+		FileOutputStream fileOut = null;
+		String fileName;
+		Logger theLogger =
+			Logger.getLogger(LoggingFramework.class.getPackage().getName());
+		fileName = "attributes_" + attribute_counter + "_" + date;
+		theLogger.finest("Saving Attributes: " + fileName);
+		
+		try {
+			fileOut = new FileOutputStream(fileName);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		for (String s : desiredAttributes) {
+			try {
+				fileOut.write((s + "\n").getBytes());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		try {
+			fileOut.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		files.add(fileName);
+		attribute_counter++;
 	}
 }
