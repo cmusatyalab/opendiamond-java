@@ -43,6 +43,10 @@ public class SearchFactory {
     
     private Logger logger;
 
+	private byte[] fspec;
+
+	private Set<String> attributes;
+
     /**
      * Constructs a search factory from a collection of filters, application
      * dependencies, and a cookie map.
@@ -67,6 +71,14 @@ public class SearchFactory {
         if (LoggingFramework.isEnabled()) this.logger = LoggingFramework.getLogger();
     }
 
+    public SearchFactory(Collection<Filter> filters, CookieMap cookieMap, byte[] fspec, Set<String> attributes) {
+    	this.applicationDependencies = null;
+    	this.filters = new ArrayList<Filter>(filters);
+    	this.cookieMap = cookieMap;
+    	this.fspec = fspec;
+    	this.attributes = attributes;
+    }
+    
     private static Set<String> copyAndValidateAttributes(Set<String> attributes) {
         Set<String> copyOfAttributes = new HashSet<String>(attributes);
         for (String string : copyOfAttributes) {
@@ -84,6 +96,7 @@ public class SearchFactory {
     }
 
     private String getFspec() {
+    	if (fspec != null) return new String(fspec);
         StringBuilder sb = new StringBuilder();
         for (Filter f : filters) {
             sb.append(f.getFspec());
@@ -125,7 +138,10 @@ public class SearchFactory {
     public Search createSearch(Set<String> desiredAttributes)
             throws IOException, InterruptedException {
         final Set<String> pushAttributes;
-        LoggingFramework.saveAttributes(desiredAttributes);
+        if (attributes != null) desiredAttributes = attributes;
+        if (logger != null) {
+        	logger.log(Level.FINEST, "Saving Attributes", LoggingFramework.saveAttributes(desiredAttributes));
+        }
         if (desiredAttributes == null) {
             // no filtering requested
             pushAttributes = null;
@@ -139,7 +155,9 @@ public class SearchFactory {
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
                 executor);
-        LoggingFramework.saveFilters(filters);
+        if (logger != null) {
+        	logger.log(Level.FINEST, "Saving filters", LoggingFramework.saveFilters(filters));
+        }
         for (Map.Entry<String, List<Cookie>> e : cookieMap.entrySet()) {
             final String hostname = e.getKey();
             final List<Cookie> cookieList = e.getValue();

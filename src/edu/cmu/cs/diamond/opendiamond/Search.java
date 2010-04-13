@@ -189,11 +189,11 @@ public class Search {
         checkClosed();
 
         Map<String, ServerStatistics> result = new HashMap<String, ServerStatistics>();
-
         synchronized (rpcLock) {
             // request_stats = 15
             CompletionService<MiniRPCReply> results = cs
                     .sendToAllControlChannels(15, new byte[0]);
+
             try {
                 for (int i = 0; i < cs.size(); i++) {
                     try {
@@ -214,6 +214,7 @@ public class Search {
                         result.put(host, new ServerStatistics(stats
                                 .getObjsTotal(), stats.getObjsProcessed(),
                                 stats.getObjsDropped()));
+
                     } catch (ExecutionException e) {
                         Throwable cause = e.getCause();
                         if (cause instanceof IOException) {
@@ -228,7 +229,7 @@ public class Search {
                 throw e;
             }
         }
-
+        LoggingFramework.updateStatistics(result);
         return result;
     }
 

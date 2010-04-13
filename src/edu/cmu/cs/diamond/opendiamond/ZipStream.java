@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /*
@@ -24,18 +26,29 @@ import java.util.zip.ZipOutputStream;
 public class ZipStream {
 
 	private ZipOutputStream zout;
+	private ZipFile zin;
 	private static final int COMPRESSION_LEVEL = 9;
 
-	public ZipStream(String name) {
-		FileOutputStream fout = null;
-		try {
-			fout = new FileOutputStream(name);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+	public ZipStream(String name, char readWrite) {
+		if (readWrite == 'w') {
+			FileOutputStream fout = null;
+			try {
+				fout = new FileOutputStream(name);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			zout = new ZipOutputStream(fout);
+			zout.setLevel(ZipStream.COMPRESSION_LEVEL);
+		} else {
+			zin = null;
+			try {
+				zin = new ZipFile(name);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-		zout = new ZipOutputStream(fout);
-		zout.setLevel(ZipStream.COMPRESSION_LEVEL);
 	}
 
 	public void storeFile(String name) {
@@ -61,9 +74,20 @@ public class ZipStream {
 		file.delete();
 	}
 
+	public byte[] readFile(String name) {
+		try {
+			return Util.readFully(zin.getInputStream(zin.getEntry(name)));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	public void cleanUp() {
 		try {
-			zout.close();
+			if (zout != null) zout.close();
+			if (zin != null) zin.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

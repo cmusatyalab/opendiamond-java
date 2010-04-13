@@ -121,6 +121,21 @@ public class Filter {
                 dependencies, arguments, new byte[0]);
     }
 
+    public Filter(FilterCode code, byte encodedBlob[], byte encodedBlobSig[]) {
+    	this.code = code;
+    	this.encodedBlob = encodedBlob;
+    	this.encodedBlobSig = encodedBlobSig;
+        this.name = "";
+        this.evalFunction = "";
+        this.initFunction = "";
+        this.finiFunction = "";
+        this.threshold = 0;
+        this.merit = 100;
+
+        this.dependencies = null;
+        this.arguments = null;   	
+    }
+    
     @Override
     public String toString() {
         return getName() + ", encoded bloblen: " + getEncodedBlob().length;
