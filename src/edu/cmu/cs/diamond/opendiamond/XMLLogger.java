@@ -59,7 +59,7 @@ public class XMLLogger {
     private int processedObjects;
     private int droppedObjects;
 
-	public XMLLogger() throws IOException {
+	XMLLogger() throws IOException {
 		Date currentDate = new Date();
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		sdf.applyPattern("yyyy-MM-dd'T'HH:mm:ssZ");
@@ -93,11 +93,11 @@ public class XMLLogger {
 		}
 	}
 	
-	protected Logger getSearchLogger() {
+	Logger getSearchLogger() {
 		return searchLogger;
 	}
 	
-	protected String saveFspec(String fSpec) {
+	String saveFspec(String fSpec) {
 		byte[] spec = fSpec.getBytes();
 		FileOutputStream fileOut = null;
 		String fileName =  Util.joinPaths(searchDir, "fspec_" + fspecCounter);
@@ -124,7 +124,7 @@ public class XMLLogger {
 		return fileName;
 	}
 
-	protected String[] saveFilters(List<Filter> filters) {
+	String[] saveFilters(List<Filter> filters) {
 		FileOutputStream fileOut1 = null, fileOut2 = null, fileOut3 = null;
 		String fileName1, fileName2, fileName3;
 		String[] returnList = new String[filters.size()*3];
@@ -170,7 +170,7 @@ public class XMLLogger {
 		return returnList;
 	}
 
-	protected String saveAttributes(Set<String> desiredAttributes) {
+	String saveAttributes(Set<String> desiredAttributes) {
 		FileOutputStream fileOut = null;
 		String fileName;
 		fileName =  Util.joinPaths(searchDir, "attributes_" + attributeCounter);
@@ -200,7 +200,7 @@ public class XMLLogger {
 		return fileName;
 	}
 
-	protected String saveSessionVariables(Map<String, Double> map) {
+	String saveSessionVariables(Map<String, Double> map) {
 		FileOutputStream fileOut = null;
 		String fileName;
 		fileName =  Util.joinPaths(searchDir, "sessionVariables_" + attributeCounter);
@@ -230,19 +230,19 @@ public class XMLLogger {
 		return fileName;
 	}
 
-	protected String[] stopSearch() {
+	String[] stopSearch() {
 		return new String[] {Integer.toString(totalObjects), Integer.toString(processedObjects), Integer.toString(droppedObjects)};
 	}
 
-	protected String startSearch() {
+	String startSearch() {
 		return APP_SESSION_DIR;
 	}
 	
-	protected ServerStatistics getCurrentTotalStatistics() {
+	ServerStatistics getCurrentTotalStatistics() {
 		return new ServerStatistics(totalObjects, processedObjects, droppedObjects);
 	}
 
-	protected void updateStatistics(Map<String, ServerStatistics> result) {
+	void updateStatistics(Map<String, ServerStatistics> result) {
 		totalObjects = 0;
 		processedObjects = 0;
 		droppedObjects = 0;
@@ -253,7 +253,7 @@ public class XMLLogger {
 		}
 	}
 
-	protected void shutdown(Throwable cause) {
+	void shutdown(Throwable cause) {
 		if (cause != null) searchLogger.log(Level.FINEST, "Logging throwable cause of failure.", Util.getStackTrace(cause));
 		for (Handler h :searchLogger.getHandlers()) {
 			searchLogger.removeHandler(h);
@@ -261,7 +261,7 @@ public class XMLLogger {
 		}
 	}
 
-	public String[] saveGetNewResult(Result result) {
+	String[] saveGetNewResult(Result result) {
 		String[] returnArray = null;
 		if (Boolean.parseBoolean(System.getProperty("edu.cmu.cs.diamond.opendiamond.loggingframework.detailedresults"))) {
 			returnArray = new String[result.getKeys().size()*2+1];
