@@ -78,7 +78,6 @@ public class Search {
      */
     public void close() throws InterruptedException {
         close(null);
-        logging.stoppedSearch();
     }
 
     void close(Throwable cause) throws InterruptedException {
@@ -89,6 +88,7 @@ public class Search {
                 closeCause = cause;
             }
         }
+        logging.stoppedSearch(cause);
     }
 
     void start() throws InterruptedException, IOException {
@@ -175,9 +175,11 @@ public class Search {
             attrs = Collections.unmodifiableMap(newMap);
         }
 
-        logging.saveGetNewResult(attrs);
+        Result result = new Result(attrs, bco.getHostname());
         
-        return new Result(attrs, bco.getHostname());
+        logging.saveGetNewResult(result);
+        
+        return result;
     }
 
     /**

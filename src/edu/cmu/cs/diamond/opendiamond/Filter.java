@@ -121,7 +121,7 @@ public class Filter {
                 dependencies, arguments, new byte[0]);
     }
 
-    public Filter(FilterCode code, byte encodedBlob[], byte encodedBlobSig[]) {
+    Filter(FilterCode code, byte encodedBlob[], byte encodedBlobSig[]) {
     	this.code = code;
     	this.encodedBlob = encodedBlob;
     	this.encodedBlobSig = encodedBlobSig;

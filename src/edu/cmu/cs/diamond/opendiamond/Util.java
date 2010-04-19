@@ -516,4 +516,19 @@ public class Util {
     	    File file2 = new File(file1, path2);
     	    return file2.getPath();
     }
+    
+    /**
+     * 
+     * This function returns a stacktrace as a <code>String</code>
+     * given an input <code>Throwable</code> object.
+     * 
+     * @param aThrowable the exception being thrown
+     * @return stacktrace of the exception as a string
+     */
+    public static String getStackTrace(Throwable aThrowable) {
+        final Writer result = new StringWriter();
+        final PrintWriter printWriter = new PrintWriter(result);
+        aThrowable.printStackTrace(printWriter);
+        return result.toString();
+      }
 }

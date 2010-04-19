@@ -49,12 +49,12 @@ public class XMLLogger {
 		APP_SESSION_DIR = temp;
 	}
 
-	private final Logger SEARCH_LOGGER;
-	private final String SEARCH_DIR;
-	private int fspec_counter;
-	private int filter_counter;
-	private int attribute_counter;
-    private int session_counter;
+	private final Logger searchLogger;
+	private final String searchDir;
+	private int fspecCounter;
+	private int filterCounter;
+	private int attributeCounter;
+    private int sessionCounter;
     private int totalObjects;
     private int processedObjects;
     private int droppedObjects;
@@ -63,7 +63,7 @@ public class XMLLogger {
 		Date currentDate = new Date();
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		sdf.applyPattern("yyyy-MM-dd'T'HH:mm:ssZ");
-		SEARCH_LOGGER =
+		searchLogger =
 			Logger.getLogger(LoggingFramework.class.getPackage().getName());
 		String date = sdf.format(currentDate);
 
@@ -74,16 +74,16 @@ public class XMLLogger {
 			throw new IOException();
 		}
 
-		SEARCH_DIR = temp;
+		searchDir = temp;
 
-		String logFileName = SEARCH_DIR + "/raw_log.log";
+		String logFileName = Util.joinPaths(searchDir, "raw_log.log");
 		try {
 			FileHandler fh = new FileHandler(logFileName);
-			SEARCH_LOGGER.addHandler(fh);
+			searchLogger.addHandler(fh);
 			XMLFormatter formatter = new XMLFormatter();
 			fh.setFormatter(formatter);
-			SEARCH_LOGGER.setUseParentHandlers(false);
-			SEARCH_LOGGER.setLevel(Level.FINEST);
+			searchLogger.setUseParentHandlers(false);
+			searchLogger.setLevel(Level.FINEST);
 		} catch (SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -91,38 +91,36 @@ public class XMLLogger {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		fspec_counter = 0;
-		filter_counter = 0;
-		session_counter = 0;
-		totalObjects = 0;
-		processedObjects = 0;
-		droppedObjects = 0;
 	}
 	
 	protected Logger getSearchLogger() {
-		return SEARCH_LOGGER;
+		return searchLogger;
 	}
 	
 	protected String saveFspec(String fSpec) {
 		byte[] spec = fSpec.getBytes();
 		FileOutputStream fileOut = null;
-		String fileName = SEARCH_DIR + "/fspec_" + fspec_counter;
+		String fileName =  Util.joinPaths(searchDir, "fspec_" + fspecCounter);
 		try {
-			fileOut = new FileOutputStream(fileName);
+			File f = new File(fileName);
+			fileOut = new FileOutputStream(f);
+			try {
+				fileOut.write(spec);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					fileOut.close();
+				} catch (IOException ignore) {
+				}
+			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
-		try {
-			fileOut.write(spec);
-			fileOut.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		fspec_counter++;
+		fspecCounter++;
 		return fileName;
 	}
 
@@ -132,26 +130,33 @@ public class XMLLogger {
 		String[] returnList = new String[filters.size()*3];
 		int counter = 0;
 		for (Filter f : filters) {
-			fileName1 = SEARCH_DIR + "/filter_" + filter_counter;
-			fileName2 = SEARCH_DIR + "/encodedblob_" + filter_counter;
-			fileName3 = SEARCH_DIR + "/encodedblobandsig_" + filter_counter;
+			fileName1 =  Util.joinPaths(searchDir, "filter_" + filterCounter);
+			fileName2 =  Util.joinPaths(searchDir, "encodedblob_" + filterCounter);
+			fileName3 =  Util.joinPaths(searchDir, "encodedblobandsig_" + filterCounter);
 			try {
-				fileOut1 = new FileOutputStream(fileName1);
-				fileOut2 = new FileOutputStream(fileName2);
-				fileOut3 = new FileOutputStream(fileName3);
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+				File f1 = new File(fileName1);
+				File f2 = new File(fileName2);
+				File f3 = new File(fileName3);
 
-			try {
-				fileOut1.write(f.getFilterCode().getBytes());
-				fileOut1.close();
-				fileOut2.write(f.getEncodedBlob());
-				fileOut2.close();
-				fileOut3.write(f.getEncodedBlobSig());
-				fileOut3.close();
-			} catch (IOException e) {
+				fileOut1 = new FileOutputStream(f1);
+				fileOut2 = new FileOutputStream(f2);
+				fileOut3 = new FileOutputStream(f3);
+				try {
+					fileOut1.write(f.getFilterCode().getBytes());
+					fileOut2.write(f.getEncodedBlob());
+					fileOut3.write(f.getEncodedBlobSig());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} finally {
+					try {
+						fileOut1.close();
+						fileOut2.close();
+						fileOut3.close();
+					} catch (IOException ignore) {
+					}
+				}
+			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -160,7 +165,7 @@ public class XMLLogger {
 			returnList[counter+1] = fileName2;
 			returnList[counter+2] = fileName3;
 			counter += 3;
-			filter_counter++;
+			filterCounter++;
 		}
 		return returnList;
 	}
@@ -168,64 +173,60 @@ public class XMLLogger {
 	protected String saveAttributes(Set<String> desiredAttributes) {
 		FileOutputStream fileOut = null;
 		String fileName;
-		fileName = SEARCH_DIR + "/attributes_" + attribute_counter;
+		fileName =  Util.joinPaths(searchDir, "attributes_" + attributeCounter);
 
 		try {
-			fileOut = new FileOutputStream(fileName);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		for (String s : desiredAttributes) {
-			try {
-				fileOut.write((s + "\n").getBytes());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			File f = new File(fileName);
+			fileOut = new FileOutputStream(f);
+			for (String s : desiredAttributes) {
+				try {
+					fileOut.write((s + "\n").getBytes());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
-		
-		try {
-			fileOut.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			try {
+				fileOut.close();
+			} catch (IOException ignore) {
+            }
 		}
 
-		attribute_counter++;
+		attributeCounter++;
 		return fileName;
 	}
 
 	protected String saveSessionVariables(Map<String, Double> map) {
 		FileOutputStream fileOut = null;
 		String fileName;
-		fileName = SEARCH_DIR + "/sessionVariables_" + attribute_counter;
+		fileName =  Util.joinPaths(searchDir, "sessionVariables_" + attributeCounter);
 
 		try {
-			fileOut = new FileOutputStream(fileName);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		for (String s : map.keySet()) {
-			try {
-				fileOut.write((Double.toString(map.get(s)) + "\n").getBytes());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			File f = new File(fileName);
+			fileOut = new FileOutputStream(f);
+			for (Map.Entry<String, Double> entry : map.entrySet()) {
+				try {
+					fileOut.write((Double.toString(entry.getValue()) + "\n").getBytes());
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
-
-		try {
-			fileOut.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			try {
+				fileOut.close();
+			} catch (IOException ignore) {
+            }
 		}
 
-		session_counter++;
+		sessionCounter++;
 		return fileName;
 	}
 
@@ -252,24 +253,27 @@ public class XMLLogger {
 		}
 	}
 
-	protected void shutdown() {
-		for (Handler h :SEARCH_LOGGER.getHandlers()) {
-			SEARCH_LOGGER.removeHandler(h);
+	protected void shutdown(Throwable cause) {
+		if (cause != null) searchLogger.log(Level.FINEST, "Logging throwable cause of failure.", Util.getStackTrace(cause));
+		for (Handler h :searchLogger.getHandlers()) {
+			searchLogger.removeHandler(h);
 			h.close();
 		}
 	}
 
-	public String[] saveGetNewResult(Map<String, byte[]> attrs) {
+	public String[] saveGetNewResult(Result result) {
 		String[] returnArray = null;
 		if (Boolean.parseBoolean(System.getProperty("edu.cmu.cs.diamond.opendiamond.loggingframework.detailedresults"))) {
-			returnArray = new String[attrs.size()*2];
-			int i = 0;
-			for (String s : attrs.keySet()) {
+			returnArray = new String[result.getKeys().size()*2+1];
+			int i = 1;
+			for (String s : result.getKeys()) {
 				returnArray[i] = s;
-				returnArray[i+1] = Base64.encodeBytes(attrs.get(s));
+				returnArray[i+1] = Base64.encodeBytes(result.getValue(s));
 				i += 2;
 			}
+			returnArray[0] = result.getObjectIdentifier().getHostname();
+			return returnArray;
 		}
-		return returnArray;
+		return new String[] {result.getObjectIdentifier().getHostname(), result.toString()};
 	}
 }

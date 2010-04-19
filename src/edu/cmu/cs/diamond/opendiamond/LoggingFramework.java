@@ -42,7 +42,7 @@ public class LoggingFramework {
 
 	public void shutdown() {
 		javaLogger.log(Level.FINEST, "Shutting down logging framework.");
-		searchLogger.shutdown();
+		searchLogger.shutdown(null);
 	}
 
 	public void saveFilters(List<Filter> filters) {
@@ -57,9 +57,9 @@ public class LoggingFramework {
 		javaLogger.log(Level.FINEST, "Saving Session Variables.", searchLogger.saveSessionVariables(sessionVariables));
 	}
 
-	public void stoppedSearch() {
+	public void stoppedSearch(Throwable cause) {
 		javaLogger.log(Level.FINEST, "Search has stopped.", searchLogger.stopSearch());
-		searchLogger.shutdown();
+		searchLogger.shutdown(cause);
 	}
 
 	public void startedSearch() {
@@ -77,8 +77,8 @@ public class LoggingFramework {
 		searchLogger.updateStatistics(result);
 	}
 
-	public void saveGetNewResult(Map<String, byte[]> attrs) {
-		javaLogger.log(Level.FINEST, "Got new result.", searchLogger.saveGetNewResult(attrs));
+	public void saveGetNewResult(Result result) {
+		javaLogger.log(Level.FINEST, "Got new result.", searchLogger.saveGetNewResult(result));
 	}
 
 	public void logNoMoreResults() {

@@ -82,12 +82,11 @@ public class SearchFactory {
      *            the cookie map to use to look up servers and authenticate
      *            against
      */
-    public SearchFactory(Collection<Filter> filters, CookieMap cookieMap, byte[] fspec, Set<String> attributes) {
+    SearchFactory(Collection<Filter> filters, CookieMap cookieMap, byte[] fspec) {
     	this.applicationDependencies = null;
     	this.filters = new ArrayList<Filter>(filters);
     	this.cookieMap = cookieMap;
     	this.fspec = fspec;
-    	this.attributes = attributes;
     }
     
     private static Set<String> copyAndValidateAttributes(Set<String> attributes) {
@@ -145,7 +144,6 @@ public class SearchFactory {
     public Search createSearch(Set<String> desiredAttributes)
             throws IOException, InterruptedException {
         final Set<String> pushAttributes;
-        if (attributes != null) desiredAttributes = attributes;
         
         LoggingFramework logging = new LoggingFramework("createSearch");
 
