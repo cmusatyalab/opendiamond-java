@@ -40,8 +40,6 @@ public class SearchFactory {
     private final List<String> applicationDependencies;
 
     private final CookieMap cookieMap;
-    
-    private Logger logger;
 
 	private byte[] fspec;
 
@@ -67,10 +65,23 @@ public class SearchFactory {
                 applicationDependencies);
 
         this.cookieMap = cookieMap;
-
-        if (LoggingFramework.isEnabled()) this.logger = LoggingFramework.getLogger();
     }
 
+    /**
+     * Constructs a search factory from a collection of filters, application
+     * dependencies, a cookie map, and raw fspec.  Designed to be called when loading a
+     * search from a trace.
+     * 
+     * @param filters
+     *            a collection of filters to run during a search
+     * @param fspec
+     * 			  raw byte representation of saved fspec
+     * @param applicationDependencies
+     *            a poorly-specified construct that will hopefully go away
+     * @param cookieMap
+     *            the cookie map to use to look up servers and authenticate
+     *            against
+     */
     public SearchFactory(Collection<Filter> filters, CookieMap cookieMap, byte[] fspec, Set<String> attributes) {
     	this.applicationDependencies = null;
     	this.filters = new ArrayList<Filter>(filters);
@@ -108,10 +119,6 @@ public class SearchFactory {
                 sb.append("REQUIRES " + d + "\n");
             }
         }
-
-    	if (this.logger != null) {
-    		this.logger.log(Level.FINEST, "Created fspec file", LoggingFramework.saveFspec(sb));
-    	}
         
         return sb.toString();
     }
@@ -139,9 +146,11 @@ public class SearchFactory {
             throws IOException, InterruptedException {
         final Set<String> pushAttributes;
         if (attributes != null) desiredAttributes = attributes;
-        if (logger != null) {
-        	logger.log(Level.FINEST, "Saving Attributes", LoggingFramework.saveAttributes(desiredAttributes));
-        }
+        
+        LoggingFramework logging = new LoggingFramework("createSearch");
+
+        logging.saveAttributes(desiredAttributes);
+
         if (desiredAttributes == null) {
             // no filtering requested
             pushAttributes = null;
@@ -150,14 +159,15 @@ public class SearchFactory {
         }
         
         // make all the connections and prep everything to start
+        logging.saveFspec(getFspec());
         final XDR_sig_and_data fspec = encodeFspec();
 
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
                 executor);
-        if (logger != null) {
-        	logger.log(Level.FINEST, "Saving filters", LoggingFramework.saveFilters(filters));
-        }
+
+        logging.saveFilters(filters);
+
         for (Map.Entry<String, List<Cookie>> e : cookieMap.entrySet()) {
             final String hostname = e.getKey();
             final List<Cookie> cookieList = e.getValue();
@@ -206,7 +216,7 @@ public class SearchFactory {
         // we're safe
         ConnectionSet cs = new ConnectionSet(executor, connections);
 
-        Search search = new Search(cs);
+        Search search = new Search(cs, logging);
         search.start();
         return search;
     }
@@ -249,15 +259,22 @@ public class SearchFactory {
         String objID = identifier.getObjectID();
         List<Cookie> c = cookieMap.get(host);
 
+        LoggingFramework logging = new LoggingFramework("generateResult");
+
+        logging.saveAttributes(desiredAttributes);
+        
         if (c == null) {
             throw new IOException("No cookie found for host " + host);
         }
 
         // prestart
+        logging.saveFspec(getFspec());
         XDR_sig_and_data fspec = encodeFspec();
         Connection conn = Connection.createConnection(host, c, null, fspec,
                 filters);
 
+        logging.saveFilters(filters);
+        
         // send eval
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();
         MiniRPCReply reply = new RPC(conn, conn.getHostname(), 21, reexec)

@@ -57,6 +57,8 @@ public class Search {
     }
 
     final private ConnectionSet cs;
+    
+    private final LoggingFramework logging;
 
     private volatile boolean closed;
 
@@ -76,6 +78,7 @@ public class Search {
      */
     public void close() throws InterruptedException {
         close(null);
+        logging.stoppedSearch();
     }
 
     void close(Throwable cause) throws InterruptedException {
@@ -113,6 +116,7 @@ public class Search {
             close(e);
             throw e;
         }
+        logging.startedSearch();
     }
 
     private void checkClosed() throws SearchClosedException {
@@ -147,6 +151,7 @@ public class Search {
 
         // done?
         if (bco == BlastChannelObject.NO_MORE_RESULTS) {
+        	logging.logNoMoreResults();
             return null;
         }
 
@@ -170,6 +175,8 @@ public class Search {
             attrs = Collections.unmodifiableMap(newMap);
         }
 
+        logging.saveGetNewResult(attrs);
+        
         return new Result(attrs, bco.getHostname());
     }
 
@@ -229,7 +236,7 @@ public class Search {
                 throw e;
             }
         }
-        LoggingFramework.updateStatistics(result);
+        logging.updateStatistics(result);
         return result;
     }
 
@@ -377,9 +384,11 @@ public class Search {
                 throw e;
             }
         }
+        logging.saveSessionVariables(map);
     }
 
-    Search(ConnectionSet connectionSet) {
+    Search(ConnectionSet connectionSet, LoggingFramework logging) {
         this.cs = connectionSet;
+        this.logging = logging;
     }
 }
