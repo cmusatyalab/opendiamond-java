@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.logging.XMLFormatter;
 
-public class XMLLogger {
+class XMLLogger {
 
 	private static final String APP_SESSION_DIR;
 	private static AtomicInteger searchCounter = new AtomicInteger(0);
@@ -51,7 +51,7 @@ public class XMLLogger {
 
 	private final Logger searchLogger;
 	private final String searchDir;
-	private int fspecCounter;
+	private int cookieMapCounter;
 	private int filterCounter;
 	private int attributeCounter;
     private int sessionCounter;
@@ -92,36 +92,9 @@ public class XMLLogger {
 			e.printStackTrace();
 		}
 	}
-	
+
 	Logger getSearchLogger() {
 		return searchLogger;
-	}
-	
-	String saveFspec(String fSpec) {
-		byte[] spec = fSpec.getBytes();
-		FileOutputStream fileOut = null;
-		String fileName =  Util.joinPaths(searchDir, "fspec_" + fspecCounter);
-		try {
-			File f = new File(fileName);
-			fileOut = new FileOutputStream(f);
-			try {
-				fileOut.write(spec);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} finally {
-				try {
-					fileOut.close();
-				} catch (IOException ignore) {
-				}
-			}
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		fspecCounter++;
-		return fileName;
 	}
 
 	String[] saveFilters(List<Filter> filters) {
@@ -237,7 +210,7 @@ public class XMLLogger {
 	String startSearch() {
 		return APP_SESSION_DIR;
 	}
-	
+
 	ServerStatistics getCurrentTotalStatistics() {
 		return new ServerStatistics(totalObjects, processedObjects, droppedObjects);
 	}
@@ -275,5 +248,31 @@ public class XMLLogger {
 			return returnArray;
 		}
 		return new String[] {result.getObjectIdentifier().getHostname(), result.toString()};
+	}
+
+	String saveCookieMap(CookieMap cookieMap) {
+		FileOutputStream fileOut = null;
+		String fileName =  Util.joinPaths(searchDir, "cookieMap_" + cookieMapCounter);
+		try {
+			File f = new File(fileName);
+			fileOut = new FileOutputStream(f);
+			try {
+				fileOut.write(cookieMap.getMegaCookie().getBytes());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					fileOut.close();
+				} catch (IOException ignore) {
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		cookieMapCounter++;
+		return fileName;		
 	}
 }

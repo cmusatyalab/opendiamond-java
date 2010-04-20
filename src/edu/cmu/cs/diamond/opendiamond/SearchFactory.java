@@ -16,8 +16,6 @@ package edu.cmu.cs.diamond.opendiamond;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Factory to create one or more {@link Search} instances. Instances of this
@@ -41,10 +39,6 @@ public class SearchFactory {
 
     private final CookieMap cookieMap;
 
-	private byte[] fspec;
-
-	private Set<String> attributes;
-
     /**
      * Constructs a search factory from a collection of filters, application
      * dependencies, and a cookie map.
@@ -67,28 +61,6 @@ public class SearchFactory {
         this.cookieMap = cookieMap;
     }
 
-    /**
-     * Constructs a search factory from a collection of filters, application
-     * dependencies, a cookie map, and raw fspec.  Designed to be called when loading a
-     * search from a trace.
-     * 
-     * @param filters
-     *            a collection of filters to run during a search
-     * @param fspec
-     * 			  raw byte representation of saved fspec
-     * @param applicationDependencies
-     *            a poorly-specified construct that will hopefully go away
-     * @param cookieMap
-     *            the cookie map to use to look up servers and authenticate
-     *            against
-     */
-    SearchFactory(Collection<Filter> filters, CookieMap cookieMap, byte[] fspec) {
-    	this.applicationDependencies = null;
-    	this.filters = new ArrayList<Filter>(filters);
-    	this.cookieMap = cookieMap;
-    	this.fspec = fspec;
-    }
-    
     private static Set<String> copyAndValidateAttributes(Set<String> attributes) {
         Set<String> copyOfAttributes = new HashSet<String>(attributes);
         for (String string : copyOfAttributes) {
@@ -106,7 +78,6 @@ public class SearchFactory {
     }
 
     private String getFspec() {
-    	if (fspec != null) return new String(fspec);
         StringBuilder sb = new StringBuilder();
         for (Filter f : filters) {
             sb.append(f.getFspec());
@@ -147,6 +118,9 @@ public class SearchFactory {
         
         LoggingFramework logging = new LoggingFramework("createSearch");
 
+        logging.saveFilters(filters);
+        logging.saveCookieMap(cookieMap);
+        logging.saveApplicationDependencies(applicationDependencies);
         logging.saveAttributes(desiredAttributes);
 
         if (desiredAttributes == null) {
@@ -157,14 +131,11 @@ public class SearchFactory {
         }
         
         // make all the connections and prep everything to start
-        logging.saveFspec(getFspec());
         final XDR_sig_and_data fspec = encodeFspec();
 
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
                 executor);
-
-        logging.saveFilters(filters);
 
         for (Map.Entry<String, List<Cookie>> e : cookieMap.entrySet()) {
             final String hostname = e.getKey();
@@ -260,18 +231,18 @@ public class SearchFactory {
         LoggingFramework logging = new LoggingFramework("generateResult");
 
         logging.saveAttributes(desiredAttributes);
+        logging.saveCookieMap(cookieMap);
+        logging.saveFilters(filters);
         
         if (c == null) {
             throw new IOException("No cookie found for host " + host);
         }
 
         // prestart
-        logging.saveFspec(getFspec());
         XDR_sig_and_data fspec = encodeFspec();
         Connection conn = Connection.createConnection(host, c, null, fspec,
                 filters);
 
-        logging.saveFilters(filters);
         
         // send eval
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();

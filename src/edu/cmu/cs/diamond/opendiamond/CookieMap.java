@@ -30,6 +30,8 @@ public class CookieMap {
     private static final CookieMap EMPTY_COOKIE_MAP = new CookieMap();
 
     private final Map<String, List<Cookie>> cookieMap;
+    
+    private final String megacookie;
 
     /**
      * Creates a CookieMap with settings taken from the current environment.
@@ -71,6 +73,8 @@ public class CookieMap {
     public CookieMap(String megacookie) throws IOException {
         Map<String, List<Cookie>> cookieMap = new HashMap<String, List<Cookie>>();
 
+        this.megacookie = megacookie;
+        
         // fill map from hostnames to cookies
         List<String> cookies = splitCookies(megacookie);
         for (String s : cookies) {
@@ -94,6 +98,7 @@ public class CookieMap {
 
     private CookieMap() {
         cookieMap = Collections.emptyMap();
+        megacookie = "";
     }
 
     private static List<String> splitCookies(String megacookie) {
@@ -134,6 +139,10 @@ public class CookieMap {
         return cookieMap.get(host);
     }
 
+    String getMegaCookie() {
+    	return megacookie;
+    }
+    
     @Override
     public String toString() {
         return cookieMap.toString();

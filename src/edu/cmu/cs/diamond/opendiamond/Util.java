@@ -511,7 +511,7 @@ public class Util {
      * 			the presumed ending of the combined path
      * @return a string representation of the combined path
      */
-    public static String joinPaths(String path1, String path2) {
+    static String joinPaths(String path1, String path2) {
     	    File file1 = new File(path1);
     	    File file2 = new File(file1, path2);
     	    return file2.getPath();
@@ -525,7 +525,7 @@ public class Util {
      * @param aThrowable the exception being thrown
      * @return stacktrace of the exception as a string
      */
-    public static String getStackTrace(Throwable aThrowable) {
+    static String getStackTrace(Throwable aThrowable) {
         final Writer result = new StringWriter();
         final PrintWriter printWriter = new PrintWriter(result);
         aThrowable.printStackTrace(printWriter);

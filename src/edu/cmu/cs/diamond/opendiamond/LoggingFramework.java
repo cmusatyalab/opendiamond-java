@@ -20,12 +20,12 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class LoggingFramework {
+class LoggingFramework {
 
 	XMLLogger searchLogger;
 	Logger javaLogger;
 
-	public LoggingFramework(String logMessage) {
+	LoggingFramework(String logMessage) {
 		try {
 			this.searchLogger = new XMLLogger();
 			this.javaLogger = this.searchLogger.getSearchLogger();
@@ -36,52 +36,52 @@ public class LoggingFramework {
 		}
 	}
 
-	public void saveFspec(String fSpec) {
-		javaLogger.log(Level.FINEST, "Saving fspec file.", searchLogger.saveFspec(fSpec));
-	}
-
-	public void shutdown() {
+	void shutdown() {
 		javaLogger.log(Level.FINEST, "Shutting down logging framework.");
 		searchLogger.shutdown(null);
 	}
 
-	public void saveFilters(List<Filter> filters) {
+	void saveFilters(List<Filter> filters) {
 		javaLogger.log(Level.FINEST, "Saving filters.", searchLogger.saveFilters(filters));
 	}
 
-	public void saveAttributes(Set<String> desiredAttributes) {
+	void saveAttributes(Set<String> desiredAttributes) {
 		javaLogger.log(Level.FINEST, "Saving attributes.", searchLogger.saveAttributes(desiredAttributes));
 	}
 
-	public void saveSessionVariables(Map<String, Double> sessionVariables) {
+	void saveSessionVariables(Map<String, Double> sessionVariables) {
 		javaLogger.log(Level.FINEST, "Saving Session Variables.", searchLogger.saveSessionVariables(sessionVariables));
 	}
 
-	public void stoppedSearch(Throwable cause) {
+	void stoppedSearch(Throwable cause) {
 		javaLogger.log(Level.FINEST, "Search has stopped.", searchLogger.stopSearch());
 		searchLogger.shutdown(cause);
 	}
 
-	public void startedSearch() {
+	void startedSearch() {
 		javaLogger.log(Level.FINEST, "Search has started.", searchLogger.startSearch());
 	}
 
-	public ServerStatistics getCurrentTotalStatistics() {
+	ServerStatistics getCurrentTotalStatistics() {
 		ServerStatistics returnValue = searchLogger.getCurrentTotalStatistics();
 		javaLogger.log(Level.FINEST, "Returning current statistics.", returnValue);
 		return returnValue;
 	}
 
-	public void updateStatistics(Map<String, ServerStatistics> result) {
+	void updateStatistics(Map<String, ServerStatistics> result) {
 		javaLogger.log(Level.FINEST, "Updating server statistics.", result);
 		searchLogger.updateStatistics(result);
 	}
 
-	public void saveGetNewResult(Result result) {
+	void saveGetNewResult(Result result) {
 		javaLogger.log(Level.FINEST, "Got new result.", searchLogger.saveGetNewResult(result));
 	}
 
-	public void logNoMoreResults() {
+	void logNoMoreResults() {
 		javaLogger.log(Level.FINEST, "NO_MORE_RESULTS");
+	}
+
+	void saveCookieMap(CookieMap cookieMap) {
+		javaLogger.log(Level.FINEST, "Saving the cookiemap/megacookie.", searchLogger.saveCookieMap(cookieMap));
 	}
 }
