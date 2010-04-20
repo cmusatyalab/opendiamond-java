@@ -41,7 +41,7 @@ class XMLLogger {
 		SimpleDateFormat sdf = new SimpleDateFormat();
 		sdf.applyPattern("yyyy-MM-dd'T'HH:mm:ssZ");
 		String date = sdf.format(currentDate);
-		String diamondLoggingDir = System.getProperty("edu.cmu.cs.diamond.opendiamond.loggingframework.directory",  Util.joinPaths(System.getProperty("user.home"), "/.diamond/logs/"));
+		String diamondLoggingDir = System.getProperty("edu.cmu.cs.diamond.opendiamond.loggingframework.directory",  Util.joinPaths(System.getProperty("user.home"), "/opendiamond-logs/"));
 		String temp = Util.joinPaths(diamondLoggingDir, date + "_" + UUID.randomUUID().toString() + "/");
 		while (!(new File(temp).mkdirs())) {
 			temp = Util.joinPaths(diamondLoggingDir, date + "_" + UUID.randomUUID().toString() + "/");
