@@ -42,7 +42,9 @@ class LoggingFramework {
 	}
 
 	void saveFilters(List<Filter> filters) {
-		javaLogger.log(Level.FINEST, "Saving filters.", searchLogger.saveFilters(filters));
+		for (Filter f : filters) {
+			javaLogger.log(Level.FINEST, "Saving filters.", searchLogger.saveFilter(f));
+		}
 	}
 
 	void saveAttributes(Set<String> desiredAttributes) {

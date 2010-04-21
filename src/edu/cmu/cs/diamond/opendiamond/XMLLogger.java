@@ -99,77 +99,63 @@ class XMLLogger {
 		return searchLogger;
 	}
 
-	//String name, FilterCode code, String evalFunction,
-    //String initFunction, String finiFunction, int threshold,
-    //Collection<String> dependencies, List<String> arguments,
-    //byte blob[]
-	String[] saveFilters(List<Filter> filters) {
+	String[] saveFilter(Filter filter) {
 		FileOutputStream fileOut1, fileOut2, fileOut3, fileOut4, fileOut5;
 		String fileName1, fileName2, fileName3, fileName4, fileName5;
-		String[] returnList = new String[filters.size()*5];
-		int counter = 0;
-		for (Filter f : filters) {
-			fileName1 = Util.joinPaths(searchDir, "filter_" + filterCounter);
-			fileName2 = Util.joinPaths(searchDir, "filtercode_" + filterCounter);
-			fileName3 = Util.joinPaths(searchDir, "dependencies_" + filterCounter);
-			fileName4 = Util.joinPaths(searchDir, "arguments_" + filterCounter);
-			fileName5 = Util.joinPaths(searchDir, "blob_" + filterCounter);
+		fileName1 = Util.joinPaths(searchDir, "filter_" + filterCounter);
+		fileName2 = Util.joinPaths(searchDir, "filtercode_" + filterCounter);
+		fileName3 = Util.joinPaths(searchDir, "dependencies_" + filterCounter);
+		fileName4 = Util.joinPaths(searchDir, "arguments_" + filterCounter);
+		fileName5 = Util.joinPaths(searchDir, "blob_" + filterCounter);
+		try {
+			File f1 = new File(fileName1);
+			File f2 = new File(fileName2);
+			File f3 = new File(fileName3);
+			File f4 = new File(fileName4);
+			File f5 = new File(fileName5);
+
+			fileOut1 = new FileOutputStream(f1);
+			fileOut2 = new FileOutputStream(f2);
+			fileOut3 = new FileOutputStream(f3);
+			fileOut4 = new FileOutputStream(f4);
+			fileOut5 = new FileOutputStream(f5);
 			try {
-				File f1 = new File(fileName1);
-				File f2 = new File(fileName2);
-				File f3 = new File(fileName3);
-				File f4 = new File(fileName4);
-				File f5 = new File(fileName5);
-				
-				fileOut1 = new FileOutputStream(f1);
-				fileOut2 = new FileOutputStream(f2);
-				fileOut3 = new FileOutputStream(f3);
-				fileOut4 = new FileOutputStream(f4);
-				fileOut5 = new FileOutputStream(f5);
-				try {
-					fileOut1.write((Base64.encodeBytes(f.getName().getBytes()) + "\n").getBytes());
-					fileOut1.write((Base64.encodeBytes(f.getEvalFunction().getBytes()) + "\n").getBytes());
-					fileOut1.write((Base64.encodeBytes(f.getInitFunction().getBytes()) + "\n").getBytes());
-					fileOut1.write((Base64.encodeBytes(f.getFiniFunction().getBytes()) + "\n").getBytes());
-					fileOut1.write((Integer.toString(f.getThreshold()) + "\n").getBytes());
-					fileOut2.write(f.getFilterCode().getBytes());
-					
-					for (String s : f.getDependencies()) {
-						fileOut3.write((Base64.encodeBytes(s.getBytes()) + "\n").getBytes());
-					}
-					
-					for (String s : f.getArguments()) {
-						fileOut4.write((Base64.encodeBytes(s.getBytes()) + "\n").getBytes());
-					}
-					
-					fileOut5.write(f.getBlob());
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} finally {
-					try {
-						fileOut1.close();
-						fileOut2.close();
-						fileOut3.close();
-						fileOut4.close();
-						fileOut5.close();
-					} catch (IOException ignore) {
-					}
+				fileOut1.write((Base64.encodeBytes(filter.getName().getBytes()) + "\n").getBytes());
+				fileOut1.write((Base64.encodeBytes(filter.getEvalFunction().getBytes()) + "\n").getBytes());
+				fileOut1.write((Base64.encodeBytes(filter.getInitFunction().getBytes()) + "\n").getBytes());
+				fileOut1.write((Base64.encodeBytes(filter.getFiniFunction().getBytes()) + "\n").getBytes());
+				fileOut1.write((Integer.toString(filter.getThreshold()) + "\n").getBytes());
+				fileOut2.write(filter.getFilterCode().getBytes());
+
+				for (String s : filter.getDependencies()) {
+					fileOut3.write((Base64.encodeBytes(s.getBytes()) + "\n").getBytes());
 				}
-			} catch (FileNotFoundException e) {
+
+				for (String s : filter.getArguments()) {
+					fileOut4.write((Base64.encodeBytes(s.getBytes()) + "\n").getBytes());
+				}
+
+				fileOut5.write(filter.getBlob());
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} finally {
+				try {
+					fileOut1.close();
+					fileOut2.close();
+					fileOut3.close();
+					fileOut4.close();
+					fileOut5.close();
+				} catch (IOException ignore) {
+				}
 			}
-
-			returnList[counter] = fileName1;
-			returnList[counter+1] = fileName2;
-			returnList[counter+2] = fileName3;
-			returnList[counter+3] = fileName4;
-			returnList[counter+4] = fileName5;
-			counter += 5;
-			filterCounter++;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		return returnList;
+
+		filterCounter++;
+		return new String[] {fileName1, fileName2, fileName3, fileName4, fileName5};
 	}
 
 	String saveAttributes(Set<String> desiredAttributes) {
