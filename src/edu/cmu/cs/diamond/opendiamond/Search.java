@@ -89,6 +89,7 @@ public class Search {
     }
 
     void start() throws InterruptedException, IOException {
+        checkClosed();
         CompletionService<?> replies = cs
                 .runOnAllServers(new ConnectionFunction<Object>() {
                     public Callable<Object> createCallable(final Connection c) {
@@ -137,8 +138,7 @@ public class Search {
      * @throws SearchClosedException
      *             if this <code>Search</code> is closed
      */
-    public Result getNextResult() throws InterruptedException, IOException,
-            SearchClosedException {
+    public Result getNextResult() throws InterruptedException, IOException {
         checkClosed();
 
         BlastChannelObject bco = cs.getNextBlastChannelObject();
@@ -183,7 +183,7 @@ public class Search {
      *             if this <code>Search</code> is closed
      */
     public Map<String, ServerStatistics> getStatistics() throws IOException,
-            InterruptedException, SearchClosedException {
+            InterruptedException {
         checkClosed();
 
         Map<String, ServerStatistics> result = new HashMap<String, ServerStatistics>();
@@ -251,7 +251,7 @@ public class Search {
      */
     public Map<String, Double> mergeSessionVariables(
             Map<String, Double> globalValues, DoubleComposer composer)
-            throws IOException, InterruptedException, SearchClosedException {
+            throws IOException, InterruptedException {
         checkClosed();
 
         // collect all the session variables
@@ -300,7 +300,7 @@ public class Search {
     }
 
     private List<SessionVariables> getSessionVariables() throws IOException,
-            InterruptedException, SearchClosedException {
+            InterruptedException {
         checkClosed();
 
         List<SessionVariables> result = new ArrayList<SessionVariables>();
