@@ -15,7 +15,6 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 
 class XDR_sig_val implements XDREncodeable {
 
@@ -29,7 +28,8 @@ class XDR_sig_val implements XDREncodeable {
                     "digest must be no larger than SIG_SIZE");
         }
 
-        this.digest = Arrays.copyOf(digest, digest.length);
+        this.digest = new byte[digest.length];
+        System.arraycopy(digest, 0, this.digest, 0, digest.length);
     }
 
     public byte[] encode() {

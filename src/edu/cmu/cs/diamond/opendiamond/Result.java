@@ -13,7 +13,6 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,7 +57,9 @@ public class Result {
         if (v == null) {
             return null;
         } else {
-            return Arrays.copyOf(v, v.length);
+            byte result[] = new byte[v.length];
+            System.arraycopy(v, 0, result, 0, v.length);
+            return result;
         }
     }
 

@@ -13,8 +13,6 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.util.Arrays;
-
 class XDR_sig_and_data implements XDREncodeable {
     private final XDR_sig_val sig;
 
@@ -22,14 +20,16 @@ class XDR_sig_and_data implements XDREncodeable {
 
     public XDR_sig_and_data(XDR_sig_val sig, byte data[]) {
         this.sig = sig;
-        this.data = Arrays.copyOf(data, data.length);
+        this.data = new byte[data.length];
+        System.arraycopy(data, 0, this.data, 0, data.length);
     }
 
     public byte[] encode() {
         byte b1[] = sig.encode();
         byte b2[] = XDREncoders.encodeOpaque(data);
 
-        byte result[] = Arrays.copyOf(b1, b1.length + b2.length);
+        byte result[] = new byte[b1.length + b2.length];
+        System.arraycopy(b1, 0, result, 0, b1.length);
         System.arraycopy(b2, 0, result, b1.length, b2.length);
 
         return result;

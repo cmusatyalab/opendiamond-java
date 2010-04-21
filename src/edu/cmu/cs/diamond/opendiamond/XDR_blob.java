@@ -13,8 +13,6 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.util.Arrays;
-
 class XDR_blob implements XDREncodeable {
 
     final private String name;
@@ -35,7 +33,8 @@ class XDR_blob implements XDREncodeable {
         byte b1[] = XDREncoders.encodeString(name);
         byte b2[] = XDREncoders.encodeOpaque(blobData);
 
-        byte result[] = Arrays.copyOf(b1, b1.length + b2.length);
+        byte result[] = new byte[b1.length + b2.length];
+        System.arraycopy(b1, 0, result, 0, b1.length);
         System.arraycopy(b2, 0, result, b1.length, b2.length);
 
         return result;
