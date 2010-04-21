@@ -13,13 +13,12 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.io.IOException;
 
 /**
  * Exception thrown when a method (except <code>close()</code>) is called on a
  * {@link Search} that has been closed.
  */
-public class SearchClosedException extends IOException {
+public class SearchClosedException extends Exception {
     SearchClosedException() {
         super();
     }
