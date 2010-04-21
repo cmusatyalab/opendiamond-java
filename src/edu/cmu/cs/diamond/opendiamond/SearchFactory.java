@@ -157,7 +157,8 @@ public class SearchFactory {
             if (cause instanceof IOException) {
                 // System.out.println("*********");
                 IOException e = (IOException) cause;
-                ioe = new IOException(e);
+                ioe = new IOException();
+                ioe.initCause(e);
             }
         } catch (InterruptedException e2) {
             ie = e2;

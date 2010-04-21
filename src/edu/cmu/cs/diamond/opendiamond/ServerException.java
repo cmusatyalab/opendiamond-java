@@ -17,6 +17,7 @@ import java.io.IOException;
 
 class ServerException extends IOException {
     ServerException(String hostname, IOException cause) {
-        super(hostname, cause);
+        super(hostname);
+        initCause(cause);
     }
 }

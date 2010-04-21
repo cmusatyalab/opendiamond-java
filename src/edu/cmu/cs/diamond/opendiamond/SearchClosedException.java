@@ -25,6 +25,7 @@ public class SearchClosedException extends IOException {
     }
 
     SearchClosedException(Throwable cause) {
-        super(cause);
+        super();
+        initCause(cause);
     }
 }
