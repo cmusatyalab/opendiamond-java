@@ -171,7 +171,6 @@ public class Filter {
         return encodedBlob;
     }
 
-
 	List<String> getDependencies() {
 		return dependencies;
 	}
