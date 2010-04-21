@@ -28,7 +28,6 @@ class XDR_attr_name_list implements XDREncodeable {
         strings = list.toArray(new String[0]);
     }
 
-    @Override
     public byte[] encode() {
         // length + strings
 

@@ -133,7 +133,6 @@ public class SearchFactory {
             final List<Cookie> cookieList = e.getValue();
 
             futures.add(connectService.submit(new Callable<Connection>() {
-                @Override
                 public Connection call() throws Exception {
                     return Connection.createConnection(hostname, cookieList,
                             pushAttributes, fspec, filters);

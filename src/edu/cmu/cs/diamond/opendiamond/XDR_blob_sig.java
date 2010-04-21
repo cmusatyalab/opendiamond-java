@@ -31,7 +31,6 @@ class XDR_blob_sig implements XDREncodeable {
         this.sig = sig;
     }
 
-    @Override
     public byte[] encode() {
         byte b1[] = XDREncoders.encodeString(name);
         byte b2[] = sig.encode();

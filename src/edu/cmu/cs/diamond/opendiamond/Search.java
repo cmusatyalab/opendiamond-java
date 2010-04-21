@@ -92,10 +92,8 @@ public class Search {
         checkClosed();
         CompletionService<?> replies = cs
                 .runOnAllServers(new ConnectionFunction<Object>() {
-                    @Override
                     public Callable<Object> createCallable(final Connection c) {
                         return new Callable<Object>() {
-                            @Override
                             public Object call() throws Exception {
                                 c.sendStart();
                                 return null;

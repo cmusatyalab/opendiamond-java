@@ -39,7 +39,6 @@ class XDR_diamond_session_vars implements XDREncodeable {
         return Collections.unmodifiableList(vars);
     }
 
-    @Override
     public byte[] encode() {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(baos);

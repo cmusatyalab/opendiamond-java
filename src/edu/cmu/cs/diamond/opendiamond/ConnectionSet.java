@@ -48,7 +48,6 @@ class ConnectionSet {
 
         // wait for things to finish
         connectionSetFuture = executor.submit(new Callable<Object>() {
-            @Override
             public Object call() {
                 try {
                     for (int i = 0; i < tasksCount; i++) {
@@ -124,7 +123,6 @@ class ConnectionSet {
     public CompletionService<MiniRPCReply> sendToAllControlChannels(
             final int cmd, final byte[] data) {
         return runOnAllServers(new ConnectionFunction<MiniRPCReply>() {
-            @Override
             public Callable<MiniRPCReply> createCallable(Connection c) {
                 return new RPC(c, c.getHostname(), cmd, data);
             }

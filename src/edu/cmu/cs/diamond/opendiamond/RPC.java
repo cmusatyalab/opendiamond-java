@@ -48,7 +48,6 @@ class RPC implements Callable<MiniRPCReply> {
         this.data = data;
     }
 
-    @Override
     public MiniRPCReply call() throws Exception {
         return doRPC();
     }

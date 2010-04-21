@@ -51,7 +51,6 @@ class BlastGetter implements Callable<Object> {
         return obj;
     }
 
-    @Override
     public Object call() throws Exception {
         // block, waiting for blast channel object, then stick into queue
         while (true) {

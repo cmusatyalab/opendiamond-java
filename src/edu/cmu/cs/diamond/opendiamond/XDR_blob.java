@@ -31,7 +31,6 @@ class XDR_blob implements XDREncodeable {
         this.blobData = blobData;
     }
 
-    @Override
     public byte[] encode() {
         byte b1[] = XDREncoders.encodeString(name);
         byte b2[] = XDREncoders.encodeOpaque(blobData);
