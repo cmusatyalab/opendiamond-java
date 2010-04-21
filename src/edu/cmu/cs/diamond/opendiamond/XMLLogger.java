@@ -218,8 +218,8 @@ class XMLLogger {
 		return fileName;
 	}
 
-	int[] stopSearch() {
-		return new int[] {totalObjects, processedObjects, droppedObjects};
+	String[] stopSearch() {
+		return new String[] {Integer.toString(totalObjects), Integer.toString(processedObjects), Integer.toString(droppedObjects)};
 	}
 
 	String startSearch() {
@@ -230,7 +230,7 @@ class XMLLogger {
 		return new ServerStatistics(totalObjects, processedObjects, droppedObjects);
 	}
 
-	int[] updateStatistics(Map<String, ServerStatistics> result) {
+	String[] updateStatistics(Map<String, ServerStatistics> result) {
 		totalObjects = 0;
 		processedObjects = 0;
 		droppedObjects = 0;
@@ -239,7 +239,7 @@ class XMLLogger {
 			processedObjects += ss.getProcessedObjects();
 			droppedObjects += ss.getDroppedObjects();
 		}
-		return new int[] {totalObjects, processedObjects, droppedObjects};
+		return new String[] {Integer.toString(totalObjects), Integer.toString(processedObjects), Integer.toString(droppedObjects)};
 	}
 
 	void shutdown(Throwable cause) {
@@ -291,7 +291,7 @@ class XMLLogger {
 		return fileName;		
 	}
 
-	public String saveApplicationDependencies(
+	String saveApplicationDependencies(
 			List<String> applicationDependencies) {
 		FileOutputStream fileOut = null;
 		String fileName =  Util.joinPaths(searchDir, "applicationDependencies_" + applicationDependenciesCounter);
