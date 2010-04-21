@@ -19,9 +19,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
+import android.text.format.Time;
 
 class Cookie {
     final static String BEGIN_COOKIE = "-----BEGIN OPENDIAMOND SCOPECOOKIE-----";
@@ -38,7 +36,7 @@ class Cookie {
 
     private final byte[] keyId;
 
-    private final XMLGregorianCalendar expires;
+    private final Time expires;
 
     private final String scopeData;
 
@@ -66,7 +64,7 @@ class Cookie {
         int version = 0;
         UUID serial = null;
         byte keyId[] = null;
-        XMLGregorianCalendar expires = null;
+        Time expires = null;
         List<String> servers = null;
 
         for (String line : header.split("\n")) {
@@ -85,13 +83,8 @@ class Cookie {
             } else if (key.equals("KeyId")) {
                 keyId = hexDecode(val);
             } else if (key.equals("Expires")) {
-                DatatypeFactory df;
-                try {
-                    df = DatatypeFactory.newInstance();
-                    expires = df.newXMLGregorianCalendar(val);
-                } catch (DatatypeConfigurationException e) {
-                    e.printStackTrace();
-                }
+                expires = new Time();
+                expires.parse3339(val);
             } else if (key.equals("Servers")) {
                 servers = Arrays.asList(val.split(";|,"));
             }
