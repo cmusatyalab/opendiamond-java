@@ -152,7 +152,7 @@ public class Search {
         IOException e = bco.getException();
         if (e != null) {
             close(e);
-            throw new IOException(e);
+            throw e;
         }
 
         // compose new Result

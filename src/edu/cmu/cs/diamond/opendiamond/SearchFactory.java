@@ -156,8 +156,7 @@ public class SearchFactory {
             Throwable cause = e1.getCause();
             if (cause instanceof IOException) {
                 // System.out.println("*********");
-                IOException e = (IOException) cause;
-                ioe = new IOException(e);
+                ioe = (IOException) cause;
             }
         } catch (InterruptedException e2) {
             ie = e2;
