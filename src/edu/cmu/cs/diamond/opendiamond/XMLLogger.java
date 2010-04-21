@@ -232,8 +232,8 @@ class XMLLogger {
 		return fileName;
 	}
 
-	String[] stopSearch() {
-		return new String[] {Integer.toString(totalObjects), Integer.toString(processedObjects), Integer.toString(droppedObjects)};
+	int[] stopSearch() {
+		return new int[] {totalObjects, processedObjects, droppedObjects};
 	}
 
 	String startSearch() {
@@ -245,9 +245,9 @@ class XMLLogger {
 	}
 
 	int[] updateStatistics(Map<String, ServerStatistics> result) {
-		int totalObjects = 0;
-		int processedObjects = 0;
-		int droppedObjects = 0;
+		totalObjects = 0;
+		processedObjects = 0;
+		droppedObjects = 0;
 		for (ServerStatistics ss : result.values()) {
 			totalObjects += ss.getTotalObjects();
 			processedObjects += ss.getProcessedObjects();
