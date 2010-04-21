@@ -54,6 +54,7 @@ class XMLLogger {
 	private int cookieMapCounter;
 	private int filterCounter;
 	private int attributeCounter;
+	private int applicationDependenciesCounter;
     private int sessionCounter;
     private int totalObjects;
     private int processedObjects;
@@ -235,9 +236,8 @@ class XMLLogger {
 	}
 
 	String[] saveGetNewResult(Result result) {
-		String[] returnArray = null;
 		if (Boolean.parseBoolean(System.getProperty("edu.cmu.cs.diamond.opendiamond.loggingframework.detailedresults"))) {
-			returnArray = new String[result.getKeys().size()*2+1];
+			String[] returnArray = new String[result.getKeys().size()*2+1];
 			int i = 1;
 			for (String s : result.getKeys()) {
 				returnArray[i] = s;
@@ -274,5 +274,35 @@ class XMLLogger {
 
 		cookieMapCounter++;
 		return fileName;		
+	}
+
+	public String saveApplicationDependencies(
+			List<String> applicationDependencies) {
+		FileOutputStream fileOut = null;
+		String fileName =  Util.joinPaths(searchDir, "applicationDependencies_" + applicationDependenciesCounter);
+		try {
+			File f = new File(fileName);
+			fileOut = new FileOutputStream(f);
+			try {
+				// Base64 encode string, add new line, write out bytes
+				for (String s : applicationDependencies) {
+					fileOut.write((Base64.encodeBytes(s.getBytes()) + "\n").getBytes());	
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} finally {
+				try {
+					fileOut.close();
+				} catch (IOException ignore) {
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		applicationDependenciesCounter++;
+		return fileName;	
 	}
 }

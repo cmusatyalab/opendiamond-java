@@ -84,4 +84,8 @@ class LoggingFramework {
 	void saveCookieMap(CookieMap cookieMap) {
 		javaLogger.log(Level.FINEST, "Saving the cookiemap/megacookie.", searchLogger.saveCookieMap(cookieMap));
 	}
+
+	public void saveApplicationDependencies(List<String> applicationDependencies) {
+		javaLogger.log(Level.FINEST, "Saving application dependencies.", searchLogger.saveApplicationDependencies(applicationDependencies));
+	}
 }
