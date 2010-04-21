@@ -69,8 +69,7 @@ class LoggingFramework {
 	}
 
 	void updateStatistics(Map<String, ServerStatistics> result) {
-		javaLogger.log(Level.FINEST, "Updating server statistics.", result);
-		searchLogger.updateStatistics(result);
+		javaLogger.log(Level.FINEST, "Updating server statistics.", searchLogger.updateStatistics(result));
 	}
 
 	void saveGetNewResult(Result result) {

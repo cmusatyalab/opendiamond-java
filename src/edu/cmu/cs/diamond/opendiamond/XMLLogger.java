@@ -244,15 +244,16 @@ class XMLLogger {
 		return new ServerStatistics(totalObjects, processedObjects, droppedObjects);
 	}
 
-	void updateStatistics(Map<String, ServerStatistics> result) {
-		totalObjects = 0;
-		processedObjects = 0;
-		droppedObjects = 0;
+	int[] updateStatistics(Map<String, ServerStatistics> result) {
+		int totalObjects = 0;
+		int processedObjects = 0;
+		int droppedObjects = 0;
 		for (ServerStatistics ss : result.values()) {
 			totalObjects += ss.getTotalObjects();
 			processedObjects += ss.getProcessedObjects();
 			droppedObjects += ss.getDroppedObjects();
 		}
+		return new int[] {totalObjects, processedObjects, droppedObjects};
 	}
 
 	void shutdown(Throwable cause) {
