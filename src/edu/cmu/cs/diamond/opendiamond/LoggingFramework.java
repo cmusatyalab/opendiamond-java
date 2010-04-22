@@ -22,83 +22,99 @@ import java.util.logging.Logger;
 
 class LoggingFramework {
 
-	XMLLogger searchLogger;
-	Logger javaLogger;
+    XMLLogger searchLogger;
 
-	LoggingFramework(String logMessage) {
-		try {
-			this.searchLogger = new XMLLogger();
-			this.javaLogger = this.searchLogger.getSearchLogger();
-			this.javaLogger.log(Level.FINEST, "Initializing new LoggingFramework for a new search.", logMessage);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+    Logger javaLogger;
 
-	void shutdown() {
-		javaLogger.log(Level.FINEST, "Shutting down logging framework.");
-		searchLogger.shutdown(null);
-	}
+    LoggingFramework(String logMessage) {
+        try {
+            this.searchLogger = new XMLLogger();
+            this.javaLogger = this.searchLogger.getSearchLogger();
+            this.javaLogger.log(Level.FINEST,
+                    "Initializing new LoggingFramework for a new search.",
+                    logMessage);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
 
-	private void saveFilters(List<Filter> filters) {
-		for (Filter f : filters) {
-			javaLogger.log(Level.FINEST, "Saving filter.", searchLogger.saveFilter(f));
-		}
-	}
+    void shutdown() {
+        javaLogger.log(Level.FINEST, "Shutting down logging framework.");
+        searchLogger.shutdown(null);
+    }
 
-	private void saveAttributes(Set<String> desiredAttributes) {
-		javaLogger.log(Level.FINEST, "Saving attributes.", searchLogger.saveAttributes(desiredAttributes));
-	}
+    private void saveFilters(List<Filter> filters) {
+        for (Filter f : filters) {
+            javaLogger.log(Level.FINEST, "Saving filter.", searchLogger
+                    .saveFilter(f));
+        }
+    }
 
-	void saveSessionVariables(Map<String, Double> sessionVariables) {
-		javaLogger.log(Level.FINEST, "Saving Session Variables.", searchLogger.saveSessionVariables(sessionVariables));
-	}
+    private void saveAttributes(Set<String> desiredAttributes) {
+        javaLogger.log(Level.FINEST, "Saving attributes.", searchLogger
+                .saveAttributes(desiredAttributes));
+    }
 
-	void stoppedSearch(Throwable cause) {
-		javaLogger.log(Level.FINEST, "Search has stopped.", searchLogger.stopSearch());
-		searchLogger.shutdown(cause);
-	}
+    void saveSessionVariables(Map<String, Double> sessionVariables) {
+        javaLogger.log(Level.FINEST, "Saving Session Variables.", searchLogger
+                .saveSessionVariables(sessionVariables));
+    }
 
-	void startedSearch() {
-		javaLogger.log(Level.FINEST, "Search has started.", searchLogger.startSearch());
-	}
+    void stoppedSearch(Throwable cause) {
+        javaLogger.log(Level.FINEST, "Search has stopped.", searchLogger
+                .stopSearch());
+        searchLogger.shutdown(cause);
+    }
 
-	ServerStatistics getCurrentTotalStatistics() {
-		ServerStatistics returnValue = searchLogger.getCurrentTotalStatistics();
-		javaLogger.log(Level.FINEST, "Returning current statistics.", returnValue);
-		return returnValue;
-	}
+    void startedSearch() {
+        javaLogger.log(Level.FINEST, "Search has started.", searchLogger
+                .startSearch());
+    }
 
-	void updateStatistics(Map<String, ServerStatistics> result) {
-		javaLogger.log(Level.FINEST, "Updating server statistics.", searchLogger.updateStatistics(result));
-	}
+    ServerStatistics getCurrentTotalStatistics() {
+        ServerStatistics returnValue = searchLogger.getCurrentTotalStatistics();
+        javaLogger.log(Level.FINEST, "Returning current statistics.",
+                returnValue);
+        return returnValue;
+    }
 
-	void saveGetNewResult(Result result) {
-		javaLogger.log(Level.FINEST, "Got new result.", searchLogger.saveGetNewResult(result));
-	}
+    void updateStatistics(Map<String, ServerStatistics> result) {
+        javaLogger.log(Level.FINEST, "Updating server statistics.",
+                searchLogger.updateStatistics(result));
+    }
 
-	void logNoMoreResults() {
-		javaLogger.log(Level.FINEST, "NO_MORE_RESULTS");
-	}
+    void saveGetNewResult(Result result) {
+        javaLogger.log(Level.FINEST, "Got new result.", searchLogger
+                .saveGetNewResult(result));
+    }
 
-	private void saveCookieMap(CookieMap cookieMap) {
-		if (cookieMap.getMegaCookie() != null) {
-			javaLogger.log(Level.FINEST, "Saving the cookiemap/megacookie.", searchLogger.saveCookieMap(cookieMap));
-		} else {
-			javaLogger.log(Level.FINEST, "Null megacookie.");
-		}
-	}
+    void logNoMoreResults() {
+        javaLogger.log(Level.FINEST, "NO_MORE_RESULTS");
+    }
 
-	private void saveApplicationDependencies(List<String> applicationDependencies) {
-		javaLogger.log(Level.FINEST, "Saving application dependencies.", searchLogger.saveApplicationDependencies(applicationDependencies));
-	}
+    private void saveCookieMap(CookieMap cookieMap) {
+        if (cookieMap.getMegaCookie() != null) {
+            javaLogger.log(Level.FINEST, "Saving the cookiemap/megacookie.",
+                    searchLogger.saveCookieMap(cookieMap));
+        } else {
+            javaLogger.log(Level.FINEST, "Null megacookie.");
+        }
+    }
 
-	void saveSearchFactory(SearchFactory searchFactory, Set<String> desiredAttributes) {
-		javaLogger.log(Level.FINEST, "Saving search factory.");
-		saveFilters(searchFactory.getFilters());
-		saveCookieMap(searchFactory.getCookieMap());
-		saveApplicationDependencies(searchFactory.getApplicationDependencies());
-		saveAttributes(desiredAttributes);
-	}
+    private void saveApplicationDependencies(
+            List<String> applicationDependencies) {
+        javaLogger.log(Level.FINEST, "Saving application dependencies.",
+                searchLogger
+                        .saveApplicationDependencies(applicationDependencies));
+    }
+
+    void saveSearchFactory(SearchFactory searchFactory,
+            Set<String> desiredAttributes) {
+        javaLogger.log(Level.FINEST, "Saving search factory.");
+        saveFilters(searchFactory.getFilters());
+        saveCookieMap(searchFactory.getCookieMap());
+        saveApplicationDependencies(searchFactory.getApplicationDependencies());
+        saveAttributes(desiredAttributes);
+    }
 }
