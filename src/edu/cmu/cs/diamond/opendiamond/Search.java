@@ -57,6 +57,8 @@ public class Search {
     }
 
     final private ConnectionSet cs;
+    
+    private final LoggingFramework logging;
 
     private volatile boolean closed;
 
@@ -86,6 +88,7 @@ public class Search {
                 closeCause = cause;
             }
         }
+        logging.stoppedSearch(cause);
     }
 
     void start() throws InterruptedException, IOException {
@@ -110,6 +113,7 @@ public class Search {
             close(e);
             throw e;
         }
+        logging.startedSearch();
     }
 
     private void checkClosed() throws SearchClosedException {
@@ -144,6 +148,7 @@ public class Search {
 
         // done?
         if (bco == BlastChannelObject.NO_MORE_RESULTS) {
+        	logging.logNoMoreResults();
             return null;
         }
 
@@ -169,7 +174,11 @@ public class Search {
             attrs = Collections.unmodifiableMap(newMap);
         }
 
-        return new Result(attrs, bco.getHostname());
+        Result result = new Result(attrs, bco.getHostname());
+        
+        logging.saveGetNewResult(result);
+        
+        return result;
     }
 
     /**
@@ -188,11 +197,11 @@ public class Search {
         checkClosed();
 
         Map<String, ServerStatistics> result = new HashMap<String, ServerStatistics>();
-
         synchronized (rpcLock) {
             // request_stats = 15
             CompletionService<MiniRPCReply> results = cs
                     .sendToAllControlChannels(15, new byte[0]);
+
             try {
                 for (int i = 0; i < cs.size(); i++) {
                     try {
@@ -213,6 +222,7 @@ public class Search {
                         result.put(host, new ServerStatistics(stats
                                 .getObjsTotal(), stats.getObjsProcessed(),
                                 stats.getObjsDropped()));
+
                     } catch (ExecutionException e) {
                         Throwable cause = e.getCause();
                         if (cause instanceof IOException) {
@@ -227,7 +237,7 @@ public class Search {
                 throw e;
             }
         }
-
+        logging.updateStatistics(result);
         return result;
     }
 
@@ -373,9 +383,11 @@ public class Search {
                 throw e;
             }
         }
+        logging.saveSessionVariables(map);
     }
 
-    Search(ConnectionSet connectionSet) {
+    Search(ConnectionSet connectionSet, LoggingFramework logging) {
         this.cs = connectionSet;
+        this.logging = logging;
     }
 }

@@ -34,11 +34,13 @@ public class Filter {
 
     final private String initFunction;
 
-    final private int merit;
+	final private int merit;
 
     final private String name;
 
     final private int threshold;
+    
+    final private byte blob[];
 
     final private byte encodedBlob[];
 
@@ -86,6 +88,8 @@ public class Filter {
         this.dependencies = new ArrayList<String>(dependencies);
         this.arguments = new ArrayList<String>(arguments);
 
+        this.blob = blob;
+        
         XDR_sig_val sig = XDR_sig_val.createSignature(blob);
         encodedBlobSig = new XDR_blob_sig(name, sig).encode();
         encodedBlob = new XDR_blob(name, blob).encode();
@@ -120,7 +124,7 @@ public class Filter {
         this(name, code, evalFunction, initFunction, finiFunction, threshold,
                 dependencies, arguments, new byte[0]);
     }
-
+    
     @Override
     public String toString() {
         return getName() + ", encoded bloblen: " + getEncodedBlob().length;
@@ -166,4 +170,32 @@ public class Filter {
     byte[] getEncodedBlob() {
         return encodedBlob;
     }
+
+	List<String> getDependencies() {
+		return dependencies;
+	}
+
+	List<String> getArguments() {
+		return arguments;
+	}
+
+	String getEvalFunction() {
+		return evalFunction;
+	}
+
+	String getFiniFunction() {
+		return finiFunction;
+	}
+
+	String getInitFunction() {
+		return initFunction;
+	}
+
+	int getThreshold() {
+		return threshold;
+	}
+
+	byte[] getBlob() {
+		return blob;
+	}
 }

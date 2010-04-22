@@ -37,7 +37,7 @@ public class SearchFactory {
 
     private final List<String> applicationDependencies;
 
-    private final CookieMap cookieMap;
+	private final CookieMap cookieMap;
 
     /**
      * Constructs a search factory from a collection of filters, application
@@ -89,7 +89,7 @@ public class SearchFactory {
                 sb.append("REQUIRES " + d + "\n");
             }
         }
-
+        
         return sb.toString();
     }
 
@@ -115,19 +115,25 @@ public class SearchFactory {
     public Search createSearch(Set<String> desiredAttributes)
             throws IOException, InterruptedException {
         final Set<String> pushAttributes;
+        
+        LoggingFramework logging = new LoggingFramework("createSearch");
+
+        logging.saveSearchFactory(this, desiredAttributes);
+
         if (desiredAttributes == null) {
             // no filtering requested
             pushAttributes = null;
         } else {
             pushAttributes = copyAndValidateAttributes(desiredAttributes);
         }
-
+        
         // make all the connections and prep everything to start
         final XDR_sig_and_data fspec = encodeFspec();
 
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
                 executor);
+
         for (Map.Entry<String, List<Cookie>> e : cookieMap.entrySet()) {
             final String hostname = e.getKey();
             final List<Cookie> cookieList = e.getValue();
@@ -176,7 +182,7 @@ public class SearchFactory {
         // we're safe
         ConnectionSet cs = new ConnectionSet(executor, connections);
 
-        Search search = new Search(cs);
+        Search search = new Search(cs, logging);
         search.start();
         return search;
     }
@@ -219,6 +225,10 @@ public class SearchFactory {
         String objID = identifier.getObjectID();
         List<Cookie> c = cookieMap.get(host);
 
+        LoggingFramework logging = new LoggingFramework("generateResult");
+
+        logging.saveSearchFactory(this, desiredAttributes);
+        
         if (c == null) {
             throw new IOException("No cookie found for host " + host);
         }
@@ -228,6 +238,7 @@ public class SearchFactory {
         Connection conn = Connection.createConnection(host, c, null, fspec,
                 filters);
 
+        
         // send eval
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();
         MiniRPCReply reply = new RPC(conn, conn.getHostname(), 21, reexec)
@@ -246,4 +257,16 @@ public class SearchFactory {
 
         return newResult;
     }
+
+    List<Filter> getFilters() {
+		return filters;
+	}
+
+	List<String> getApplicationDependencies() {
+		return applicationDependencies;
+	}
+
+	CookieMap getCookieMap() {
+		return cookieMap;
+	}
 }
