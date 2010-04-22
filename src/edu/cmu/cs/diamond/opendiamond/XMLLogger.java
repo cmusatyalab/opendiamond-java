@@ -26,7 +26,7 @@ class XMLLogger {
 
     private static final String APP_SESSION_DIR;
 
-    private static AtomicInteger searchCounter = new AtomicInteger(0);
+    private static final AtomicInteger searchCounter = new AtomicInteger(0);
 
     // Initialize the global APP_SESSION_DIR -- only executes once.
     static {
