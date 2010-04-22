@@ -191,10 +191,6 @@ public class Filter {
 		return initFunction;
 	}
 
-	int getMerit() {
-		return merit;
-	}
-
 	int getThreshold() {
 		return threshold;
 	}

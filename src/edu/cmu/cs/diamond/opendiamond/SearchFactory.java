@@ -37,7 +37,7 @@ public class SearchFactory {
 
     private final List<String> applicationDependencies;
 
-    private final CookieMap cookieMap;
+	private final CookieMap cookieMap;
 
     /**
      * Constructs a search factory from a collection of filters, application
@@ -118,10 +118,7 @@ public class SearchFactory {
         
         LoggingFramework logging = new LoggingFramework("createSearch");
 
-        logging.saveFilters(filters);
-        logging.saveCookieMap(cookieMap);
-        logging.saveApplicationDependencies(applicationDependencies);
-        logging.saveAttributes(desiredAttributes);
+        logging.saveSearchFactory(this, desiredAttributes);
 
         if (desiredAttributes == null) {
             // no filtering requested
@@ -230,9 +227,7 @@ public class SearchFactory {
 
         LoggingFramework logging = new LoggingFramework("generateResult");
 
-        logging.saveAttributes(desiredAttributes);
-        logging.saveCookieMap(cookieMap);
-        logging.saveFilters(filters);
+        logging.saveSearchFactory(this, desiredAttributes);
         
         if (c == null) {
             throw new IOException("No cookie found for host " + host);
@@ -262,4 +257,16 @@ public class SearchFactory {
 
         return newResult;
     }
+
+    List<Filter> getFilters() {
+		return filters;
+	}
+
+	List<String> getApplicationDependencies() {
+		return applicationDependencies;
+	}
+
+	CookieMap getCookieMap() {
+		return cookieMap;
+	}
 }

@@ -41,13 +41,13 @@ class LoggingFramework {
 		searchLogger.shutdown(null);
 	}
 
-	void saveFilters(List<Filter> filters) {
+	private void saveFilters(List<Filter> filters) {
 		for (Filter f : filters) {
 			javaLogger.log(Level.FINEST, "Saving filter.", searchLogger.saveFilter(f));
 		}
 	}
 
-	void saveAttributes(Set<String> desiredAttributes) {
+	private void saveAttributes(Set<String> desiredAttributes) {
 		javaLogger.log(Level.FINEST, "Saving attributes.", searchLogger.saveAttributes(desiredAttributes));
 	}
 
@@ -82,11 +82,19 @@ class LoggingFramework {
 		javaLogger.log(Level.FINEST, "NO_MORE_RESULTS");
 	}
 
-	void saveCookieMap(CookieMap cookieMap) {
+	private void saveCookieMap(CookieMap cookieMap) {
 		javaLogger.log(Level.FINEST, "Saving the cookiemap/megacookie.", searchLogger.saveCookieMap(cookieMap));
 	}
 
-	public void saveApplicationDependencies(List<String> applicationDependencies) {
+	private void saveApplicationDependencies(List<String> applicationDependencies) {
 		javaLogger.log(Level.FINEST, "Saving application dependencies.", searchLogger.saveApplicationDependencies(applicationDependencies));
+	}
+
+	void saveSearchFactory(SearchFactory searchFactory, Set<String> desiredAttributes) {
+		javaLogger.log(Level.FINEST, "Saving search factory.");
+        saveFilters(searchFactory.getFilters());
+        saveCookieMap(searchFactory.getCookieMap());
+        saveApplicationDependencies(searchFactory.getApplicationDependencies());
+        saveAttributes(desiredAttributes);
 	}
 }
