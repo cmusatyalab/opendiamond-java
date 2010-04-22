@@ -26,17 +26,23 @@ class LoggingFramework {
 
     private final Logger javaLogger;
 
+    private final Object lock = new Object();
+
     LoggingFramework(String logMessage) throws IOException {
-        this.searchLogger = new XMLLogger();
-        this.javaLogger = this.searchLogger.getSearchLogger();
-        this.javaLogger.log(Level.FINEST,
-                "Initializing new LoggingFramework for a new search.",
-                logMessage);
+        synchronized (lock) {
+            this.searchLogger = new XMLLogger();
+            this.javaLogger = this.searchLogger.getSearchLogger();
+            this.javaLogger.log(Level.FINEST,
+                    "Initializing new LoggingFramework for a new search.",
+                    logMessage);
+        }
     }
 
     void shutdown() {
-        javaLogger.log(Level.FINEST, "Shutting down logging framework.");
-        searchLogger.shutdown(null);
+        synchronized (lock) {
+            javaLogger.log(Level.FINEST, "Shutting down logging framework.");
+            searchLogger.shutdown(null);
+        }
     }
 
     private void saveFilters(List<Filter> filters) throws IOException {
@@ -54,40 +60,55 @@ class LoggingFramework {
 
     void saveSessionVariables(Map<String, Double> sessionVariables)
             throws IOException {
-        javaLogger.log(Level.FINEST, "Saving Session Variables.", searchLogger
-                .saveSessionVariables(sessionVariables));
+        synchronized (lock) {
+            javaLogger.log(Level.FINEST, "Saving Session Variables.",
+                    searchLogger.saveSessionVariables(sessionVariables));
+        }
     }
 
     void stoppedSearch(Throwable cause) {
-        javaLogger.log(Level.FINEST, "Search has stopped.", searchLogger
-                .stopSearch());
-        searchLogger.shutdown(cause);
+        synchronized (lock) {
+            javaLogger.log(Level.FINEST, "Search has stopped.", searchLogger
+                    .stopSearch());
+            searchLogger.shutdown(cause);
+        }
     }
 
     void startedSearch() {
-        javaLogger.log(Level.FINEST, "Search has started.", searchLogger
-                .startSearch());
+        synchronized (lock) {
+            javaLogger.log(Level.FINEST, "Search has started.", searchLogger
+                    .startSearch());
+        }
     }
 
     ServerStatistics getCurrentTotalStatistics() {
-        ServerStatistics returnValue = searchLogger.getCurrentTotalStatistics();
-        javaLogger.log(Level.FINEST, "Returning current statistics.",
-                returnValue);
-        return returnValue;
+        synchronized (lock) {
+            ServerStatistics returnValue = searchLogger
+                    .getCurrentTotalStatistics();
+            javaLogger.log(Level.FINEST, "Returning current statistics.",
+                    returnValue);
+            return returnValue;
+        }
     }
 
     void updateStatistics(Map<String, ServerStatistics> result) {
-        javaLogger.log(Level.FINEST, "Updating server statistics.",
-                searchLogger.updateStatistics(result));
+        synchronized (lock) {
+            javaLogger.log(Level.FINEST, "Updating server statistics.",
+                    searchLogger.updateStatistics(result));
+        }
     }
 
     void saveGetNewResult(Result result) {
-        javaLogger.log(Level.FINEST, "Got new result.", searchLogger
-                .saveGetNewResult(result));
+        synchronized (lock) {
+            javaLogger.log(Level.FINEST, "Got new result.", searchLogger
+                    .saveGetNewResult(result));
+        }
     }
 
     void logNoMoreResults() {
-        javaLogger.log(Level.FINEST, "NO_MORE_RESULTS");
+        synchronized (lock) {
+            javaLogger.log(Level.FINEST, "NO_MORE_RESULTS");
+        }
     }
 
     private void saveCookieMap(CookieMap cookieMap) throws IOException {
@@ -108,10 +129,13 @@ class LoggingFramework {
 
     void saveSearchFactory(SearchFactory searchFactory,
             Set<String> desiredAttributes) throws IOException {
-        javaLogger.log(Level.FINEST, "Saving search factory.");
-        saveFilters(searchFactory.getFilters());
-        saveCookieMap(searchFactory.getCookieMap());
-        saveApplicationDependencies(searchFactory.getApplicationDependencies());
-        saveAttributes(desiredAttributes);
+        synchronized (lock) {
+            javaLogger.log(Level.FINEST, "Saving search factory.");
+            saveFilters(searchFactory.getFilters());
+            saveCookieMap(searchFactory.getCookieMap());
+            saveApplicationDependencies(searchFactory
+                    .getApplicationDependencies());
+            saveAttributes(desiredAttributes);
+        }
     }
 }
