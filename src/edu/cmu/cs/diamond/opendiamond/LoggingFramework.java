@@ -13,16 +13,56 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.*;
 
 class LoggingFramework {
 
-    private final XMLLogger searchLogger;
+    private static final String APP_SESSION_DIR;
+
+    private static final AtomicInteger searchCounter = new AtomicInteger(0);
+
+    // Initialize the global APP_SESSION_DIR -- only executes once.
+    static {
+        Date currentDate = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat();
+        sdf.applyPattern("yyyy-MM-dd'T'HH:mm:ssZ");
+        String date = sdf.format(currentDate);
+        String diamondLoggingDir = System.getProperty(
+                "edu.cmu.cs.diamond.opendiamond.loggingframework.directory",
+                Util.joinPaths(System.getProperty("user.home"),
+                        "opendiamond-logs"));
+        String temp = Util.joinPaths(diamondLoggingDir, date + "_"
+                + UUID.randomUUID().toString());
+        while (!(new File(temp).mkdirs())) {
+            temp = Util.joinPaths(diamondLoggingDir, date + "_"
+                    + UUID.randomUUID().toString());
+        }
+        APP_SESSION_DIR = temp;
+    }
+
+    private final String searchDir;
+
+    private int cookieMapCounter;
+
+    private int filterCounter;
+
+    private int attributeCounter;
+
+    private int applicationDependenciesCounter;
+
+    private int sessionCounter;
+
+    private int totalObjects;
+
+    private int processedObjects;
+
+    private int droppedObjects;
 
     private final Logger javaLogger;
 
@@ -30,78 +70,240 @@ class LoggingFramework {
 
     LoggingFramework(String logMessage) throws IOException {
         synchronized (lock) {
-            this.searchLogger = new XMLLogger();
-            this.javaLogger = this.searchLogger.getSearchLogger();
+            Date currentDate = new Date();
+            SimpleDateFormat sdf = new SimpleDateFormat();
+            sdf.applyPattern("yyyy-MM-dd'T'HH:mm:ssZ");
+            javaLogger = Logger.getLogger(LoggingFramework.class.getPackage()
+                    .getName());
+            String date = sdf.format(currentDate);
+
+            /* create searchDir */
+            String temp = Util.joinPaths(APP_SESSION_DIR, date + "_"
+                    + searchCounter.getAndIncrement());
+
+            if (!(new File(temp).mkdirs())) {
+                throw new IOException();
+            }
+
+            searchDir = temp;
+
+            String logFileName = Util.joinPaths(searchDir, "raw_log.log");
+            FileHandler fh = new FileHandler(logFileName);
+            javaLogger.addHandler(fh);
+            XMLFormatter formatter = new XMLFormatter();
+            fh.setFormatter(formatter);
+            javaLogger.setUseParentHandlers(false);
+            javaLogger.setLevel(Level.FINEST);
+
             this.javaLogger.log(Level.FINEST,
                     "Initializing new LoggingFramework for a new search.",
                     logMessage);
         }
     }
 
-    void shutdown() {
+    void shutdown(Throwable cause) {
         synchronized (lock) {
             javaLogger.log(Level.FINEST, "Shutting down logging framework.");
-            searchLogger.shutdown(null);
+            if (cause != null)
+                javaLogger.log(Level.FINEST,
+                        "Logging throwable cause of failure.", Util
+                                .getStackTrace(cause));
+            for (Handler h : javaLogger.getHandlers()) {
+                javaLogger.removeHandler(h);
+                h.close();
+            }
         }
     }
 
     private void saveFilters(List<Filter> filters) throws IOException {
         for (Filter f : filters) {
-            javaLogger.log(Level.FINEST, "Saving filter.", searchLogger
-                    .saveFilter(f));
+            javaLogger.log(Level.FINEST, "Saving filter.", saveFilter(f));
         }
+    }
+
+    private String[] saveFilter(Filter filter) throws IOException {
+        FileOutputStream fileOut1, fileOut2, fileOut3, fileOut4, fileOut5;
+        String fileName1, fileName2, fileName3, fileName4, fileName5;
+        fileName1 = Util.joinPaths(searchDir, "filter_" + filterCounter);
+        fileName2 = Util.joinPaths(searchDir, "filtercode_" + filterCounter);
+        fileName3 = Util.joinPaths(searchDir, "dependencies_" + filterCounter);
+        fileName4 = Util.joinPaths(searchDir, "arguments_" + filterCounter);
+        fileName5 = Util.joinPaths(searchDir, "blob_" + filterCounter);
+        File f1 = new File(fileName1);
+        File f2 = new File(fileName2);
+        File f3 = new File(fileName3);
+        File f4 = new File(fileName4);
+        File f5 = new File(fileName5);
+
+        fileOut1 = new FileOutputStream(f1);
+        fileOut2 = new FileOutputStream(f2);
+        fileOut3 = new FileOutputStream(f3);
+        fileOut4 = new FileOutputStream(f4);
+        fileOut5 = new FileOutputStream(f5);
+        try {
+            fileOut1
+                    .write((Base64.encodeBytes(filter.getName().getBytes()) + "\n")
+                            .getBytes());
+            fileOut1.write((Base64.encodeBytes(filter.getEvalFunction()
+                    .getBytes()) + "\n").getBytes());
+            fileOut1.write((Base64.encodeBytes(filter.getInitFunction()
+                    .getBytes()) + "\n").getBytes());
+            fileOut1.write((Base64.encodeBytes(filter.getFiniFunction()
+                    .getBytes()) + "\n").getBytes());
+            fileOut1.write((Integer.toString(filter.getThreshold()) + "\n")
+                    .getBytes());
+            fileOut2.write(filter.getFilterCode().getBytes());
+
+            for (String s : filter.getDependencies()) {
+                fileOut3.write((Base64.encodeBytes(s.getBytes()) + "\n")
+                        .getBytes());
+            }
+
+            for (String s : filter.getArguments()) {
+                fileOut4.write((Base64.encodeBytes(s.getBytes()) + "\n")
+                        .getBytes());
+            }
+
+            fileOut5.write(filter.getBlob());
+        } finally {
+            try {
+                fileOut1.close();
+            } catch (IOException ignore) {
+            }
+            try {
+                fileOut2.close();
+            } catch (IOException ignore) {
+            }
+            try {
+                fileOut3.close();
+            } catch (IOException ignore) {
+            }
+            try {
+                fileOut4.close();
+            } catch (IOException ignore) {
+            }
+            try {
+                fileOut5.close();
+            } catch (IOException ignore) {
+            }
+        }
+
+        filterCounter++;
+        return new String[] { fileName1, fileName2, fileName3, fileName4,
+                fileName5 };
     }
 
     private void saveAttributes(Set<String> desiredAttributes)
             throws IOException {
-        javaLogger.log(Level.FINEST, "Saving attributes.", searchLogger
-                .saveAttributes(desiredAttributes));
+        FileOutputStream fileOut = null;
+        String fileName;
+        fileName = Util.joinPaths(searchDir, "attributes_" + attributeCounter);
+
+        try {
+            File f = new File(fileName);
+            fileOut = new FileOutputStream(f);
+            for (String s : desiredAttributes) {
+                fileOut.write((s + "\n").getBytes());
+            }
+        } finally {
+            try {
+                fileOut.close();
+            } catch (IOException ignore) {
+            }
+        }
+
+        attributeCounter++;
+
+        javaLogger.log(Level.FINEST, "Saving attributes.", fileName);
     }
 
     void saveSessionVariables(Map<String, Double> sessionVariables)
             throws IOException {
         synchronized (lock) {
-            javaLogger.log(Level.FINEST, "Saving Session Variables.",
-                    searchLogger.saveSessionVariables(sessionVariables));
+            FileOutputStream fileOut = null;
+            String fileName;
+            fileName = Util.joinPaths(searchDir, "sessionVariables_"
+                    + attributeCounter);
+
+            try {
+                File f = new File(fileName);
+                fileOut = new FileOutputStream(f);
+                for (Map.Entry<String, Double> entry : sessionVariables
+                        .entrySet()) {
+                    fileOut.write((Double.toString(entry.getValue()) + "\n")
+                            .getBytes());
+                }
+            } finally {
+                try {
+                    fileOut.close();
+                } catch (IOException ignore) {
+                }
+            }
+
+            sessionCounter++;
+
+            javaLogger.log(Level.FINEST, "Saving Session Variables.", fileName);
         }
     }
 
     void stoppedSearch(Throwable cause) {
         synchronized (lock) {
-            javaLogger.log(Level.FINEST, "Search has stopped.", searchLogger
-                    .stopSearch());
-            searchLogger.shutdown(cause);
+            javaLogger.log(Level.FINEST, "Search has stopped.", new String[] {
+                    Integer.toString(totalObjects),
+                    Integer.toString(processedObjects),
+                    Integer.toString(droppedObjects) });
+            shutdown(cause);
         }
     }
 
     void startedSearch() {
         synchronized (lock) {
-            javaLogger.log(Level.FINEST, "Search has started.", searchLogger
-                    .startSearch());
-        }
-    }
-
-    ServerStatistics getCurrentTotalStatistics() {
-        synchronized (lock) {
-            ServerStatistics returnValue = searchLogger
-                    .getCurrentTotalStatistics();
-            javaLogger.log(Level.FINEST, "Returning current statistics.",
-                    returnValue);
-            return returnValue;
+            javaLogger
+                    .log(Level.FINEST, "Search has started.", APP_SESSION_DIR);
         }
     }
 
     void updateStatistics(Map<String, ServerStatistics> result) {
         synchronized (lock) {
+            totalObjects = 0;
+            processedObjects = 0;
+            droppedObjects = 0;
+            for (ServerStatistics ss : result.values()) {
+                totalObjects += ss.getTotalObjects();
+                processedObjects += ss.getProcessedObjects();
+                droppedObjects += ss.getDroppedObjects();
+            }
+
             javaLogger.log(Level.FINEST, "Updating server statistics.",
-                    searchLogger.updateStatistics(result));
+                    new String[] { Integer.toString(totalObjects),
+                            Integer.toString(processedObjects),
+                            Integer.toString(droppedObjects) });
         }
     }
 
     void saveGetNewResult(Result result) {
         synchronized (lock) {
-            javaLogger.log(Level.FINEST, "Got new result.", searchLogger
-                    .saveGetNewResult(result));
+            String array[];
+
+            if (Boolean
+                    .parseBoolean(System
+                            .getProperty("edu.cmu.cs.diamond.opendiamond.loggingframework.detailedresults"))) {
+                array = new String[result.getKeys().size() * 2 + 1];
+                int i = 1;
+                for (String s : result.getKeys()) {
+                    array[i] = s;
+                    array[i + 1] = Base64.encodeBytes(result.getValue(s));
+                    i += 2;
+                }
+                array[0] = result.getObjectIdentifier().getHostname();
+            } else {
+                array = new String[] {
+                        result.getObjectIdentifier().getHostname(),
+                        result.toString() };
+            }
+
+            javaLogger.log(Level.FINEST, "Got new result.", array);
+
         }
     }
 
@@ -113,8 +315,23 @@ class LoggingFramework {
 
     private void saveCookieMap(CookieMap cookieMap) throws IOException {
         if (cookieMap.getMegaCookie() != null) {
+            FileOutputStream fileOut = null;
+            String fileName = Util.joinPaths(searchDir, "cookieMap_"
+                    + cookieMapCounter);
+            try {
+                File f = new File(fileName);
+                fileOut = new FileOutputStream(f);
+                fileOut.write(cookieMap.getMegaCookie().getBytes());
+            } finally {
+                try {
+                    fileOut.close();
+                } catch (IOException ignore) {
+                }
+            }
+
+            cookieMapCounter++;
             javaLogger.log(Level.FINEST, "Saving the cookiemap/megacookie.",
-                    searchLogger.saveCookieMap(cookieMap));
+                    fileName);
         } else {
             javaLogger.log(Level.FINEST, "Null megacookie.");
         }
@@ -122,9 +339,28 @@ class LoggingFramework {
 
     private void saveApplicationDependencies(
             List<String> applicationDependencies) throws IOException {
+        FileOutputStream fileOut = null;
+        String fileName = Util.joinPaths(searchDir, "applicationDependencies_"
+                + applicationDependenciesCounter);
+        File f = new File(fileName);
+        fileOut = new FileOutputStream(f);
+        try {
+            // Base64 encode string, add new line, write out bytes
+            for (String s : applicationDependencies) {
+                fileOut.write((Base64.encodeBytes(s.getBytes()) + "\n")
+                        .getBytes());
+            }
+        } finally {
+            try {
+                fileOut.close();
+            } catch (IOException ignore) {
+            }
+        }
+
+        applicationDependenciesCounter++;
+
         javaLogger.log(Level.FINEST, "Saving application dependencies.",
-                searchLogger
-                        .saveApplicationDependencies(applicationDependencies));
+                fileName);
     }
 
     void saveSearchFactory(SearchFactory searchFactory,
