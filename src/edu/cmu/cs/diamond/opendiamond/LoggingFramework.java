@@ -26,17 +26,12 @@ class LoggingFramework {
 
     Logger javaLogger;
 
-    LoggingFramework(String logMessage) {
-        try {
-            this.searchLogger = new XMLLogger();
-            this.javaLogger = this.searchLogger.getSearchLogger();
-            this.javaLogger.log(Level.FINEST,
-                    "Initializing new LoggingFramework for a new search.",
-                    logMessage);
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+    LoggingFramework(String logMessage) throws IOException {
+        this.searchLogger = new XMLLogger();
+        this.javaLogger = this.searchLogger.getSearchLogger();
+        this.javaLogger.log(Level.FINEST,
+                "Initializing new LoggingFramework for a new search.",
+                logMessage);
     }
 
     void shutdown() {
@@ -44,19 +39,21 @@ class LoggingFramework {
         searchLogger.shutdown(null);
     }
 
-    private void saveFilters(List<Filter> filters) {
+    private void saveFilters(List<Filter> filters) throws IOException {
         for (Filter f : filters) {
             javaLogger.log(Level.FINEST, "Saving filter.", searchLogger
                     .saveFilter(f));
         }
     }
 
-    private void saveAttributes(Set<String> desiredAttributes) {
+    private void saveAttributes(Set<String> desiredAttributes)
+            throws IOException {
         javaLogger.log(Level.FINEST, "Saving attributes.", searchLogger
                 .saveAttributes(desiredAttributes));
     }
 
-    void saveSessionVariables(Map<String, Double> sessionVariables) {
+    void saveSessionVariables(Map<String, Double> sessionVariables)
+            throws IOException {
         javaLogger.log(Level.FINEST, "Saving Session Variables.", searchLogger
                 .saveSessionVariables(sessionVariables));
     }
@@ -93,7 +90,7 @@ class LoggingFramework {
         javaLogger.log(Level.FINEST, "NO_MORE_RESULTS");
     }
 
-    private void saveCookieMap(CookieMap cookieMap) {
+    private void saveCookieMap(CookieMap cookieMap) throws IOException {
         if (cookieMap.getMegaCookie() != null) {
             javaLogger.log(Level.FINEST, "Saving the cookiemap/megacookie.",
                     searchLogger.saveCookieMap(cookieMap));
@@ -103,14 +100,14 @@ class LoggingFramework {
     }
 
     private void saveApplicationDependencies(
-            List<String> applicationDependencies) {
+            List<String> applicationDependencies) throws IOException {
         javaLogger.log(Level.FINEST, "Saving application dependencies.",
                 searchLogger
                         .saveApplicationDependencies(applicationDependencies));
     }
 
     void saveSearchFactory(SearchFactory searchFactory,
-            Set<String> desiredAttributes) {
+            Set<String> desiredAttributes) throws IOException {
         javaLogger.log(Level.FINEST, "Saving search factory.");
         saveFilters(searchFactory.getFilters());
         saveCookieMap(searchFactory.getCookieMap());

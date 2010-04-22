@@ -14,7 +14,6 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -86,27 +85,19 @@ class XMLLogger {
         searchDir = temp;
 
         String logFileName = Util.joinPaths(searchDir, "raw_log.log");
-        try {
-            FileHandler fh = new FileHandler(logFileName);
-            searchLogger.addHandler(fh);
-            XMLFormatter formatter = new XMLFormatter();
-            fh.setFormatter(formatter);
-            searchLogger.setUseParentHandlers(false);
-            searchLogger.setLevel(Level.FINEST);
-        } catch (SecurityException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+        FileHandler fh = new FileHandler(logFileName);
+        searchLogger.addHandler(fh);
+        XMLFormatter formatter = new XMLFormatter();
+        fh.setFormatter(formatter);
+        searchLogger.setUseParentHandlers(false);
+        searchLogger.setLevel(Level.FINEST);
     }
 
     Logger getSearchLogger() {
         return searchLogger;
     }
 
-    String[] saveFilter(Filter filter) {
+    String[] saveFilter(Filter filter) throws IOException {
         FileOutputStream fileOut1, fileOut2, fileOut3, fileOut4, fileOut5;
         String fileName1, fileName2, fileName3, fileName4, fileName5;
         fileName1 = Util.joinPaths(searchDir, "filter_" + filterCounter);
@@ -114,59 +105,63 @@ class XMLLogger {
         fileName3 = Util.joinPaths(searchDir, "dependencies_" + filterCounter);
         fileName4 = Util.joinPaths(searchDir, "arguments_" + filterCounter);
         fileName5 = Util.joinPaths(searchDir, "blob_" + filterCounter);
+        File f1 = new File(fileName1);
+        File f2 = new File(fileName2);
+        File f3 = new File(fileName3);
+        File f4 = new File(fileName4);
+        File f5 = new File(fileName5);
+
+        fileOut1 = new FileOutputStream(f1);
+        fileOut2 = new FileOutputStream(f2);
+        fileOut3 = new FileOutputStream(f3);
+        fileOut4 = new FileOutputStream(f4);
+        fileOut5 = new FileOutputStream(f5);
         try {
-            File f1 = new File(fileName1);
-            File f2 = new File(fileName2);
-            File f3 = new File(fileName3);
-            File f4 = new File(fileName4);
-            File f5 = new File(fileName5);
+            fileOut1
+                    .write((Base64.encodeBytes(filter.getName().getBytes()) + "\n")
+                            .getBytes());
+            fileOut1.write((Base64.encodeBytes(filter.getEvalFunction()
+                    .getBytes()) + "\n").getBytes());
+            fileOut1.write((Base64.encodeBytes(filter.getInitFunction()
+                    .getBytes()) + "\n").getBytes());
+            fileOut1.write((Base64.encodeBytes(filter.getFiniFunction()
+                    .getBytes()) + "\n").getBytes());
+            fileOut1.write((Integer.toString(filter.getThreshold()) + "\n")
+                    .getBytes());
+            fileOut2.write(filter.getFilterCode().getBytes());
 
-            fileOut1 = new FileOutputStream(f1);
-            fileOut2 = new FileOutputStream(f2);
-            fileOut3 = new FileOutputStream(f3);
-            fileOut4 = new FileOutputStream(f4);
-            fileOut5 = new FileOutputStream(f5);
-            try {
-                fileOut1
-                        .write((Base64.encodeBytes(filter.getName().getBytes()) + "\n")
-                                .getBytes());
-                fileOut1.write((Base64.encodeBytes(filter.getEvalFunction()
-                        .getBytes()) + "\n").getBytes());
-                fileOut1.write((Base64.encodeBytes(filter.getInitFunction()
-                        .getBytes()) + "\n").getBytes());
-                fileOut1.write((Base64.encodeBytes(filter.getFiniFunction()
-                        .getBytes()) + "\n").getBytes());
-                fileOut1.write((Integer.toString(filter.getThreshold()) + "\n")
+            for (String s : filter.getDependencies()) {
+                fileOut3.write((Base64.encodeBytes(s.getBytes()) + "\n")
                         .getBytes());
-                fileOut2.write(filter.getFilterCode().getBytes());
-
-                for (String s : filter.getDependencies()) {
-                    fileOut3.write((Base64.encodeBytes(s.getBytes()) + "\n")
-                            .getBytes());
-                }
-
-                for (String s : filter.getArguments()) {
-                    fileOut4.write((Base64.encodeBytes(s.getBytes()) + "\n")
-                            .getBytes());
-                }
-
-                fileOut5.write(filter.getBlob());
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } finally {
-                try {
-                    fileOut1.close();
-                    fileOut2.close();
-                    fileOut3.close();
-                    fileOut4.close();
-                    fileOut5.close();
-                } catch (IOException ignore) {
-                }
             }
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+
+            for (String s : filter.getArguments()) {
+                fileOut4.write((Base64.encodeBytes(s.getBytes()) + "\n")
+                        .getBytes());
+            }
+
+            fileOut5.write(filter.getBlob());
+        } finally {
+            try {
+                fileOut1.close();
+            } catch (IOException ignore) {
+            }
+            try {
+                fileOut2.close();
+            } catch (IOException ignore) {
+            }
+            try {
+                fileOut3.close();
+            } catch (IOException ignore) {
+            }
+            try {
+                fileOut4.close();
+            } catch (IOException ignore) {
+            }
+            try {
+                fileOut5.close();
+            } catch (IOException ignore) {
+            }
         }
 
         filterCounter++;
@@ -174,7 +169,7 @@ class XMLLogger {
                 fileName5 };
     }
 
-    String saveAttributes(Set<String> desiredAttributes) {
+    String saveAttributes(Set<String> desiredAttributes) throws IOException {
         FileOutputStream fileOut = null;
         String fileName;
         fileName = Util.joinPaths(searchDir, "attributes_" + attributeCounter);
@@ -183,16 +178,8 @@ class XMLLogger {
             File f = new File(fileName);
             fileOut = new FileOutputStream(f);
             for (String s : desiredAttributes) {
-                try {
-                    fileOut.write((s + "\n").getBytes());
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                fileOut.write((s + "\n").getBytes());
             }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         } finally {
             try {
                 fileOut.close();
@@ -204,7 +191,7 @@ class XMLLogger {
         return fileName;
     }
 
-    String saveSessionVariables(Map<String, Double> map) {
+    String saveSessionVariables(Map<String, Double> map) throws IOException {
         FileOutputStream fileOut = null;
         String fileName;
         fileName = Util.joinPaths(searchDir, "sessionVariables_"
@@ -214,17 +201,9 @@ class XMLLogger {
             File f = new File(fileName);
             fileOut = new FileOutputStream(f);
             for (Map.Entry<String, Double> entry : map.entrySet()) {
-                try {
-                    fileOut.write((Double.toString(entry.getValue()) + "\n")
-                            .getBytes());
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
+                fileOut.write((Double.toString(entry.getValue()) + "\n")
+                        .getBytes());
             }
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         } finally {
             try {
                 fileOut.close();
@@ -294,58 +273,43 @@ class XMLLogger {
                 result.toString() };
     }
 
-    String saveCookieMap(CookieMap cookieMap) {
+    String saveCookieMap(CookieMap cookieMap) throws IOException {
         FileOutputStream fileOut = null;
         String fileName = Util.joinPaths(searchDir, "cookieMap_"
                 + cookieMapCounter);
         try {
             File f = new File(fileName);
             fileOut = new FileOutputStream(f);
+            fileOut.write(cookieMap.getMegaCookie().getBytes());
+        } finally {
             try {
-                fileOut.write(cookieMap.getMegaCookie().getBytes());
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } finally {
-                try {
-                    fileOut.close();
-                } catch (IOException ignore) {
-                }
+                fileOut.close();
+            } catch (IOException ignore) {
             }
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
 
         cookieMapCounter++;
         return fileName;
     }
 
-    String saveApplicationDependencies(List<String> applicationDependencies) {
+    String saveApplicationDependencies(List<String> applicationDependencies)
+            throws IOException {
         FileOutputStream fileOut = null;
         String fileName = Util.joinPaths(searchDir, "applicationDependencies_"
                 + applicationDependenciesCounter);
+        File f = new File(fileName);
+        fileOut = new FileOutputStream(f);
         try {
-            File f = new File(fileName);
-            fileOut = new FileOutputStream(f);
-            try {
-                // Base64 encode string, add new line, write out bytes
-                for (String s : applicationDependencies) {
-                    fileOut.write((Base64.encodeBytes(s.getBytes()) + "\n")
-                            .getBytes());
-                }
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } finally {
-                try {
-                    fileOut.close();
-                } catch (IOException ignore) {
-                }
+            // Base64 encode string, add new line, write out bytes
+            for (String s : applicationDependencies) {
+                fileOut.write((Base64.encodeBytes(s.getBytes()) + "\n")
+                        .getBytes());
             }
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } finally {
+            try {
+                fileOut.close();
+            } catch (IOException ignore) {
+            }
         }
 
         applicationDependenciesCounter++;
