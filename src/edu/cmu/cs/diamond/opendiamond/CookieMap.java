@@ -98,7 +98,7 @@ public class CookieMap {
 
     private CookieMap() {
         cookieMap = Collections.emptyMap();
-        megacookie = "";
+        megacookie = null;
     }
 
     private static List<String> splitCookies(String megacookie) {

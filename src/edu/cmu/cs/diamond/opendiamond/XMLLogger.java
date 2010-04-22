@@ -18,7 +18,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -56,10 +55,10 @@ class XMLLogger {
 	private int filterCounter;
 	private int attributeCounter;
 	private int applicationDependenciesCounter;
-    private int sessionCounter;
-    private int totalObjects;
-    private int processedObjects;
-    private int droppedObjects;
+	private int sessionCounter;
+	private int totalObjects;
+	private int processedObjects;
+	private int droppedObjects;
 
 	XMLLogger() throws IOException {
 		Date currentDate = new Date();
@@ -181,7 +180,7 @@ class XMLLogger {
 			try {
 				fileOut.close();
 			} catch (IOException ignore) {
-            }
+			}
 		}
 
 		attributeCounter++;
@@ -211,7 +210,7 @@ class XMLLogger {
 			try {
 				fileOut.close();
 			} catch (IOException ignore) {
-            }
+			}
 		}
 
 		sessionCounter++;

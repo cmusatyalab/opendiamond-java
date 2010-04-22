@@ -83,7 +83,11 @@ class LoggingFramework {
 	}
 
 	private void saveCookieMap(CookieMap cookieMap) {
-		javaLogger.log(Level.FINEST, "Saving the cookiemap/megacookie.", searchLogger.saveCookieMap(cookieMap));
+		if (cookieMap.getMegaCookie() != null) {
+			javaLogger.log(Level.FINEST, "Saving the cookiemap/megacookie.", searchLogger.saveCookieMap(cookieMap));
+		} else {
+			javaLogger.log(Level.FINEST, "Null megacookie.");
+		}
 	}
 
 	private void saveApplicationDependencies(List<String> applicationDependencies) {
@@ -92,9 +96,9 @@ class LoggingFramework {
 
 	void saveSearchFactory(SearchFactory searchFactory, Set<String> desiredAttributes) {
 		javaLogger.log(Level.FINEST, "Saving search factory.");
-        saveFilters(searchFactory.getFilters());
-        saveCookieMap(searchFactory.getCookieMap());
-        saveApplicationDependencies(searchFactory.getApplicationDependencies());
-        saveAttributes(desiredAttributes);
+		saveFilters(searchFactory.getFilters());
+		saveCookieMap(searchFactory.getCookieMap());
+		saveApplicationDependencies(searchFactory.getApplicationDependencies());
+		saveAttributes(desiredAttributes);
 	}
 }
