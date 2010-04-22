@@ -36,12 +36,12 @@ class XMLLogger {
         String diamondLoggingDir = System.getProperty(
                 "edu.cmu.cs.diamond.opendiamond.loggingframework.directory",
                 Util.joinPaths(System.getProperty("user.home"),
-                        "/opendiamond-logs/"));
+                        "opendiamond-logs"));
         String temp = Util.joinPaths(diamondLoggingDir, date + "_"
-                + UUID.randomUUID().toString() + "/");
+                + UUID.randomUUID().toString());
         while (!(new File(temp).mkdirs())) {
             temp = Util.joinPaths(diamondLoggingDir, date + "_"
-                    + UUID.randomUUID().toString() + "/");
+                    + UUID.randomUUID().toString());
         }
         APP_SESSION_DIR = temp;
     }
