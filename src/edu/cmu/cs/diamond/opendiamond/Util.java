@@ -503,7 +503,8 @@ public class Util {
     }
     
     /**
-     * Takes to (non-absolute) paths and joins them together appropriately depending on OS.
+     * Takes two (non-absolute) paths and joins them together appropriately
+     * depending on OS.
      * 
      * @param path1
      * 			the presumed beginning of the combined path
