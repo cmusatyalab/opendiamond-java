@@ -89,7 +89,6 @@ public class Search {
     }
 
     void start() throws InterruptedException, IOException {
-        checkClosed();
         CompletionService<?> replies = cs
                 .runOnAllServers(new ConnectionFunction<Object>() {
                     public Callable<Object> createCallable(final Connection c) {
@@ -303,8 +302,6 @@ public class Search {
 
     private List<SessionVariables> getSessionVariables() throws IOException,
             InterruptedException {
-        checkClosed();
-
         List<SessionVariables> result = new ArrayList<SessionVariables>();
 
         synchronized (rpcLock) {
