@@ -22,9 +22,9 @@ import java.util.logging.Logger;
 
 class LoggingFramework {
 
-    XMLLogger searchLogger;
+    private final XMLLogger searchLogger;
 
-    Logger javaLogger;
+    private final Logger javaLogger;
 
     LoggingFramework(String logMessage) throws IOException {
         this.searchLogger = new XMLLogger();
