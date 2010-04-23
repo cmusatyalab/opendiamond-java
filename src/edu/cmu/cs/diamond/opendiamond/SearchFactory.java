@@ -115,8 +115,8 @@ public class SearchFactory {
     public Search createSearch(Set<String> desiredAttributes)
             throws IOException, InterruptedException {
         final Set<String> pushAttributes;
+        LoggingFramework logging = LoggingFramework.createLoggingFramework("createSearch");
         
-        LoggingFramework logging = new LoggingFramework("createSearch");
 
         logging.saveSearchFactory(this, desiredAttributes);
 
@@ -225,7 +225,7 @@ public class SearchFactory {
         String objID = identifier.getObjectID();
         List<Cookie> c = cookieMap.get(host);
 
-        LoggingFramework logging = new LoggingFramework("generateResult");
+        LoggingFramework logging = LoggingFramework.createLoggingFramework("generateResult");
 
         logging.saveSearchFactory(this, desiredAttributes);
         
