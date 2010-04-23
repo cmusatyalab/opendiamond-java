@@ -292,8 +292,7 @@ class XMLLogger extends LoggingFramework {
             String array[];
 
             if (Boolean
-                    .parseBoolean(System
-                            .getProperty("edu.cmu.cs.diamond.opendiamond.loggingframework.detailedresults"))) {
+                    .getBoolean("edu.cmu.cs.diamond.opendiamond.loggingframework.detailedresults")) {
                 array = new String[result.getKeys().size() * 2 + 1];
                 int i = 1;
                 for (String s : result.getKeys()) {
