@@ -73,8 +73,8 @@ class XMLLogger extends LoggingFramework {
             Date currentDate = new Date();
             SimpleDateFormat sdf = new SimpleDateFormat();
             sdf.applyPattern("yyyy-MM-dd'T'HH:mm:ssZ");
-            javaLogger = Logger.getLogger(XMLLogger.class
-                    .getPackage().getName());
+            javaLogger = Logger.getLogger(XMLLogger.class.getPackage()
+                    .getName());
             String date = sdf.format(currentDate);
 
             /* create searchDir */

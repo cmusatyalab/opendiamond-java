@@ -57,7 +57,7 @@ public class Search {
     }
 
     final private ConnectionSet cs;
-    
+
     private final LoggingFramework logging;
 
     private volatile boolean closed;
@@ -148,7 +148,7 @@ public class Search {
 
         // done?
         if (bco == BlastChannelObject.NO_MORE_RESULTS) {
-        	logging.logNoMoreResults();
+            logging.logNoMoreResults();
             return null;
         }
 
@@ -175,9 +175,9 @@ public class Search {
         }
 
         Result result = new Result(attrs, bco.getHostname());
-        
+
         logging.saveGetNewResult(result);
-        
+
         return result;
     }
 

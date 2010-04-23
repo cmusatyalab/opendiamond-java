@@ -30,7 +30,7 @@ public class CookieMap {
     private static final CookieMap EMPTY_COOKIE_MAP = new CookieMap();
 
     private final Map<String, List<Cookie>> cookieMap;
-    
+
     private final String megacookie;
 
     /**
@@ -74,7 +74,7 @@ public class CookieMap {
         Map<String, List<Cookie>> cookieMap = new HashMap<String, List<Cookie>>();
 
         this.megacookie = megacookie;
-        
+
         // fill map from hostnames to cookies
         List<String> cookies = splitCookies(megacookie);
         for (String s : cookies) {
@@ -140,9 +140,9 @@ public class CookieMap {
     }
 
     String getMegaCookie() {
-    	return megacookie;
+        return megacookie;
     }
-    
+
     @Override
     public String toString() {
         return cookieMap.toString();

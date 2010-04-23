@@ -501,29 +501,30 @@ public class Util {
         // decode
         return Util.extractImageFromResult(r2);
     }
-    
+
     /**
      * Takes two (non-absolute) paths and joins them together appropriately
      * depending on OS.
      * 
      * @param path1
-     * 			the presumed beginning of the combined path
+     *            the presumed beginning of the combined path
      * @param path2
-     * 			the presumed ending of the combined path
+     *            the presumed ending of the combined path
      * @return a string representation of the combined path
      */
     static String joinPaths(String path1, String path2) {
-    	    File file1 = new File(path1);
-    	    File file2 = new File(file1, path2);
-    	    return file2.getPath();
+        File file1 = new File(path1);
+        File file2 = new File(file1, path2);
+        return file2.getPath();
     }
-    
+
     /**
      * 
-     * This function returns a stacktrace as a <code>String</code>
-     * given an input <code>Throwable</code> object.
+     * This function returns a stacktrace as a <code>String</code> given an
+     * input <code>Throwable</code> object.
      * 
-     * @param aThrowable the exception being thrown
+     * @param aThrowable
+     *            the exception being thrown
      * @return stacktrace of the exception as a string
      */
     static String getStackTrace(Throwable aThrowable) {
@@ -531,5 +532,5 @@ public class Util {
         final PrintWriter printWriter = new PrintWriter(result);
         aThrowable.printStackTrace(printWriter);
         return result.toString();
-      }
+    }
 }

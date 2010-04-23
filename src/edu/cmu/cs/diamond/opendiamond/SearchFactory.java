@@ -37,7 +37,7 @@ public class SearchFactory {
 
     private final List<String> applicationDependencies;
 
-	private final CookieMap cookieMap;
+    private final CookieMap cookieMap;
 
     /**
      * Constructs a search factory from a collection of filters, application
@@ -89,7 +89,7 @@ public class SearchFactory {
                 sb.append("REQUIRES " + d + "\n");
             }
         }
-        
+
         return sb.toString();
     }
 
@@ -115,8 +115,8 @@ public class SearchFactory {
     public Search createSearch(Set<String> desiredAttributes)
             throws IOException, InterruptedException {
         final Set<String> pushAttributes;
-        LoggingFramework logging = LoggingFramework.createLoggingFramework("createSearch");
-        
+        LoggingFramework logging = LoggingFramework
+                .createLoggingFramework("createSearch");
 
         logging.saveSearchFactory(this, desiredAttributes);
 
@@ -126,7 +126,7 @@ public class SearchFactory {
         } else {
             pushAttributes = copyAndValidateAttributes(desiredAttributes);
         }
-        
+
         // make all the connections and prep everything to start
         final XDR_sig_and_data fspec = encodeFspec();
 
@@ -225,10 +225,11 @@ public class SearchFactory {
         String objID = identifier.getObjectID();
         List<Cookie> c = cookieMap.get(host);
 
-        LoggingFramework logging = LoggingFramework.createLoggingFramework("generateResult");
+        LoggingFramework logging = LoggingFramework
+                .createLoggingFramework("generateResult");
 
         logging.saveSearchFactory(this, desiredAttributes);
-        
+
         if (c == null) {
             throw new IOException("No cookie found for host " + host);
         }
@@ -238,7 +239,6 @@ public class SearchFactory {
         Connection conn = Connection.createConnection(host, c, null, fspec,
                 filters);
 
-        
         // send eval
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();
         MiniRPCReply reply = new RPC(conn, conn.getHostname(), 21, reexec)
@@ -259,14 +259,14 @@ public class SearchFactory {
     }
 
     List<Filter> getFilters() {
-		return filters;
-	}
+        return filters;
+    }
 
-	List<String> getApplicationDependencies() {
-		return applicationDependencies;
-	}
+    List<String> getApplicationDependencies() {
+        return applicationDependencies;
+    }
 
-	CookieMap getCookieMap() {
-		return cookieMap;
-	}
+    CookieMap getCookieMap() {
+        return cookieMap;
+    }
 }

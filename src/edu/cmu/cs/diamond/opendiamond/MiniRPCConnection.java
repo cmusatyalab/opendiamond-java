@@ -23,7 +23,9 @@ final class MiniRPCConnection {
     final private AtomicInteger nextSequence = new AtomicInteger();
 
     final private Socket socket;
+
     final private DataInputStream in;
+
     final private DataOutputStream out;
 
     public MiniRPCConnection(Socket socket) throws IOException {

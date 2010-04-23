@@ -21,7 +21,9 @@ import java.util.Map;
 
 class XDR_object {
     private final long searchID;
+
     private final byte[] data;
+
     private final Map<String, byte[]> attributes;
 
     public XDR_object(XDRGetter buf) throws IOException {
