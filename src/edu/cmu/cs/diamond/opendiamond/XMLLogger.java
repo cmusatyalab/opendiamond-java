@@ -150,41 +150,71 @@ class XMLLogger extends LoggingFramework {
     		fileOut4 = new FileOutputStream(f4);
     		fileOut5 = new FileOutputStream(f5);
     		try {
-    			if (filter.getName() != null)
+    			if (filter.getName() != null) {
     				fileOut1
     				.write((Base64.encodeBytes(filter.getName().getBytes()) + "\n")
     						.getBytes());
-    			if (filter.getEvalFunction() != null)
+    			} else {
+    				fileOut1
+    				.write("--\n".getBytes());
+    			}
+    			
+    			if (filter.getEvalFunction() != null) {
     				fileOut1.write((Base64.encodeBytes(filter.getEvalFunction()
     						.getBytes()) + "\n").getBytes());
-    			if (filter.getInitFunction() != null)
+    			} else {
+    				fileOut1
+    				.write("--\n".getBytes());
+    			}
+    			
+    			if (filter.getInitFunction() != null) {
     				fileOut1.write((Base64.encodeBytes(filter.getInitFunction()
     						.getBytes()) + "\n").getBytes());
-    			if (filter.getFiniFunction() != null)
+	    		} else {
+					fileOut1
+					.write("--\n".getBytes());
+				}
+    			
+    			if (filter.getFiniFunction() != null) {
     				fileOut1.write((Base64.encodeBytes(filter.getFiniFunction()
     						.getBytes()) + "\n").getBytes());
+    			}  else {
+    				fileOut1
+    				.write("--\n".getBytes());
+    			}
+    			
     			fileOut1.write((Integer.toString(filter.getThreshold()) + "\n")
     					.getBytes());
+    			
     			if (filter.getFilterCode() != null)
     				fileOut2.write(filter.getFilterCode().getBytes());
 
     			if (filter.getDependencies() != null) {
     				for (String s : filter.getDependencies()) {
-    					if (s != null)
+    					if (s != null) {
     						fileOut3.write((Base64.encodeBytes(s.getBytes()) + "\n")
     							.getBytes());
+    					}  else {
+    	    				fileOut3
+    	    				.write("--\n".getBytes());
+    	    			}
     				}
     			}
 
     			if (filter.getArguments() != null) {
     				for (String s : filter.getArguments()) {
-    					if (s != null)
+    					if (s != null) {
     						fileOut4.write((Base64.encodeBytes(s.getBytes()) + "\n")
     							.getBytes());
+    					} else {
+    	    				fileOut4
+    	    				.write("--\n".getBytes());
+    	    			}
     				}
     			}
 
-    			if (filter.getBlob() != null) fileOut5.write(filter.getBlob());
+    			if (filter.getBlob() != null)
+    				fileOut5.write(filter.getBlob());
     		} finally {
     			try {
     				fileOut1.close();
@@ -207,6 +237,16 @@ class XMLLogger extends LoggingFramework {
     			} catch (IOException ignore) {
     			}
     		}
+
+    		// delete files that reference null data...
+    		if (filter.getFilterCode() == null)
+    			f2.delete();
+    		if (filter.getDependencies() == null)
+    			f3.delete();
+    		if (filter.getArguments() == null)	
+    			f4.delete();
+    		if (filter.getBlob() == null)
+    			f5.delete();
 
     		filterCounter++;
     		return new String[] { fileName1, fileName2, fileName3, fileName4,
@@ -251,7 +291,7 @@ class XMLLogger extends LoggingFramework {
     			FileOutputStream fileOut = null;
     			String fileName;
     			fileName = Util.joinPaths(searchDir, "sessionVariables_"
-    					+ attributeCounter);
+    					+ sessionCounter);
 
     			try {
     				File f = new File(fileName);
