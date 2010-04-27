@@ -292,7 +292,6 @@ class XMLLogger extends LoggingFramework {
     			String fileName;
     			fileName = Util.joinPaths(searchDir, "sessionVariables_"
     					+ sessionCounter);
-
     			try {
     				File f = new File(fileName);
     				fileOut = new FileOutputStream(f);
