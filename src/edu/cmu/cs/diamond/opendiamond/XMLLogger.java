@@ -130,6 +130,8 @@ class XMLLogger extends LoggingFramework {
     }
 
     private String[] saveFilter(Filter filter) throws IOException {
+    	String[] returnArray;
+    	ArrayList<String> fileNames = new ArrayList<String>();
     	if (filter != null) {
     		FileOutputStream fileOut1, fileOut2, fileOut3, fileOut4, fileOut5;
     		String fileName1, fileName2, fileName3, fileName4, fileName5;
@@ -138,6 +140,11 @@ class XMLLogger extends LoggingFramework {
     		fileName3 = Util.joinPaths(searchDir, "dependencies_" + filterCounter);
     		fileName4 = Util.joinPaths(searchDir, "arguments_" + filterCounter);
     		fileName5 = Util.joinPaths(searchDir, "blob_" + filterCounter);
+    		fileNames.add(fileName1);
+    		fileNames.add(fileName2);
+    		fileNames.add(fileName3);
+    		fileNames.add(fileName4);
+    		fileNames.add(fileName5);
     		File f1 = new File(fileName1);
     		File f2 = new File(fileName2);
     		File f3 = new File(fileName3);
@@ -238,19 +245,31 @@ class XMLLogger extends LoggingFramework {
     			}
     		}
 
+			returnArray = fileNames.toArray(new String[fileNames.size()]);
     		// delete files that reference null data...
-    		if (filter.getFilterCode() == null)
+    		if (filter.getFilterCode() == null) {
     			f2.delete();
-    		if (filter.getDependencies() == null)
+    			fileNames.remove(fileName2);
+    			returnArray = fileNames.toArray(new String[fileNames.size()]);
+    		}
+    		if (filter.getDependencies() == null) {
     			f3.delete();
-    		if (filter.getArguments() == null)	
+				fileNames.remove(fileName3);
+				returnArray = fileNames.toArray(new String[fileNames.size()]);
+    		}
+    		if (filter.getArguments() == null) {
     			f4.delete();
-    		if (filter.getBlob() == null)
+				fileNames.remove(fileName4);
+				returnArray = fileNames.toArray(new String[fileNames.size()]);
+    		}
+    		if (filter.getBlob() == null) {
     			f5.delete();
+				fileNames.remove(fileName5);
+				returnArray = fileNames.toArray(new String[fileNames.size()]);
+    		}
 
     		filterCounter++;
-    		return new String[] { fileName1, fileName2, fileName3, fileName4,
-    				fileName5 };
+    		return returnArray;
     	}
     	return null;
     }
