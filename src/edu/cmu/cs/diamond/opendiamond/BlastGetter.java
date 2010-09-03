@@ -24,28 +24,41 @@ class BlastGetter implements Callable<Object> {
 
     private final String hostname;
 
+    private final int maxOutstandingRequests;
+
     public BlastGetter(Connection connection, String hostname,
-            BlastQueue blastQueue) {
+            BlastQueue blastQueue, int maxOutstandingRequests) {
         this.connection = connection;
         this.hostname = hostname;
         this.q = blastQueue;
+        this.maxOutstandingRequests = maxOutstandingRequests;
     }
 
-    private final byte[] emptyBuf = new byte[0];
+    private final int CMD = 1;
+
+    private final byte[] DATA = new byte[0];
 
     private XDR_object getAndAcknowldgeBlastChannelObject() throws IOException {
         // System.out.println(hostname + ": waiting for blast object");
-        MiniRPCReply reply = new RPC(connection, hostname, 1, emptyBuf)
-                .doBlastRPC();
+        // receive previous reply
+        MiniRPCReply reply = new MiniRPCReply(connection.receiveBlast(),
+                hostname);
         reply.checkStatus();
 
-        XDR_object obj = new XDR_object(reply.getMessage().getData());
+        // send another request
+        connection.sendBlastRequest(CMD, DATA);
+
         // System.out.println(hostname + ":   blast object done");
 
-        return obj;
+        return new XDR_object(reply.getMessage().getData());
     }
 
     public Object call() throws Exception {
+        // queue up requests
+        for (int i = 0; i < maxOutstandingRequests; i++) {
+            connection.sendBlastRequest(CMD, DATA);
+        }
+
         // block, waiting for blast channel object, then stick into queue
         while (true) {
             XDR_object obj = getAndAcknowldgeBlastChannelObject();

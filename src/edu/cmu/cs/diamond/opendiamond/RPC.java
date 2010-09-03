@@ -62,16 +62,6 @@ class RPC implements Callable<MiniRPCReply> {
         return reply;
     }
 
-    public MiniRPCReply doBlastRPC() throws IOException {
-        connection.sendBlastRequest(cmd, data);
-        MiniRPCReply reply = new MiniRPCReply(connection.receiveBlast(),
-                hostname);
-
-        // System.out.println(reply);
-
-        return reply;
-    }
-
     public static String statusToString(int status) {
         switch (status) {
         case DIAMOND_SUCCESS:

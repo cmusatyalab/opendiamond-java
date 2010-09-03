@@ -42,7 +42,7 @@ class ConnectionSet {
                 executor);
         for (Connection c : connections) {
             blastFutures.add(blastTasks.submit(new BlastGetter(c, c
-                    .getHostname(), blastQueue)));
+                    .getHostname(), blastQueue, 10)));
         }
         final int tasksCount = blastFutures.size();
 
