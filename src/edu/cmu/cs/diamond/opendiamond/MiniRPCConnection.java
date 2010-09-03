@@ -63,31 +63,6 @@ final class MiniRPCConnection {
                 MiniRPCMessage.MINIRPC_PENDING, cmd, data);
     }
 
-    public void sendMessage(int cmd, byte data[]) throws IOException {
-        if (cmd <= 0) {
-            throw new IllegalArgumentException("cmd must be positive");
-        }
-
-        send(nextSequence.getAndIncrement() & 0xFFFFFFFFL,
-                MiniRPCMessage.MINIRPC_PENDING, -cmd, data);
-    }
-
-    public void sendReply(MiniRPCMessage inReplyTo, byte data[])
-            throws IOException {
-        send(inReplyTo.getSequence(), MiniRPCMessage.MINIRPC_OK, inReplyTo
-                .getCmd(), data);
-    }
-
-    public void sendReplyWithStatus(MiniRPCMessage inReplyTo, int status,
-            byte[] data) throws IOException {
-        if ((status == MiniRPCMessage.MINIRPC_OK)
-                || (status == MiniRPCMessage.MINIRPC_PENDING)) {
-            throw new IllegalArgumentException(
-                    "status cannot be MINIRPC_OK or MINIRPC_PENDING");
-        }
-        send(inReplyTo.getSequence(), status, inReplyTo.getCmd(), data);
-    }
-
     public MiniRPCMessage receive() throws IOException {
         long sequence = in.readInt() & 0xFFFFFFFFL;
         int status = in.readInt();

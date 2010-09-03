@@ -203,27 +203,18 @@ class Connection {
         }
     }
 
-    private MiniRPCMessage receiveFrom(MiniRPCConnection c) throws IOException {
-        try {
-            return c.receive();
-        } catch (IOException e) {
-            close();
-            throw e;
-        }
-    }
-
     public MiniRPCMessage receiveBlast() throws ServerException {
         try {
-            return receiveFrom(blast);
+            return blast.receive();
         } catch (IOException e) {
             close();
             throw new ServerException(hostname, e);
         }
     }
 
-    public void sendMessageBlast(int cmd, byte data[]) throws ServerException {
+    public void sendBlastRequest(int cmd, byte data[]) throws ServerException {
         try {
-            blast.sendMessage(cmd, data);
+            blast.sendRequest(cmd, data);
         } catch (IOException e) {
             close();
             throw new ServerException(hostname, e);

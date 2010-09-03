@@ -13,8 +13,6 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.concurrent.Callable;
 
@@ -33,20 +31,16 @@ class BlastGetter implements Callable<Object> {
         this.q = blastQueue;
     }
 
+    private final byte[] emptyBuf = new byte[0];
+
     private XDR_object getAndAcknowldgeBlastChannelObject() throws IOException {
         // System.out.println(hostname + ": waiting for blast object");
-        MiniRPCMessage incoming = connection.receiveBlast();
-        XDR_object obj = new XDR_object(incoming.getData());
+        MiniRPCReply reply = new RPC(connection, hostname, 1, emptyBuf)
+                .doBlastRPC();
+        reply.checkStatus();
+
+        XDR_object obj = new XDR_object(reply.getMessage().getData());
         // System.out.println(hostname + ":   blast object done");
-
-        // ack
-        // System.out.println(hostname + ": sending credit");
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(baos);
-        out.writeInt(1); // 1 credit
-
-        connection.sendMessageBlast(1, baos.toByteArray());
-        // System.out.println(hostname + ":   credit done");
 
         return obj;
     }
