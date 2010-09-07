@@ -25,7 +25,7 @@ import java.util.concurrent.*;
  */
 public class SearchFactory {
     private final ExecutorService executor = new ThreadPoolExecutor(0,
-            Integer.MAX_VALUE, 500, TimeUnit.MILLISECONDS,
+            Integer.MAX_VALUE, 1, TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>());
 
     /**
