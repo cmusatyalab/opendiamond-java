@@ -13,23 +13,12 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 class XDR_sig_val implements XDREncodeable {
-
-    public static final int SIG_SIZE = 16;
 
     private final byte[] digest;
 
-    public XDR_sig_val(byte[] digest) {
-        if (digest.length > SIG_SIZE) {
-            throw new IllegalArgumentException(
-                    "digest must be no larger than SIG_SIZE");
-        }
-
-        this.digest = new byte[digest.length];
-        System.arraycopy(digest, 0, this.digest, 0, digest.length);
+    public XDR_sig_val(Signature sig) {
+        digest = sig.asBytes();
     }
 
     public byte[] encode() {
@@ -37,14 +26,6 @@ class XDR_sig_val implements XDREncodeable {
     }
 
     public static XDR_sig_val createSignature(byte data[]) {
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        XDR_sig_val sig = new XDR_sig_val(md.digest(data));
-
-        return sig;
+        return new XDR_sig_val(new Signature(data));
     }
 }

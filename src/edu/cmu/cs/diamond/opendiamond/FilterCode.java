@@ -22,6 +22,7 @@ import java.io.InputStream;
  */
 public class FilterCode {
     final private byte[] code;
+    final private Signature sig;
 
     /**
      * Constructs a new FilterCode from the given byte array.
@@ -32,6 +33,7 @@ public class FilterCode {
     public FilterCode(byte code[]) {
         this.code = new byte[code.length];
         System.arraycopy(code, 0, this.code, 0, code.length);
+        sig = new Signature(code);
     }
 
     /**
@@ -45,9 +47,14 @@ public class FilterCode {
      */
     public FilterCode(InputStream in) throws IOException {
         code = Util.readFully(in);
+        sig = new Signature(code);
     }
 
     byte[] getBytes() {
         return code;
+    }
+
+    Signature getSignature() {
+        return sig;
     }
 }

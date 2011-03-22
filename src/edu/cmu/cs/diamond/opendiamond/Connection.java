@@ -170,9 +170,10 @@ class Connection {
     }
 
     private void setCode(Filter f) throws IOException {
-        byte code[] = f.getFilterCode().getBytes();
-        XDR_sig_val sig = XDR_sig_val.createSignature(code);
-        XDR_sig_and_data sigAndData = new XDR_sig_and_data(sig, code);
+        FilterCode code = f.getFilterCode();
+        XDR_sig_val sig = new XDR_sig_val(code.getSignature());
+        XDR_sig_and_data sigAndData = new XDR_sig_and_data(sig,
+                code.getBytes());
 
         final byte[] encodedSig = sig.encode();
         final byte[] encodedSigAndData = sigAndData.encode();
