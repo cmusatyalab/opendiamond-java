@@ -48,6 +48,7 @@ public class Filter {
 
     /**
      * Constructs a new filter with the given parameters (including blob).
+     * Used for old-style shared object filters.
      * 
      * @param name
      *            the name of this filter
@@ -79,9 +80,13 @@ public class Filter {
         // TODO check for valid characters as in filter_spec.l
         this.name = name.trim();
         this.code = code;
-        this.evalFunction = evalFunction.trim();
-        this.initFunction = initFunction.trim();
-        this.finiFunction = finiFunction.trim();
+        if (evalFunction != null) {
+            this.evalFunction = evalFunction.trim();
+            this.initFunction = initFunction.trim();
+            this.finiFunction = finiFunction.trim();
+        } else {
+            this.evalFunction = this.initFunction = this.finiFunction = null;
+        }
         this.threshold = threshold;
         this.merit = 100;
 
@@ -97,6 +102,7 @@ public class Filter {
 
     /**
      * Constructs a new Filter with the given parameters.
+     * Used for old-style shared object filters.
      * 
      * @param name
      *            the name of the new filter
@@ -125,6 +131,51 @@ public class Filter {
                 dependencies, arguments, new byte[0]);
     }
 
+    /**
+     * Constructs a new filter with the given parameters (including blob).
+     * Used for new-style executable filters.
+     *
+     * @param name
+     *            the name of this filter
+     * @param code
+     *            the binary code that implements the Filter
+     * @param threshold
+     *            a value that sets the filter drop threshold
+     * @param dependencies
+     *            a list of other filter names that this filter depends on
+     * @param arguments
+     *            a list of arguments to the filter
+     * @param blob
+     *            a binary argument to this filter
+     */
+    public Filter(String name, FilterCode code, int threshold,
+            Collection<String> dependencies, List<String> arguments,
+            byte blob[]) {
+        this(name, code, null, null, null, threshold, dependencies,
+                arguments, blob);
+    }
+
+    /**
+     * Constructs a new filter with the given parameters.
+     * Used for new-style executable filters.
+     *
+     * @param name
+     *            the name of this filter
+     * @param code
+     *            the binary code that implements the Filter
+     * @param threshold
+     *            a value that sets the filter drop threshold
+     * @param dependencies
+     *            a list of other filter names that this filter depends on
+     * @param arguments
+     *            a list of arguments to the filter
+     */
+    public Filter(String name, FilterCode code, int threshold,
+            Collection<String> dependencies, List<String> arguments) {
+        this(name, code, null, null, null, threshold, dependencies,
+                arguments);
+    }
+
     @Override
     public String toString() {
         return getName() + ", encoded bloblen: " + getEncodedBlob().length;
@@ -136,9 +187,13 @@ public class Filter {
         sb.append("FILTER " + name + "\n");
         sb.append("THRESHOLD " + threshold + "\n");
         sb.append("MERIT " + merit + "\n");
-        sb.append("EVAL_FUNCTION " + evalFunction + "\n");
-        sb.append("INIT_FUNCTION " + initFunction + "\n");
-        sb.append("FINI_FUNCTION " + finiFunction + "\n");
+        if (evalFunction != null) {
+            sb.append("EVAL_FUNCTION " + evalFunction + "\n");
+            sb.append("INIT_FUNCTION " + initFunction + "\n");
+            sb.append("FINI_FUNCTION " + finiFunction + "\n");
+        } else {
+            sb.append("SIGNATURE " + code.getSignature().asString() + "\n");
+        }
 
         for (String arg : arguments) {
             sb.append("ARG " + arg + "\n");
