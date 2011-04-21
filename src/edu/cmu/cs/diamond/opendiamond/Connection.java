@@ -17,6 +17,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Set;
 
@@ -140,8 +142,29 @@ class Connection {
 
     public void sendStart() throws IOException {
         try {
-            // start search
-            byte encodedSearchId[] = new byte[4]; // 0
+            // Generate a search ID that should be unique over the lifetime
+            // of this scope cookie.  OpenDiamond-Java doesn't use this for
+            // anything, but the servers may choose to use it (in concert
+            // with the scope cookie) to correlate a particular search across
+            // multiple servers.  The protocol only gives us 32 bits, so
+            // divide them as follows:
+            // - 24 bits: millisecond-granularity timestamp right-shifted
+            //   by 11 bits.  This gives us a 397-day rollover and a 2-second
+            //   resolution.  Most scope cookies expire much sooner than
+            //   397 days.
+            // - 8 bits: random uniquifier.  This can't be a serial number
+            //   because there may be multiple uncoordinated clients.
+            //   This allows on average 16 new searches per 2-second tick
+            //   before we hit a collision due to the birthday paradox.
+            int searchId = (int) (((System.currentTimeMillis() >>> 11)
+                    & 0xffffff) << 8);
+            byte rand[] = new byte[1];
+            new SecureRandom().nextBytes(rand);
+            searchId |= ((int) rand[0]) & 0xff;
+            byte encodedSearchId[] = new byte[4];
+            ByteBuffer bb = ByteBuffer.allocate(4);
+            bb.putInt(searchId).flip();
+            bb.get(encodedSearchId);
 
             // device_start_search = 1
             new RPC(this, hostname, 1, encodedSearchId).doRPC().checkStatus();
