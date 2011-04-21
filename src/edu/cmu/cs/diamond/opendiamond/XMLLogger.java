@@ -166,30 +166,6 @@ class XMLLogger extends LoggingFramework {
     				.write("--\n".getBytes());
     			}
     			
-    			if (filter.getEvalFunction() != null) {
-    				fileOut1.write((Base64.encodeBytes(filter.getEvalFunction()
-    						.getBytes()) + "\n").getBytes());
-    			} else {
-    				fileOut1
-    				.write("--\n".getBytes());
-    			}
-    			
-    			if (filter.getInitFunction() != null) {
-    				fileOut1.write((Base64.encodeBytes(filter.getInitFunction()
-    						.getBytes()) + "\n").getBytes());
-	    		} else {
-					fileOut1
-					.write("--\n".getBytes());
-				}
-    			
-    			if (filter.getFiniFunction() != null) {
-    				fileOut1.write((Base64.encodeBytes(filter.getFiniFunction()
-    						.getBytes()) + "\n").getBytes());
-    			}  else {
-    				fileOut1
-    				.write("--\n".getBytes());
-    			}
-    			
     			fileOut1.write((Integer.toString(filter.getThreshold()) + "\n")
     					.getBytes());
     			
