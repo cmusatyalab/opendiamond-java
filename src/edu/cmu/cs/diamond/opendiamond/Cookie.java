@@ -32,8 +32,6 @@ class Cookie {
 
     private final UUID serial;
 
-    private final byte[] keyId;
-
     private final String expires;
 
     private final String scopeData;
@@ -61,7 +59,6 @@ class Cookie {
         boolean hasVersion = false;
         int version = 0;
         UUID serial = null;
-        byte keyId[] = null;
         String expires = null;
         List<String> servers = null;
 
@@ -78,8 +75,6 @@ class Cookie {
                 version = Integer.parseInt(val);
             } else if (key.equals("Serial")) {
                 serial = UUID.fromString(val);
-            } else if (key.equals("KeyId")) {
-                keyId = hexDecode(val);
             } else if (key.equals("Expires")) {
                 expires = val;
             } else if (key.equals("Servers")) {
@@ -91,7 +86,6 @@ class Cookie {
         this.version = version;
         this.serial = serial;
         this.servers = Collections.unmodifiableList(servers);
-        this.keyId = keyId;
         this.expires = expires;
 
         // check
@@ -104,24 +98,9 @@ class Cookie {
         if (servers == null) {
             throw new IllegalArgumentException("missing Servers");
         }
-        if (keyId == null) {
-            throw new IllegalArgumentException("missing KeyId");
-        }
         if (expires == null) {
             throw new IllegalArgumentException("missing Expires");
         }
-    }
-
-    private byte[] hexDecode(String string) throws IOException {
-        byte input[] = string.getBytes();
-        byte result[] = new byte[input.length / 2];
-
-        for (int i = 0; i < input.length; i += 2) {
-            String s = new String(input, i, 2, "UTF-8");
-            result[i / 2] = (byte) Integer.parseInt(s, 16);
-        }
-
-        return result;
     }
 
     public List<String> getServers() {
@@ -135,8 +114,7 @@ class Cookie {
     @Override
     public String toString() {
         return "servers: " + servers + ", version: " + version + ", serial: "
-                + serial + ", keyId: " + Arrays.toString(keyId) + ", expires: "
-                + expires;
+                + serial + ", expires: " + expires;
     }
 
     public String getScopeData() {
