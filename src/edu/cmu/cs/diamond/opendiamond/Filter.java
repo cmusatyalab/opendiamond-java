@@ -28,8 +28,6 @@ public class Filter {
 
     final private List<String> arguments;
 
-    final private int merit;
-
     final private String name;
 
     final private int threshold;
@@ -64,7 +62,6 @@ public class Filter {
         this.name = name.trim();
         this.code = code;
         this.threshold = threshold;
-        this.merit = 100;
 
         this.dependencies = new ArrayList<String>(dependencies);
         this.arguments = new ArrayList<String>(arguments);
@@ -105,7 +102,6 @@ public class Filter {
 
         sb.append("FILTER " + name + "\n");
         sb.append("THRESHOLD " + threshold + "\n");
-        sb.append("MERIT " + merit + "\n");
         sb.append("SIGNATURE " + code.getSignature().asString() + "\n");
 
         for (String arg : arguments) {
