@@ -23,10 +23,6 @@ class RPC implements Callable<MiniRPCReply> {
 
     final public static int DIAMOND_FCACHEMISS = 501;
 
-    final public static int DIAMOND_NOSTATSAVAIL = 502;
-
-    final public static int DIAMOND_NOMEM = 503;
-
     final public static int DIAMOND_COOKIE_EXPIRED = 504;
 
     final public static int MAX_FILTER_NAME = 128;
@@ -72,12 +68,6 @@ class RPC implements Callable<MiniRPCReply> {
 
         case DIAMOND_FCACHEMISS:
             return "cache miss";
-
-        case DIAMOND_NOSTATSAVAIL:
-            return "no statistics available";
-
-        case DIAMOND_NOMEM:
-            return "out of memory";
 
         case DIAMOND_COOKIE_EXPIRED:
             return "cookie expired";
