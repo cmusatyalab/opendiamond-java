@@ -54,8 +54,6 @@ class XMLLogger extends LoggingFramework {
 
     private int attributeCounter;
 
-    private int applicationDependenciesCounter;
-
     private int sessionCounter;
 
     private int totalObjects;
@@ -412,35 +410,6 @@ class XMLLogger extends LoggingFramework {
         }
     }
 
-    private void saveApplicationDependencies(
-            List<String> applicationDependencies) throws IOException {
-    	if (applicationDependencies != null) {
-	        FileOutputStream fileOut = null;
-	        String fileName = Util.joinPaths(searchDir, "applicationDependencies_"
-	                + applicationDependenciesCounter);
-	        File f = new File(fileName);
-	        fileOut = new FileOutputStream(f);
-	        try {
-	            // Base64 encode string, add new line, write out bytes
-	            for (String s : applicationDependencies) {
-	                if (s != null)
-	                	fileOut.write((Base64.encodeBytes(s.getBytes()) + "\n")
-	                        .getBytes());
-	            }
-	        } finally {
-	            try {
-	                fileOut.close();
-	            } catch (IOException ignore) {
-	            }
-	        }
-	
-	        applicationDependenciesCounter++;
-	
-	        javaLogger.log(Level.FINEST, "Saving application dependencies.",
-	                fileName);
-    	}
-    }
-
     @Override
     public void saveSearchFactory(SearchFactory searchFactory,
             Set<String> desiredAttributes) throws IOException {
@@ -449,8 +418,6 @@ class XMLLogger extends LoggingFramework {
 	            javaLogger.log(Level.FINEST, "Saving search factory.");
 	            saveFilters(searchFactory.getFilters());
 	            saveCookieMap(searchFactory.getCookieMap());
-	            saveApplicationDependencies(searchFactory
-	                    .getApplicationDependencies());
 	            saveAttributes(desiredAttributes);
         	}
         }

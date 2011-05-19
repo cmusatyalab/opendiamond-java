@@ -35,28 +35,20 @@ public class SearchFactory {
 
     private final List<Filter> filters;
 
-    private final List<String> applicationDependencies;
-
     private final CookieMap cookieMap;
 
     /**
-     * Constructs a search factory from a collection of filters, application
-     * dependencies, and a cookie map.
+     * Constructs a search factory from a collection of filters and a
+     * cookie map.
      * 
      * @param filters
      *            a collection of filters to run during a search
-     * @param applicationDependencies
-     *            a poorly-specified construct that will hopefully go away
      * @param cookieMap
      *            the cookie map to use to look up servers and authenticate
      *            against
      */
-    public SearchFactory(Collection<Filter> filters,
-            Collection<String> applicationDependencies, CookieMap cookieMap) {
+    public SearchFactory(Collection<Filter> filters, CookieMap cookieMap) {
         this.filters = new ArrayList<Filter>(filters);
-
-        this.applicationDependencies = new ArrayList<String>(
-                applicationDependencies);
 
         this.cookieMap = cookieMap;
     }
@@ -82,14 +74,6 @@ public class SearchFactory {
         for (Filter f : filters) {
             sb.append(f.getFspec());
         }
-
-        if (!applicationDependencies.isEmpty()) {
-            sb.append("FILTER APPLICATION\n");
-            for (String d : applicationDependencies) {
-                sb.append("REQUIRES " + d + "\n");
-            }
-        }
-
         return sb.toString();
     }
 
@@ -260,10 +244,6 @@ public class SearchFactory {
 
     List<Filter> getFilters() {
         return filters;
-    }
-
-    List<String> getApplicationDependencies() {
-        return applicationDependencies;
     }
 
     CookieMap getCookieMap() {
