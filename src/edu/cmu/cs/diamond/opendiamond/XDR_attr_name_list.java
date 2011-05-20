@@ -31,14 +31,6 @@ class XDR_attr_name_list implements XDREncodeable {
     public byte[] encode() {
         // length + strings
 
-        int finalSize = 4;
-        List<byte[]> bufs = new ArrayList<byte[]>();
-        for (String s : strings) {
-            byte[] bb = XDREncoders.encodeString(s);
-            bufs.add(bb);
-            finalSize += bb.length;
-        }
-
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         DataOutputStream out = new DataOutputStream(baos);
 
@@ -47,8 +39,8 @@ class XDR_attr_name_list implements XDREncodeable {
             out.writeInt(strings.length);
 
             // strings
-            for (byte b[] : bufs) {
-                out.write(b);
+            for (String s : strings) {
+                out.write(XDREncoders.encodeString(s));
             }
         } catch (IOException e) {
             e.printStackTrace();
