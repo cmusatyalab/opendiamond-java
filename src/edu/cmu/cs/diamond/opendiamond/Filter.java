@@ -30,7 +30,7 @@ public class Filter {
 
     final private String name;
 
-    final private int threshold;
+    final private double threshold;
 
     final private byte blob[];
 
@@ -54,7 +54,7 @@ public class Filter {
      * @param blob
      *            a binary argument to this filter
      */
-    public Filter(String name, FilterCode code, int threshold,
+    public Filter(String name, FilterCode code, double threshold,
             Collection<String> dependencies, List<String> arguments,
             byte blob[]) {
 
@@ -87,7 +87,7 @@ public class Filter {
      * @param arguments
      *            a list of arguments to the filter
      */
-    public Filter(String name, FilterCode code, int threshold,
+    public Filter(String name, FilterCode code, double threshold,
             Collection<String> dependencies, List<String> arguments) {
         this(name, code, threshold, dependencies, arguments, new byte[0]);
     }
@@ -143,7 +143,7 @@ public class Filter {
         return arguments;
     }
 
-    int getThreshold() {
+    double getThreshold() {
         return threshold;
     }
 
