@@ -2,7 +2,7 @@
  *  The OpenDiamond Platform for Interactive Search
  *  Version 5
  *
- *  Copyright (c) 2007, 2009-2010 Carnegie Mellon University
+ *  Copyright (c) 2007, 2009-2011 Carnegie Mellon University
  *  All rights reserved.
  *
  *  This software is distributed under the terms of the Eclipse Public
@@ -237,16 +237,11 @@ public class Search {
     }
 
     /**
-     * Takes a map of named doubles and a <code>DoubleComposer</code> and
-     * composes the values with those on each server. This operation is highly
-     * dependent on the particulars of the filters running on the server.
-     * 
+     * Takes a map of named doubles, adds to them the corresponding values
+     * from each server, and pushes the new values back to all servers.
+     *
      * @param globalValues
      *            a map of named doubles, representing the master copy of values
-     * @param composer
-     *            a <code>DoubleComposer</code> that will be used locally to
-     *            merge values. The filters in use on the server may use
-     *            different composers.
      * @return a new map of updated session variables
      * @throws InterruptedException
      *             if the thread is interrupted
@@ -256,15 +251,15 @@ public class Search {
      *             if this <code>Search</code> is closed
      */
     public Map<String, Double> mergeSessionVariables(
-            Map<String, Double> globalValues, DoubleComposer composer)
-            throws IOException, InterruptedException {
+            Map<String, Double> globalValues) throws IOException,
+            InterruptedException {
         checkClosed();
 
         // collect all the session variables
         List<SessionVariables> sv = getSessionVariables();
 
         // build new state
-        composeVariables(globalValues, composer, sv);
+        composeVariables(globalValues, sv);
 
         // set it all back
         setSessionVariables(globalValues);
@@ -272,8 +267,37 @@ public class Search {
         return globalValues;
     }
 
+    /**
+     * Resets the session variables on all servers to zero.
+     *
+     * @throws InterruptedException
+     *             if the thread is interrupted
+     * @throws IOException
+     *             if an IO error occurs
+     * @throws SearchClosedException
+     *             if this <code>Search</code> is closed
+     */
+    public void clearSessionVariables() throws IOException,
+            InterruptedException {
+        checkClosed();
+
+        // collect all the session variables
+        List<SessionVariables> sv = getSessionVariables();
+
+        // create a map containing all possible keys, with values set to 0.0
+        Map<String, Double> newValues = new HashMap<String, Double>();
+        for (SessionVariables v : sv) {
+            for (String key : v.getVariables().keySet()) {
+                newValues.put(key, 0.0);
+            }
+        }
+
+        // set it all back
+        setSessionVariables(newValues);
+    }
+
     private void composeVariables(Map<String, Double> globalValues,
-            DoubleComposer composer, List<SessionVariables> sv) {
+            List<SessionVariables> sv) {
 
         // System.out.println("INPUT: " + Arrays.toString(sv));
 
@@ -297,7 +321,7 @@ public class Search {
                 double global = e.getValue();
                 double local = localValues.containsKey(key) ? localValues
                         .get(key) : 0.0;
-                double composedValue = composer.compose(key, global, local);
+                double composedValue = global + local;
                 globalValues.put(key, composedValue);
             }
         }
