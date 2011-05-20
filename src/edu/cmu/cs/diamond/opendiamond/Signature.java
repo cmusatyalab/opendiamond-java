@@ -19,8 +19,6 @@ import java.util.Formatter;
 
 class Signature {
 
-    public static final int SIG_SIZE = 16;
-
     private final byte[] digest;
 
     public Signature(byte data[]) {
@@ -34,8 +32,8 @@ class Signature {
     }
 
     public byte[] asBytes() {
-        byte[] ret = new byte[SIG_SIZE];
-        System.arraycopy(digest, 0, ret, 0, SIG_SIZE);
+        byte[] ret = new byte[RPC.SIG_SIZE];
+        System.arraycopy(digest, 0, ret, 0, RPC.SIG_SIZE);
         return ret;
     }
 

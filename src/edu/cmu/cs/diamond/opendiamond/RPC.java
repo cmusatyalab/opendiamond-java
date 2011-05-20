@@ -29,6 +29,8 @@ class RPC implements Callable<MiniRPCReply> {
 
     final public static int MAX_FILTERS = 64;
 
+    final public static int SIG_SIZE = 16;
+
     final private Connection connection;
 
     final private int cmd;
