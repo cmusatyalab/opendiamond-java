@@ -30,7 +30,9 @@ public class Filter {
 
     final private String name;
 
-    final private double threshold;
+    final private double minScore;
+
+    final private double maxScore;
 
     final private byte blob[];
 
@@ -39,14 +41,17 @@ public class Filter {
     final private byte encodedBlobSig[];
 
     /**
-     * Constructs a new filter with the given parameters (including blob).
+     * Constructs a new filter with the given parameters (including blob
+     * and maxScore).
      * 
      * @param name
      *            the name of this filter
      * @param code
      *            the binary code that implements the Filter
-     * @param threshold
-     *            a value that sets the filter drop threshold
+     * @param minScore
+     *            the filter score below which an object will be dropped
+     * @param maxScore
+     *            the filter score above which an object will be dropped
      * @param dependencies
      *            a list of other filter names that this filter depends on
      * @param arguments
@@ -54,14 +59,15 @@ public class Filter {
      * @param blob
      *            a binary argument to this filter
      */
-    public Filter(String name, FilterCode code, double threshold,
-            Collection<String> dependencies, List<String> arguments,
-            byte blob[]) {
+    public Filter(String name, FilterCode code, double minScore,
+            double maxScore, Collection<String> dependencies,
+            List<String> arguments, byte blob[]) {
 
         // TODO check for valid characters as in filter_spec.l
         this.name = name.trim();
         this.code = code;
-        this.threshold = threshold;
+        this.minScore = minScore;
+        this.maxScore = maxScore;
 
         this.dependencies = new ArrayList<String>(dependencies);
         this.arguments = new ArrayList<String>(arguments);
@@ -74,22 +80,70 @@ public class Filter {
     }
 
     /**
+     * Constructs a new Filter with the given parameters (including
+     * maxScore).
+     * 
+     * @param name
+     *            the name of the new filter
+     * @param code
+     *            the binary code that implements the filter
+     * @param minScore
+     *            the filter score below which an object will be dropped
+     * @param maxScore
+     *            the filter score above which an object will be dropped
+     * @param dependencies
+     *            a list of other filter names that this filter depends on
+     * @param arguments
+     *            a list of arguments to the filter
+     */
+    public Filter(String name, FilterCode code, double minScore,
+            double maxScore, Collection<String> dependencies,
+            List<String> arguments) {
+        this(name, code, minScore, maxScore, dependencies, arguments,
+                new byte[0]);
+    }
+
+    /**
+     * Constructs a new filter with the given parameters (including blob).
+     * 
+     * @param name
+     *            the name of this filter
+     * @param code
+     *            the binary code that implements the Filter
+     * @param minScore
+     *            the filter score below which an object will be dropped
+     * @param dependencies
+     *            a list of other filter names that this filter depends on
+     * @param arguments
+     *            a list of arguments to the filter
+     * @param blob
+     *            a binary argument to this filter
+     */
+    public Filter(String name, FilterCode code, double minScore,
+            Collection<String> dependencies, List<String> arguments,
+            byte blob[]) {
+        this(name, code, minScore, Double.POSITIVE_INFINITY, dependencies,
+                arguments, blob);
+    }
+
+    /**
      * Constructs a new Filter with the given parameters.
      * 
      * @param name
      *            the name of the new filter
      * @param code
      *            the binary code that implements the filter
-     * @param threshold
-     *            a value that sets the filter drop threshold
+     * @param minScore
+     *            the filter score below which an object will be dropped
      * @param dependencies
      *            a list of other filter names that this filter depends on
      * @param arguments
      *            a list of arguments to the filter
      */
-    public Filter(String name, FilterCode code, double threshold,
+    public Filter(String name, FilterCode code, double minScore,
             Collection<String> dependencies, List<String> arguments) {
-        this(name, code, threshold, dependencies, arguments, new byte[0]);
+        this(name, code, minScore, Double.POSITIVE_INFINITY, dependencies,
+                arguments, new byte[0]);
     }
 
     @Override
@@ -101,7 +155,8 @@ public class Filter {
         StringBuilder sb = new StringBuilder();
 
         sb.append("FILTER " + name + "\n");
-        sb.append("THRESHOLD " + threshold + "\n");
+        sb.append("THRESHOLD " + minScore + "\n");
+        sb.append("UPPERTHRESHOLD " + maxScore + "\n");
         sb.append("SIGNATURE " + code.getSignature().asString() + "\n");
 
         for (String arg : arguments) {
@@ -143,8 +198,12 @@ public class Filter {
         return arguments;
     }
 
-    double getThreshold() {
-        return threshold;
+    double getMinScore() {
+        return minScore;
+    }
+
+    double getMaxScore() {
+        return maxScore;
     }
 
     byte[] getBlob() {

@@ -164,7 +164,10 @@ class XMLLogger extends LoggingFramework {
     				.write("--\n".getBytes());
     			}
     			
-			fileOut1.write((Double.toString(filter.getThreshold()) + "\n")
+			fileOut1.write((Double.toString(filter.getMinScore()) + "\n")
+					.getBytes());
+
+			fileOut1.write((Double.toString(filter.getMaxScore()) + "\n")
     					.getBytes());
     			
     			if (filter.getFilterCode() != null)
