@@ -14,24 +14,22 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-class XDR_sig_val implements XDREncodeable {
+class XDR_sig_list {
+    private final List<XDR_sig_val> sigs;
 
-    private final byte[] digest;
-
-    public XDR_sig_val(XDRGetter buf) throws IOException {
-        digest = buf.getOpaque(RPC.SIG_SIZE);
+    public XDR_sig_list(XDRGetter buf) throws IOException {
+        sigs = new ArrayList<XDR_sig_val>();
+        int count = buf.getInt();
+        for (int i = 0; i < count; i++) {
+            sigs.add(new XDR_sig_val(buf));
+        }
     }
 
-    public XDR_sig_val(Signature sig) {
-        digest = sig.asBytes();
-    }
-
-    public byte[] encode() {
-        return XDREncoders.encodeOpaque(digest);
-    }
-
-    public Signature getSignature() {
-        return Signature.fromDigest(digest);
+    public List<XDR_sig_val> getSigs() {
+        return Collections.unmodifiableList(sigs);
     }
 }

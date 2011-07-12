@@ -2,7 +2,7 @@
  *  The OpenDiamond Platform for Interactive Search
  *  Version 5
  *
- *  Copyright (c) 2009 Carnegie Mellon University
+ *  Copyright (c) 2009-2011 Carnegie Mellon University
  *  All rights reserved.
  *
  *  This software is distributed under the terms of the Eclipse Public
@@ -17,8 +17,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.ByteBuffer;
 import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -73,7 +74,6 @@ class Connection {
     }
 
     static Connection createConnection(String host, List<Cookie> cookieList,
-            Set<String> pushAttributes, XDR_sig_and_data fspec,
             List<Filter> filters) throws ServerException {
         // System.out.println("connecting to " + host);
 
@@ -99,40 +99,61 @@ class Connection {
             }
 
             Connection conn = new Connection(control, blast, host);
-            conn.sendPreStart(cookieList, pushAttributes, fspec, filters);
+            conn.sendPreStart(cookieList, filters);
             return conn;
         } catch (IOException e) {
             throw new ServerException(host, e);
         }
     }
 
-    // TODO pipeline
-    private void sendPreStart(List<Cookie> cookieList,
-            Set<String> pushAttributes, XDR_sig_and_data fspec,
-            List<Filter> filters) throws IOException {
+    private void sendPreStart(List<Cookie> cookieList, List<Filter> filters)
+            throws IOException {
         try {
-            // define scope
-            for (Cookie cookie : cookieList) {
-                byte[] data = XDREncoders.encodeString(cookie.getCookie());
-                new RPC(this, hostname, 24, data).doRPC().checkStatus();
-            }
+            List<XDR_filter_config> configs = new ArrayList<XDR_filter_config>();
+            HashMap<Signature, byte[]> sigToBlob = new HashMap<Signature, byte[]>();
 
-            // set the push attributes
-            if (pushAttributes != null) {
-                byte[] encodedAttributes = new XDR_attr_name_list(
-                        pushAttributes).encode();
-                new RPC(this, hostname, 20, encodedAttributes).doRPC()
-                        .checkStatus();
-            }
-
-            // set the fspec
-            // device_set_spec = 6
-            new RPC(this, hostname, 6, fspec.encode()).doRPC().checkStatus();
-
-            // set the codes and blobs
+            // gather filter configs and blob signatures for each filter
             for (Filter f : filters) {
-                setCode(f);
-                setBlob(f);
+                FilterCode code = f.getFilterCode();
+                Signature codeSig = code.getSignature();
+                Signature blobSig = f.getBlobSig();
+
+                configs.add(new XDR_filter_config(f.getName(),
+                        new XDR_sig_val(codeSig), f.getMinScore(),
+                        f.getMaxScore(), f.getDependencies(), f.getArguments(),
+                        new XDR_sig_val(blobSig)));
+                sigToBlob.put(codeSig, code.getBytes());
+                sigToBlob.put(blobSig, f.getBlob());
+            }
+
+            // collect cookie data
+            List<String> cookieData = new ArrayList<String>();
+            for (Cookie cookie : cookieList) {
+                cookieData.add(cookie.getCookie());
+            }
+
+            // configure the search
+            byte[] encodedSetup = new XDR_setup(cookieData, configs).encode();
+
+            // setup = 25
+            MiniRPCReply reply = new RPC(this, hostname, 25,
+                    encodedSetup).doRPC();
+            reply.checkStatus();
+
+            // see if any blobs missed in the server's cache
+            List<XDR_sig_val> missing = new XDR_sig_list(reply.getMessage()
+                    .getData()).getSigs();
+            if (missing.size() > 0) {
+                // collect blob data for those blobs
+                List<byte[]> blobData = new ArrayList<byte[]>();
+                for (XDR_sig_val sigVal : missing) {
+                    blobData.add(sigToBlob.get(sigVal.getSignature()));
+                }
+                byte[] encodedBlobs = new XDR_blob_list(blobData).encode();
+
+                // send_blobs = 26
+                new RPC(this, hostname, 26, encodedBlobs).doRPC().
+                        checkStatus();
             }
         } catch (IOException e) {
             close();
@@ -140,7 +161,7 @@ class Connection {
         }
     }
 
-    public void sendStart() throws IOException {
+    public void sendStart(Set<String> pushAttributes) throws IOException {
         try {
             // Generate a search ID that should be unique over the lifetime
             // of this scope cookie.  OpenDiamond-Java doesn't use this for
@@ -161,55 +182,15 @@ class Connection {
             byte rand[] = new byte[1];
             new SecureRandom().nextBytes(rand);
             searchId |= ((int) rand[0]) & 0xff;
-            byte encodedSearchId[] = new byte[4];
-            ByteBuffer bb = ByteBuffer.allocate(4);
-            bb.putInt(searchId).flip();
-            bb.get(encodedSearchId);
+            byte[] encodedStart = new XDR_start(searchId,
+                    pushAttributes).encode();
 
-            // device_start_search = 1
-            new RPC(this, hostname, 1, encodedSearchId).doRPC().checkStatus();
+            // start = 27
+            new RPC(this, hostname, 27, encodedStart).doRPC().checkStatus();
         } catch (IOException e) {
             close();
             throw e;
         }
-    }
-
-    private void setBlob(Filter f) throws IOException {
-        final byte encodedBlobSig[] = f.getEncodedBlobSig();
-        final byte encodedBlob[] = f.getEncodedBlob();
-
-        // System.out.println("blob sig: " + encodedBlobSig);
-
-        // device_set_blob_by_signature = 22
-        MiniRPCReply reply1 = new RPC(this, hostname, 22, encodedBlobSig)
-                .doRPC();
-        if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
-            reply1.checkStatus();
-            return;
-        }
-
-        // device_set_blob = 11
-        new RPC(this, hostname, 11, encodedBlob).doRPC().checkStatus();
-    }
-
-    private void setCode(Filter f) throws IOException {
-        FilterCode code = f.getFilterCode();
-        XDR_sig_val sig = new XDR_sig_val(code.getSignature());
-        XDR_sig_and_data sigAndData = new XDR_sig_and_data(sig,
-                code.getBytes());
-
-        final byte[] encodedSig = sig.encode();
-        final byte[] encodedSigAndData = sigAndData.encode();
-
-        // device_set_obj = 16
-        MiniRPCReply reply1 = new RPC(this, hostname, 16, encodedSig).doRPC();
-        if (reply1.getMessage().getStatus() != RPC.DIAMOND_FCACHEMISS) {
-            reply1.checkStatus();
-            return;
-        }
-
-        // device_send_obj = 17
-        new RPC(this, hostname, 17, encodedSigAndData).doRPC().checkStatus();
     }
 
     void close() {

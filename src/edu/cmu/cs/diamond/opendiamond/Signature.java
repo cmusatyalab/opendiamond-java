@@ -15,20 +15,42 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Formatter;
 
 class Signature {
 
     private final byte[] digest;
 
-    public Signature(byte data[]) {
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance("MD5");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+    private Signature(byte data[], boolean asDigest) {
+        if (asDigest) {
+            digest = new byte[data.length];
+            System.arraycopy(data, 0, digest, 0, data.length);
+        } else {
+            MessageDigest md = null;
+            try {
+                md = MessageDigest.getInstance("MD5");
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+            digest = md.digest(data);
         }
-        digest = md.digest(data);
+    }
+
+    public Signature(byte data[]) {
+        this(data, false);
+    }
+
+    public boolean equals(Object obj) {
+        if (obj instanceof Signature) {
+            return Arrays.equals(digest, ((Signature) obj).digest);
+        } else {
+            return false;
+        }
+    }
+
+    public int hashCode() {
+        return Arrays.hashCode(digest);
     }
 
     public byte[] asBytes() {
@@ -43,5 +65,9 @@ class Signature {
             f.format("%02x", b & 0xff);
         }
         return f.toString();
+    }
+
+    public static Signature fromDigest(byte[] digest) {
+        return new Signature(digest, true);
     }
 }

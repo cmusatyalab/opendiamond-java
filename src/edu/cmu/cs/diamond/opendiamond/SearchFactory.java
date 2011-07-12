@@ -2,7 +2,7 @@
  *  The OpenDiamond Platform for Interactive Search
  *  Version 5
  *
- *  Copyright (c) 2009-2010 Carnegie Mellon University
+ *  Copyright (c) 2009-2011 Carnegie Mellon University
  *  All rights reserved.
  *
  *  This software is distributed under the terms of the Eclipse Public
@@ -69,19 +69,6 @@ public class SearchFactory {
         return filters.toString();
     }
 
-    private String getFspec() {
-        StringBuilder sb = new StringBuilder();
-        for (Filter f : filters) {
-            sb.append(f.getFspec());
-        }
-        return sb.toString();
-    }
-
-    private XDR_sig_and_data encodeFspec() {
-        byte spec[] = getFspec().getBytes();
-        return new XDR_sig_and_data(XDR_sig_val.createSignature(spec), spec);
-    }
-
     /**
      * Creates a search from the parameters given when constructing the
      * <code>SearchFactory</code>.
@@ -111,9 +98,6 @@ public class SearchFactory {
             pushAttributes = copyAndValidateAttributes(desiredAttributes);
         }
 
-        // make all the connections and prep everything to start
-        final XDR_sig_and_data fspec = encodeFspec();
-
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
                 executor);
@@ -125,7 +109,7 @@ public class SearchFactory {
             futures.add(connectService.submit(new Callable<Connection>() {
                 public Connection call() throws Exception {
                     return Connection.createConnection(hostname, cookieList,
-                            pushAttributes, fspec, filters);
+                            filters);
                 }
             }));
         }
@@ -166,7 +150,7 @@ public class SearchFactory {
         // we're safe
         ConnectionSet cs = new ConnectionSet(executor, connections);
 
-        Search search = new Search(cs, logging);
+        Search search = new Search(cs, pushAttributes, logging);
         search.start();
         return search;
     }
@@ -219,9 +203,7 @@ public class SearchFactory {
         }
 
         // prestart
-        XDR_sig_and_data fspec = encodeFspec();
-        Connection conn = Connection.createConnection(host, c, null, fspec,
-                filters);
+        Connection conn = Connection.createConnection(host, c, filters);
 
         // send eval
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();

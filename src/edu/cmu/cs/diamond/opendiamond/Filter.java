@@ -2,7 +2,7 @@
  *  The OpenDiamond Platform for Interactive Search
  *  Version 5
  *
- *  Copyright (c) 2007, 2009-2010 Carnegie Mellon University
+ *  Copyright (c) 2007, 2009-2011 Carnegie Mellon University
  *  All rights reserved.
  *
  *  This software is distributed under the terms of the Eclipse Public
@@ -36,9 +36,7 @@ public class Filter {
 
     final private byte blob[];
 
-    final private byte encodedBlob[];
-
-    final private byte encodedBlobSig[];
+    final private Signature blobSig;
 
     /**
      * Constructs a new filter with the given parameters (including blob
@@ -63,7 +61,6 @@ public class Filter {
             double maxScore, Collection<String> dependencies,
             List<String> arguments, byte blob[]) {
 
-        // TODO check for valid characters as in filter_spec.l
         this.name = name.trim();
         this.code = code;
         this.minScore = minScore;
@@ -74,9 +71,7 @@ public class Filter {
 
         this.blob = blob;
 
-        XDR_sig_val sig = XDR_sig_val.createSignature(blob);
-        encodedBlobSig = new XDR_blob_sig(name, sig).encode();
-        encodedBlob = new XDR_blob(name, blob).encode();
+        blobSig = new Signature(blob);
     }
 
     /**
@@ -148,25 +143,7 @@ public class Filter {
 
     @Override
     public String toString() {
-        return getName() + ", encoded bloblen: " + getEncodedBlob().length;
-    }
-
-    String getFspec() {
-        StringBuilder sb = new StringBuilder();
-
-        sb.append("FILTER " + name + "\n");
-        sb.append("THRESHOLD " + minScore + "\n");
-        sb.append("UPPERTHRESHOLD " + maxScore + "\n");
-        sb.append("SIGNATURE " + code.getSignature().asString() + "\n");
-
-        for (String arg : arguments) {
-            sb.append("ARG " + arg + "\n");
-        }
-        for (String req : dependencies) {
-            sb.append("REQUIRES " + req + "\n");
-        }
-
-        return sb.toString();
+        return getName() + ", bloblen: " + blob.length;
     }
 
     /**
@@ -182,12 +159,8 @@ public class Filter {
         return code;
     }
 
-    byte[] getEncodedBlobSig() {
-        return encodedBlobSig;
-    }
-
-    byte[] getEncodedBlob() {
-        return encodedBlob;
+    Signature getBlobSig() {
+        return blobSig;
     }
 
     List<String> getDependencies() {

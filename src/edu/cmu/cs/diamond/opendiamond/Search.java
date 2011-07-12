@@ -58,6 +58,8 @@ public class Search {
 
     final private ConnectionSet cs;
 
+    private final Set<String> pushAttributes;
+
     private final LoggingFramework logging;
 
     private volatile boolean closed;
@@ -97,7 +99,7 @@ public class Search {
                     public Callable<Object> createCallable(final Connection c) {
                         return new Callable<Object>() {
                             public Object call() throws Exception {
-                                c.sendStart();
+                                c.sendStart(pushAttributes);
                                 return null;
                             }
                         };
@@ -405,8 +407,10 @@ public class Search {
         logging.saveSessionVariables(map);
     }
 
-    Search(ConnectionSet connectionSet, LoggingFramework logging) {
+    Search(ConnectionSet connectionSet, Set<String> pushAttributes,
+            LoggingFramework logging) {
         this.cs = connectionSet;
+        this.pushAttributes = pushAttributes;
         this.logging = logging;
     }
 }
