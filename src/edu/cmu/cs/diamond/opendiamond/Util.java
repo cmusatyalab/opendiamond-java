@@ -431,18 +431,4 @@ public class Util {
         if (aThrowable != null) aThrowable.printStackTrace(printWriter);
         return result.toString();
     }
-
-    public static String base64Encode(byte buf[]) {
-        return Base64.encodeBytes(buf);
-    }
-
-    public static byte[] base64Decode(String str) throws IOException {
-        return Base64.decode(str);
-    }
-
-    public static String base64EncodeWithNull(byte[] buf) {
-        byte tmp[] = new byte[buf.length + 1];
-        System.arraycopy(buf, 0, tmp, 0, buf.length);
-        return base64Encode(tmp);
-    }
 }
