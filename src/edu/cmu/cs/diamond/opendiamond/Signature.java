@@ -13,49 +13,31 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Formatter;
 
 class Signature {
 
     private final byte[] digest;
 
-    private Signature(byte data[], boolean asDigest) {
-        if (asDigest) {
-            digest = new byte[data.length];
-            System.arraycopy(data, 0, digest, 0, data.length);
-        } else {
-            MessageDigest md = null;
-            try {
-                md = MessageDigest.getInstance("MD5");
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            }
-            digest = md.digest(data);
-        }
-    }
+    final private static int SIG_SIZE = 16;
 
     public Signature(byte data[]) {
-        this(data, false);
-    }
-
-    public boolean equals(Object obj) {
-        if (obj instanceof Signature) {
-            return Arrays.equals(digest, ((Signature) obj).digest);
-        } else {
-            return false;
+        MessageDigest md = null;
+        try {
+            md = MessageDigest.getInstance("MD5");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
         }
-    }
-
-    public int hashCode() {
-        return Arrays.hashCode(digest);
+        digest = md.digest(data);
     }
 
     public byte[] asBytes() {
-        byte[] ret = new byte[RPC.SIG_SIZE];
-        System.arraycopy(digest, 0, ret, 0, RPC.SIG_SIZE);
+        byte[] ret = new byte[SIG_SIZE];
+        System.arraycopy(digest, 0, ret, 0, SIG_SIZE);
         return ret;
     }
 
@@ -67,7 +49,11 @@ class Signature {
         return f.toString();
     }
 
-    public static Signature fromDigest(byte[] digest) {
-        return new Signature(digest, true);
+    public URI asURI() {
+        try {
+            return new URI("md5", asString(), null);
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException();
+        }
     }
 }

@@ -14,22 +14,28 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-class XDR_sig_list {
-    private final List<XDR_sig_val> sigs;
+class XDR_blob_list {
+    private final List<URI> uris;
 
-    public XDR_sig_list(XDRGetter buf) throws IOException {
-        sigs = new ArrayList<XDR_sig_val>();
+    public XDR_blob_list(XDRGetter buf) throws IOException {
+        uris = new ArrayList<URI>();
         int count = buf.getInt();
-        for (int i = 0; i < count; i++) {
-            sigs.add(new XDR_sig_val(buf));
+        try {
+            for (int i = 0; i < count; i++) {
+                uris.add(new URI(buf.getString()));
+            }
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
         }
     }
 
-    public List<XDR_sig_val> getSigs() {
-        return Collections.unmodifiableList(sigs);
+    public List<URI> getURIs() {
+        return Collections.unmodifiableList(uris);
     }
 }

@@ -17,6 +17,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URI;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -110,20 +111,19 @@ class Connection {
             throws IOException {
         try {
             List<XDR_filter_config> configs = new ArrayList<XDR_filter_config>();
-            HashMap<Signature, byte[]> sigToBlob = new HashMap<Signature, byte[]>();
+            HashMap<URI, byte[]> uriToBlob = new HashMap<URI, byte[]>();
 
             // gather filter configs and blob signatures for each filter
             for (Filter f : filters) {
                 FilterCode code = f.getFilterCode();
-                Signature codeSig = code.getSignature();
-                Signature blobSig = f.getBlobSig();
+                URI codeURI = code.getSignature().asURI();
+                URI blobURI = f.getBlobSig().asURI();
 
                 configs.add(new XDR_filter_config(f.getName(),
-                        new XDR_sig_val(codeSig), f.getMinScore(),
-                        f.getMaxScore(), f.getDependencies(), f.getArguments(),
-                        new XDR_sig_val(blobSig)));
-                sigToBlob.put(codeSig, code.getBytes());
-                sigToBlob.put(blobSig, f.getBlob());
+                        codeURI, f.getMinScore(), f.getMaxScore(),
+                        f.getDependencies(), f.getArguments(), blobURI));
+                uriToBlob.put(codeURI, code.getBytes());
+                uriToBlob.put(blobURI, f.getBlob());
             }
 
             // collect cookie data
@@ -141,13 +141,13 @@ class Connection {
             reply.checkStatus();
 
             // see if any blobs missed in the server's cache
-            List<XDR_sig_val> missing = new XDR_sig_list(reply.getMessage()
-                    .getData()).getSigs();
+            List<URI> missing = new XDR_blob_list(reply.getMessage()
+                    .getData()).getURIs();
             if (missing.size() > 0) {
                 // collect blob data for those blobs
                 List<byte[]> blobData = new ArrayList<byte[]>();
-                for (XDR_sig_val sigVal : missing) {
-                    blobData.add(sigToBlob.get(sigVal.getSignature()));
+                for (URI uri : missing) {
+                    blobData.add(uriToBlob.get(uri));
                 }
                 byte[] encodedBlobs = new XDR_blob_data(blobData).encode();
 

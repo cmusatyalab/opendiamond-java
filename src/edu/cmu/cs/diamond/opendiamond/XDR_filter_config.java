@@ -16,12 +16,13 @@ package edu.cmu.cs.diamond.opendiamond;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.List;
 
 class XDR_filter_config implements XDREncodeable {
     private final String name;
 
-    private final XDR_sig_val code;
+    private final URI code;
 
     private final double minScore;
 
@@ -31,11 +32,11 @@ class XDR_filter_config implements XDREncodeable {
 
     private final String arguments[];
 
-    private final XDR_sig_val blob;
+    private final URI blob;
 
-    public XDR_filter_config(String name, XDR_sig_val code, double minScore,
+    public XDR_filter_config(String name, URI code, double minScore,
             double maxScore, List<String> dependencies, List<String> arguments,
-            XDR_sig_val blob) {
+            URI blob) {
         this.name = name;
         this.code = code;
         this.minScore = minScore;
@@ -61,8 +62,8 @@ class XDR_filter_config implements XDREncodeable {
             }
             out.writeDouble(minScore);
             out.writeDouble(maxScore);
-            out.write(code.encode());
-            out.write(blob.encode());
+            out.write(XDREncoders.encodeString(code.toString()));
+            out.write(XDREncoders.encodeString(blob.toString()));
         } catch (IOException e) {
             e.printStackTrace();
         }
