@@ -18,10 +18,10 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 
-class XDR_blob_list implements XDREncodeable {
+class XDR_blob_data implements XDREncodeable {
     private final byte[][] blobs;
 
-    public XDR_blob_list(Collection<byte[]> blobs) {
+    public XDR_blob_data(Collection<byte[]> blobs) {
         this.blobs = blobs.toArray(new byte[0][0]);
     }
 

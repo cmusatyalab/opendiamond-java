@@ -149,7 +149,7 @@ class Connection {
                 for (XDR_sig_val sigVal : missing) {
                     blobData.add(sigToBlob.get(sigVal.getSignature()));
                 }
-                byte[] encodedBlobs = new XDR_blob_list(blobData).encode();
+                byte[] encodedBlobs = new XDR_blob_data(blobData).encode();
 
                 // send_blobs = 26
                 new RPC(this, hostname, 26, encodedBlobs).doRPC().
