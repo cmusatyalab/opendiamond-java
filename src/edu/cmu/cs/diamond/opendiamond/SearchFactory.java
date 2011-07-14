@@ -202,26 +202,82 @@ public class SearchFactory {
             throw new IOException("No cookie found for host " + host);
         }
 
+        Connection conn = Connection.createConnection(host, c, filters);
+        Result newResult = reexecute(conn, objID, attributes);
+        conn.close();
+
+        return newResult;
+    }
+
+    /**
+     * Generates a <code>Result</code> from object data.
+     *
+     * @param data
+     *            the data to evaluate
+     * @param desiredAttributes
+     *            a set of attribute names to specify which attributes to appear
+     * @return a new result
+     * @throws IOException
+     *             if an IO error occurs
+     */
+    public Result generateResult(byte[] data, Set<String> desiredAttributes)
+            throws IOException {
+        Set<String> attributes = copyAndValidateAttributes(desiredAttributes);
+        Signature signature = new Signature(data);
+        String objID = signature.asURI().toString();
+
+        // pick a host based on the hash code of the signature
+        String[] hosts = cookieMap.getHosts();
+        String host = hosts[signature.hashCode() % hosts.length];
+        List<Cookie> c = cookieMap.get(host);
+
+        LoggingFramework logging = LoggingFramework
+                .createLoggingFramework("generateResult");
+
+        logging.saveSearchFactory(this, desiredAttributes);
+
         // prestart
         Connection conn = Connection.createConnection(host, c, filters);
 
         // send eval
-        byte reexec[] = new XDR_reexecute(objID, attributes).encode();
-        MiniRPCReply reply = new RPC(conn, conn.getHostname(), 21, reexec)
-                .doRPC();
+        Result newResult;
+        try {
+            newResult = reexecute(conn, objID, attributes);
+        } catch (CacheMissException e) {
+            // send blob
+            List<byte[]> blobs = new ArrayList<byte[]>();
+            blobs.add(data);
+            conn.sendBlobs(blobs);
 
-        // read reply
-        reply.checkStatus();
-        Map<String, byte[]> resultAttributes = new XDR_attr_list(reply
-                .getMessage().getData()).createMap();
-
-        // create result
-        Result newResult = new Result(resultAttributes, host);
+            // retry reexecution
+            newResult = reexecute(conn, objID, attributes);
+        }
 
         // close
         conn.close();
 
         return newResult;
+    }
+
+    private class CacheMissException extends IOException {}
+
+    private Result reexecute(Connection conn, String objID,
+            Set<String> attributes) throws IOException {
+        byte reexec[] = new XDR_reexecute(objID, attributes).encode();
+        // reexecute = 21
+        MiniRPCReply reply = new RPC(conn, conn.getHostname(), 21, reexec)
+                .doRPC();
+
+        // read reply
+        if (reply.getMessage().getStatus() == RPC.DIAMOND_FCACHEMISS) {
+            throw new CacheMissException();
+        }
+        reply.checkStatus();
+        Map<String, byte[]> resultAttributes = new XDR_attr_list(reply
+                .getMessage().getData()).createMap();
+
+        // create result
+        return new Result(resultAttributes, conn.getHostname());
     }
 
     List<Filter> getFilters() {

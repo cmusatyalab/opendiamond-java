@@ -17,6 +17,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Formatter;
 
 class Signature {
@@ -33,6 +34,10 @@ class Signature {
             e.printStackTrace();
         }
         digest = md.digest(data);
+    }
+
+    public int hashCode() {
+        return Arrays.hashCode(digest);
     }
 
     public byte[] asBytes() {

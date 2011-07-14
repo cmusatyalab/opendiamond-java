@@ -135,6 +135,13 @@ public class CookieMap {
         return cookieMap.entrySet();
     }
 
+    /* Returns the hosts referenced in the CookieMap in a stable (sorted)
+       order. */
+    String[] getHosts() {
+        SortedSet<String> sorted = new TreeSet<String>(cookieMap.keySet());
+        return sorted.toArray(new String[0]);
+    }
+
     List<Cookie> get(String host) {
         return cookieMap.get(host);
     }
