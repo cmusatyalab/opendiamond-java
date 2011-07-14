@@ -149,16 +149,19 @@ class Connection {
                 for (URI uri : missing) {
                     blobData.add(uriToBlob.get(uri));
                 }
-                byte[] encodedBlobs = new XDR_blob_data(blobData).encode();
-
-                // send_blobs = 26
-                new RPC(this, hostname, 26, encodedBlobs).doRPC().
-                        checkStatus();
+                sendBlobs(blobData);
             }
         } catch (IOException e) {
             close();
             throw e;
         }
+    }
+
+    public void sendBlobs(List<byte[]> blobs) throws IOException {
+        byte[] encodedBlobs = new XDR_blob_data(blobs).encode();
+
+        // send_blobs = 26
+        new RPC(this, hostname, 26, encodedBlobs).doRPC().checkStatus();
     }
 
     public void sendStart(Set<String> pushAttributes) throws IOException {
