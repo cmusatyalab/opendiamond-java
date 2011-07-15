@@ -19,10 +19,16 @@ import java.awt.image.DataBufferInt;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import javax.imageio.ImageIO;
 import javax.swing.Spring;
@@ -430,5 +436,90 @@ public class Util {
         final PrintWriter printWriter = new PrintWriter(result);
         if (aThrowable != null) aThrowable.printStackTrace(printWriter);
         return result.toString();
+    }
+
+    /**
+     * Read a Zip file and return a map of its contents.
+     *
+     * The InputStream is closed on return.
+     *
+     * @param in
+     *            an input stream attached to the Zip file
+     * @return a map from filenames to file contents
+     * @throws IOException
+     *            if an IO error occurs while reading
+     */
+    public static Map<String, byte[]> readZipFile(InputStream in)
+            throws IOException {
+        Map<String, byte[]> zipMap = new HashMap<String, byte[]>();
+        try {
+            ZipInputStream zip = new ZipInputStream(in);
+            ZipEntry entry;
+            while ((entry = zip.getNextEntry()) != null) {
+                String name = entry.getName();
+                zipMap.put(name, readFully(zip));
+            }
+            return zipMap;
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+            }
+        }
+    }
+
+    /**
+     * Remove the OpenDiamond manifest from the zipMap, parse it, and return
+     * the parsed Properties map.
+     *
+     * @param zipMap
+     *             a Zip map from readZipFile()
+     * @return the extracted properties
+     * @throws IOException
+     *             if an IO error occurs while reading
+     */
+    public static Properties extractManifest(Map<String, byte[]> zipMap)
+            throws IOException {
+        // defer to hyperfind-manifest.txt for legacy ZIP files
+        byte manifest[] = zipMap.remove("hyperfind-manifest.txt");
+        if (manifest == null) {
+            manifest = zipMap.remove("opendiamond-manifest.txt");
+        } else {
+            zipMap.remove("opendiamond-manifest.txt");
+        }
+
+        Properties p = new Properties();
+        if (manifest != null) {
+            ByteArrayInputStream bIn = new ByteArrayInputStream(manifest);
+            Reader r = new InputStreamReader(bIn, "UTF-8");
+            p.load(r);
+        }
+        return p;
+    }
+
+    /**
+     * Create and return a Zip file given a map of its contents.
+     *
+     * @param zipMap
+     *            a map from filenames to file contents
+     * @return the encoded Zip file
+     * @throws IOException
+     *            if an IO error occurs while encoding
+     */
+    public static byte[] encodeZipFile(Map<String, byte[]> zipMap)
+            throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ZipOutputStream zip = new ZipOutputStream(baos);
+        for (Map.Entry<String, byte[]> file: zipMap.entrySet()) {
+            ZipEntry entry = new ZipEntry(file.getKey());
+            // when our output is used as the blob argument to a filter,
+            // storing different timestamps on every call would defeat
+            // server-side result caching
+            entry.setTime(0);
+            zip.putNextEntry(entry);
+            zip.write(file.getValue(), 0, file.getValue().length);
+        }
+        zip.close();
+        return baos.toByteArray();
     }
 }
