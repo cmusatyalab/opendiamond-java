@@ -242,11 +242,7 @@ public class Bundle {
                     String option = arg.getOption();
                     String value;
                     if (option != null) {
-                        value = optionMap.get(option);
-                        if (value == null) {
-                            throw new BundleFormatException(
-                                    "Missing option \"" + option + "\"");
-                        }
+                        value = getOptionValue(optionMap, option);
                     } else {
                         value = arg.getValue();
                         if (value == null) {
@@ -307,6 +303,16 @@ public class Bundle {
                     arguments, blob);
         }
 
+        private static String getOptionValue(Map<String, String> optionMap,
+                String option) throws BundleFormatException {
+            String value = optionMap.get(option);
+            if (value == null) {
+                throw new BundleFormatException(
+                        "Missing option \"" + option + "\"");
+            }
+            return value;
+        }
+
         private static double getThreshold(Map<String, String> optionMap,
                 FilterThresholdSpec threshold, double defaultValue)
                 throws BundleFormatException {
@@ -315,11 +321,7 @@ public class Bundle {
             }
             String option = threshold.getOption();
             if (option != null) {
-                String value = optionMap.get(option);
-                if (value == null) {
-                    throw new BundleFormatException("Missing option \"" +
-                            option + "\" for threshold");
-                }
+                String value = getOptionValue(optionMap, option);
                 try {
                     return Double.parseDouble(value);
                 } catch (NumberFormatException e) {
