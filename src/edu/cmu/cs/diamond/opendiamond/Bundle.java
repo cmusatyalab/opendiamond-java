@@ -1,0 +1,414 @@
+/*
+ *  The OpenDiamond Platform for Interactive Search
+ *  Version 6
+ *
+ *  Copyright (c) 2011 Carnegie Mellon University
+ *  All rights reserved.
+ *
+ *  This software is distributed under the terms of the Eclipse Public
+ *  License, Version 1.0 which can be found in the file named LICENSE.
+ *  ANY USE, REPRODUCTION OR DISTRIBUTION OF THIS SOFTWARE CONSTITUTES
+ *  RECIPIENT'S ACCEPTANCE OF THIS AGREEMENT
+ */
+
+package edu.cmu.cs.diamond.opendiamond;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Formatter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
+
+import org.xml.sax.SAXException;
+
+import edu.cmu.cs.diamond.opendiamond.bundle.*;
+
+public class Bundle {
+    private static abstract class FileLoader {
+        private static final JAXBContext jaxbContext;
+
+        private static final Schema schema;
+
+        protected static final String MANIFEST_NAME = "opendiamond-search.xml";
+
+        static {
+            JAXBContext ctx = null;
+            Schema s = null;
+            try {
+                ctx = JAXBContext.newInstance(SearchSpec.class);
+                SchemaFactory sf = SchemaFactory.newInstance(
+                        XMLConstants.W3C_XML_SCHEMA_NS_URI);
+                s = sf.newSchema(Bundle.class.getClassLoader().
+                        getResource("resources/bundle.xsd"));
+            } catch (JAXBException e) {
+                e.printStackTrace();
+            } catch (SAXException e) {
+                e.printStackTrace();
+            }
+            // commit
+            jaxbContext = ctx;
+            schema = s;
+        }
+
+        protected static SearchSpec parseManifest(InputStream in)
+                throws BundleFormatException {
+            try {
+                Unmarshaller u = jaxbContext.createUnmarshaller();
+                u.setSchema(schema);
+                StreamSource source = new StreamSource(in);
+                return u.unmarshal(source, SearchSpec.class).getValue();
+            } catch (JAXBException e) {
+                String msg = e.getMessage();
+                Throwable linked = e.getLinkedException();
+                if (linked != null) {
+                    msg = linked.getMessage();
+                }
+                throw new BundleFormatException(msg);
+            }
+        }
+
+
+        public abstract PreparedFileLoader getPreparedLoader()
+                throws IOException;
+
+        public abstract SearchSpec getManifest() throws IOException;
+    }
+
+    private static class PendingFileLoader extends FileLoader {
+        private final File bundleFile;
+
+        private final List<File> memberDirs;
+
+        public PendingFileLoader(File bundleFile, List<File> memberDirs) {
+            this.bundleFile = bundleFile;
+            this.memberDirs = memberDirs;
+        }
+
+        @Override
+        public PreparedFileLoader getPreparedLoader() throws IOException {
+            return new PreparedFileLoader(new FileInputStream(bundleFile),
+                    memberDirs);
+        }
+
+        @Override
+        public SearchSpec getManifest() throws IOException {
+            // Read the search manifest from the bundle and return it without
+            // loading the entire bundle into memory
+            FileInputStream in = new FileInputStream(bundleFile);
+            try {
+                ZipInputStream zip = new ZipInputStream(in);
+                ZipEntry entry;
+                while ((entry = zip.getNextEntry()) != null) {
+                    if (entry.getName().equals(MANIFEST_NAME)) {
+                        return parseManifest(zip);
+                    } else {
+                        zip.closeEntry();
+                    }
+                }
+                throw new BundleFormatException("Bundle manifest not found");
+            } finally {
+                try {
+                    in.close();
+                } catch (IOException e) {
+                }
+            }
+        }
+    }
+
+    private static class PreparedFileLoader extends FileLoader {
+        private final Map<String, byte[]> bundleContents;
+
+        private final List<File> memberDirs;
+
+        public PreparedFileLoader(InputStream in, List<File> memberDirs)
+                throws IOException {
+            this.bundleContents = Util.readZipFile(in);
+            this.memberDirs = memberDirs;
+        }
+
+        @Override
+        public PreparedFileLoader getPreparedLoader() throws IOException {
+            return this;
+        }
+
+        @Override
+        public SearchSpec getManifest() throws IOException {
+            byte[] manifest = bundleContents.get(MANIFEST_NAME);
+            if (manifest == null) {
+                throw new BundleFormatException("Bundle manifest not found");
+            }
+            return parseManifest(new ByteArrayInputStream(manifest));
+        }
+
+        public FilterCode getCode(String name) throws IOException {
+            return new FilterCode(getBlob(name));
+        }
+
+        public byte[] getBlob(String name) throws IOException {
+            byte[] data = bundleContents.get(name);
+            if (data != null) {
+                return data;
+            }
+            for (File dir : memberDirs) {
+                File file = new File(dir, name);
+                if (file.exists()) {
+                    return Util.readFully(new FileInputStream(file));
+                }
+            }
+            throw new IOException("File not found: " + name);
+        }
+    }
+
+    private static class PendingFilter {
+        private final String name;
+
+        private final String label;
+
+        private final FilterCode code;
+
+        private final byte[] blob;
+
+        private final double minScore;
+
+        private final double maxScore;
+
+        private final List<String> dependencies = new ArrayList<String>();
+
+        private final List<String> dependencyLabels = new ArrayList<String>();
+
+        private final List<String> arguments = new ArrayList<String>();
+
+        public PendingFilter(PreparedFileLoader loader,
+                Map<String, String> optionMap, FilterSpec f)
+                throws IOException {
+            // load basic metadata
+            label = f.getLabel();
+
+            // load code and blob
+            code = loader.getCode(f.getCode());
+            FilterBlobArgumentSpec blobSpec = f.getBlob();
+            if (blobSpec != null) {
+                blob = loader.getBlob(blobSpec.getData());
+            } else {
+                blob = new byte[0];
+            }
+
+            // load thresholds
+            minScore = getThreshold(optionMap, f.getMinScore(),
+                    Double.NEGATIVE_INFINITY);
+            maxScore = getThreshold(optionMap, f.getMaxScore(),
+                    Double.POSITIVE_INFINITY);
+
+            // load fixed dependencies and pending labels
+            FilterDependencyList depList = f.getDependencyList();
+            if (depList != null) {
+                for (FilterDependencySpec dep : depList.getDependencies()) {
+                    String depLabel = dep.getLabel();
+                    String depName = dep.getFixedName();
+                    if (depLabel != null) {
+                        dependencyLabels.add(depLabel);
+                    } else if (depName != null) {
+                        dependencies.add(depName);
+                    } else {
+                        throw new BundleFormatException(
+                                "Missing dependency specification");
+                    }
+                }
+            }
+
+            // load arguments
+            FilterArgumentList argList = f.getArgumentList();
+            if (argList != null) {
+                for (FilterArgumentSpec arg : argList.getArguments()) {
+                    String option = arg.getOption();
+                    String value;
+                    if (option != null) {
+                        value = optionMap.get(option);
+                        if (value == null) {
+                            throw new BundleFormatException(
+                                    "Missing option \"" + option + "\"");
+                        }
+                    } else {
+                        value = arg.getValue();
+                        if (value == null) {
+                            throw new BundleFormatException(
+                                    "Missing argument specification");
+                        }
+                    }
+                    arguments.add(value);
+                }
+            }
+
+            // set filter name
+            String name = f.getFixedName();
+            if (name == null) {
+                try {
+                    MessageDigest m = MessageDigest.getInstance("SHA-256");
+                    m.update(code.getBytes());
+                    for (String arg : arguments) {
+                        m.update(arg.getBytes());
+                        m.update((byte) 0);
+                    }
+                    m.update(blob);
+                    byte[] digest = m.digest();
+                    Formatter ff = new Formatter();
+                    for (byte b : digest) {
+                        ff.format("%02x", b & 0xFF);
+                    }
+                    name = "z" + ff.toString();
+                } catch (NoSuchAlgorithmException e) {
+                    // can't happen on java 6?
+                    e.printStackTrace();
+                    name = "";
+                }
+            }
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public Filter getFilter(Map<String, String> labelMap)
+                throws BundleFormatException {
+            HashSet<String> deps = new HashSet<String>(dependencies);
+            for (String label : dependencyLabels) {
+                String dep = labelMap.get(label);
+                if (dep == null) {
+                    throw new BundleFormatException(
+                            "Missing filter label \"" + label + "\"");
+                }
+                deps.add(dep);
+            }
+            return new Filter(name, code, minScore, maxScore, deps,
+                    arguments, blob);
+        }
+
+        private static double getThreshold(Map<String, String> optionMap,
+                FilterThresholdSpec threshold, double defaultValue)
+                throws BundleFormatException {
+            if (threshold == null) {
+                return defaultValue;
+            }
+            String option = threshold.getOption();
+            if (option != null) {
+                String value = optionMap.get(option);
+                if (value == null) {
+                    throw new BundleFormatException("Missing option \"" +
+                            option + "\" for threshold");
+                }
+                try {
+                    return Double.parseDouble(value);
+                } catch (NumberFormatException e) {
+                    throw new BundleFormatException("Couldn't parse " +
+                            "option \"" + option + "\" for threshold");
+                }
+            } else {
+                Double d = threshold.getValue();
+                if (d == null) {
+                    throw new BundleFormatException(
+                            "Missing threshold specification");
+                }
+                return d.doubleValue();
+            }
+        }
+    }
+
+
+    private final FileLoader loader;
+
+    private final String displayName;
+
+    private Bundle(FileLoader loader) throws IOException {
+        this.loader = loader;
+        SearchSpec manifest = loader.getManifest();
+        this.displayName = manifest.getDisplayName();
+    }
+
+    // Return a bundle which loads data from the filesystem on request.
+    static Bundle getBundle(File bundleFile, List<File> memberDirs)
+            throws IOException {
+        return new Bundle(new PendingFileLoader(bundleFile, memberDirs));
+    }
+
+    // Return a bundle which caches bundle contents.
+    static Bundle getBundle(InputStream in, List<File> memberDirs)
+            throws IOException {
+        return new Bundle(new PreparedFileLoader(in, memberDirs));
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public List<Option> getOptions() throws IOException {
+        OptionList l = loader.getManifest().getOptionList();
+        if (l != null) {
+            // check that no two options have the same name
+            HashSet<String> names = new HashSet<String>();
+            for (Option opt : l.getOptions()) {
+                String name = opt.getName();
+                if (names.contains(name)) {
+                    throw new BundleFormatException(
+                            "Duplicate option name \"" + name + "\"");
+                }
+                names.add(name);
+            }
+
+            return l.getOptions();
+        } else {
+            return Collections.emptyList();
+        }
+    }
+
+    public List<Filter> getFilters(Map<String, String> optionMap) throws
+            IOException {
+        PreparedFileLoader loader = this.loader.getPreparedLoader();
+
+        ArrayList<PendingFilter> pending = new ArrayList<PendingFilter>();
+        HashMap<String, String> labelMap = new HashMap<String, String>();
+        List<FilterSpec> specs = loader.getManifest().getFilterList()
+                .getFilters();
+        for (FilterSpec f : specs) {
+            PendingFilter pf = new PendingFilter(loader, optionMap, f);
+            pending.add(pf);
+            String label = pf.getLabel();
+            if (label != null) {
+                if (labelMap.containsKey(label)) {
+                    throw new BundleFormatException(
+                            "Duplicate filter label \"" + label + "\"");
+                }
+                labelMap.put(label, pf.getName());
+            }
+        }
+
+        ArrayList<Filter> filters = new ArrayList<Filter>();
+        for (PendingFilter pf : pending) {
+            filters.add(pf.getFilter(labelMap));
+        }
+        return filters;
+    }
+}

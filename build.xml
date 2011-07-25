@@ -4,6 +4,10 @@
     <property name="debuglevel" value="source,lines,vars"/>
     <property name="target" value="1.6"/>
     <property name="source" value="1.6"/>
+    <property name="bundle_src"
+            value="src/resources/bundle.xsd"/>
+    <property name="bundle_dest"
+            value="src/edu/cmu/cs/diamond/opendiamond/bundle"/>
     <path id="OpenDiamond java.classpath">
         <pathelement location="bin"/>
     </path>
@@ -16,6 +20,7 @@
     <target name="clean">
       <delete dir="bin"/>
       <delete dir="doc"/>
+      <delete dir="${bundle_dest}"/>
       <delete file="opendiamond.jar"/>
     </target>
     <target depends="build" name="jar">
@@ -23,7 +28,21 @@
     </target>
     <target depends="clean" name="cleanall"/>
     <target depends="build-project" name="build"/>
-    <target depends="init" name="build-project">
+    <target name="xjc-check">
+        <uptodate property="xjc.current" srcfile="${bundle_src}"
+                targetfile="${bundle_dest}"/>
+    </target>
+    <target name="xjc" depends="xjc-check" unless="xjc.current">
+        <delete dir="${bundle_dest}"/>
+        <exec executable="xjc">
+             <arg value="-d"/>
+             <arg value="src"/>
+             <arg value="-p"/>
+             <arg value="edu.cmu.cs.diamond.opendiamond.bundle"/>
+             <arg value="${bundle_src}"/>
+        </exec>
+    </target>
+    <target depends="init,xjc" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
             <src path="src"/>
