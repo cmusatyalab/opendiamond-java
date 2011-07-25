@@ -203,11 +203,29 @@ public class Bundle {
             // load basic metadata
             label = f.getLabel();
 
-            // load code and blob
+            // load code
             code = loader.getCode(f.getCode());
+
+            // load blob
             FilterBlobArgumentSpec blobSpec = f.getBlob();
             if (blobSpec != null) {
-                blob = loader.getBlob(blobSpec.getData());
+                String option = blobSpec.getOption();
+                String filename;
+                if (option != null) {
+                    filename = getOptionValue(optionMap, option);
+                } else {
+                    filename = blobSpec.getData();
+                    if (filename == null) {
+                        throw new BundleFormatException(
+                                "Missing blob argument specification");
+                    }
+                }
+                // Validation rule from the Filename XSD type
+                if (!filename.matches("^[A-Za-z0-9_.-]+$")) {
+                    throw new BundleFormatException(
+                            "Invalid filename for blob argument");
+                }
+                blob = loader.getBlob(filename);
             } else {
                 blob = new byte[0];
             }
