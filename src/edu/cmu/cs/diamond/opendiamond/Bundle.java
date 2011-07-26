@@ -209,23 +209,20 @@ public class Bundle {
             // load blob
             FilterBlobArgumentSpec blobSpec = f.getBlob();
             if (blobSpec != null) {
-                String option = blobSpec.getOption();
-                String filename;
-                if (option != null) {
-                    filename = getOptionValue(optionMap, option);
-                } else {
-                    filename = blobSpec.getData();
-                    if (filename == null) {
-                        throw new BundleFormatException(
-                                "Missing blob argument specification");
+                if (blobSpec.getMembers().size() > 0) {
+                    // Construct a Zip file containing individual members
+                    Map<String, byte[]> zipMap = new HashMap<String, byte[]>();
+                    for (FilterBlobMemberSpec member : blobSpec.getMembers()) {
+                        byte[] data = getBlobData(loader, optionMap,
+                                member.getOption(), member.getData());
+                        zipMap.put(member.getFilename(), data);
                     }
+                    blob = Util.encodeZipFile(zipMap);
+                } else {
+                    // Blob is specified directly
+                    blob = getBlobData(loader, optionMap,
+                            blobSpec.getOption(), blobSpec.getData());
                 }
-                // Validation rule from the Filename XSD type
-                if (!filename.matches("^[A-Za-z0-9_.-]+$")) {
-                    throw new BundleFormatException(
-                            "Invalid filename for blob argument");
-                }
-                blob = loader.getBlob(filename);
             } else {
                 blob = new byte[0];
             }
@@ -354,6 +351,28 @@ public class Bundle {
                 }
                 return d.doubleValue();
             }
+        }
+
+        // option is the name of an option containing the blob filename,
+        // data is the blob filename
+        private static byte[] getBlobData(PreparedFileLoader loader,
+                Map<String, String> optionMap, String option, String data)
+                throws IOException {
+            String filename;
+            if (option != null) {
+                filename = getOptionValue(optionMap, option);
+            } else if (data != null) {
+                filename = data;
+            } else {
+                throw new BundleFormatException(
+                        "Missing blob data specification");
+            }
+            // Validation rule from the Filename XSD type
+            if (!filename.matches("^[A-Za-z0-9_.-]+$")) {
+                throw new BundleFormatException(
+                        "Invalid filename for blob data");
+            }
+            return loader.getBlob(filename);
         }
     }
 

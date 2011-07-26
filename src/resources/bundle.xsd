@@ -311,6 +311,17 @@ A constant value for the argument.  Overridden by the "option" attribute.
   </xsd:complexType>
 
   <xsd:complexType name="FilterBlobArgumentSpec">
+    <xsd:sequence>
+      <xsd:element name="member" type="FilterBlobMemberSpec"
+          minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation><xsd:appinfo>
+          <jxb:property name="members"><jxb:javadoc>
+If present, construct a blob argument consisting of a Zip file containing
+the specified members.
+          </jxb:javadoc></jxb:property>
+        </xsd:appinfo></xsd:annotation>
+      </xsd:element>
+    </xsd:sequence>
     <xsd:attribute name="option" type="xsd:string">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
 The name of the option specifying the filename of the blob argument.
@@ -319,6 +330,25 @@ The name of the option specifying the filename of the blob argument.
     <xsd:attribute name="data" type="Filename">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
 The filename of the file containing the blob argument.
+      </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:complexType name="FilterBlobMemberSpec">
+    <xsd:attribute name="filename" type="xsd:string" use="required">
+      <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
+The filename under which to store this member within the Zip archive.
+      </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="option" type="xsd:string">
+      <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
+The name of the option specifying the file containing the data for this
+member.
+      </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="data" type="Filename">
+      <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
+The name of the file containing the data for this member.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
