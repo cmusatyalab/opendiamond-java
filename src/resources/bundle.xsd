@@ -43,7 +43,27 @@ The display name for the search.
   </xsd:complexType>
 
   <xsd:complexType name="OptionList">
-    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+    <xsd:choice>
+      <xsd:element name="optionGroup" type="OptionGroup" minOccurs="0"
+          maxOccurs="unbounded">
+        <xsd:annotation><xsd:appinfo>
+          <jxb:property name="optionGroups"/>
+        </xsd:appinfo></xsd:annotation>
+      </xsd:element>
+      <xsd:choice minOccurs="0" maxOccurs="unbounded">
+        <xsd:annotation><xsd:appinfo>
+          <jxb:property name="options"/>
+        </xsd:appinfo></xsd:annotation>
+        <xsd:element name="stringOption" type="StringOption"/>
+        <xsd:element name="numberOption" type="NumberOption"/>
+        <xsd:element name="booleanOption" type="BooleanOption"/>
+        <xsd:element name="choiceOption" type="ChoiceOption"/>
+      </xsd:choice>
+    </xsd:choice>
+  </xsd:complexType>
+
+  <xsd:complexType name="OptionGroup">
+    <xsd:choice minOccurs="1" maxOccurs="unbounded">
       <xsd:annotation><xsd:appinfo>
         <jxb:property name="options"/>
       </xsd:appinfo></xsd:annotation>
@@ -52,6 +72,7 @@ The display name for the search.
       <xsd:element name="booleanOption" type="BooleanOption"/>
       <xsd:element name="choiceOption" type="ChoiceOption"/>
     </xsd:choice>
+    <xsd:attribute name="displayName" type="xsd:string" use="required"/>
   </xsd:complexType>
 
   <xsd:complexType name="Option" abstract="true">

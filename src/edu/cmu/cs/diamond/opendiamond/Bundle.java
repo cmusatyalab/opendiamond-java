@@ -403,12 +403,24 @@ public class Bundle {
         return displayName;
     }
 
-    public List<Option> getOptions() throws IOException {
+    public List<OptionGroup> getOptions() throws IOException {
         OptionList l = loader.getManifest().getOptionList();
+        List<OptionGroup> groups = Collections.emptyList();
         if (l != null) {
-            // check that no two options have the same name
-            HashSet<String> names = new HashSet<String>();
-            for (Option opt : l.getOptions()) {
+            groups = l.getOptionGroups();
+            List<Option> options = l.getOptions();
+            if (options.size() > 0) {
+                // Create a fake option group for the loose options.
+                OptionGroup og = new OptionGroup();
+                og.getOptions().addAll(options);
+                groups.add(og);
+            }
+        }
+
+        // check that no two options have the same name
+        HashSet<String> names = new HashSet<String>();
+        for (OptionGroup group : groups) {
+            for (Option opt : group.getOptions()) {
                 String name = opt.getName();
                 if (names.contains(name)) {
                     throw new BundleFormatException(
@@ -416,11 +428,9 @@ public class Bundle {
                 }
                 names.add(name);
             }
-
-            return l.getOptions();
-        } else {
-            return Collections.emptyList();
         }
+
+        return groups;
     }
 
     public List<Filter> getFilters(Map<String, String> optionMap) throws
