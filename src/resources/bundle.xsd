@@ -108,6 +108,21 @@ The initial value of the option.
 The initial value of the option.
           </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
         </xsd:attribute>
+        <xsd:attribute name="multiLine" type="xsd:boolean" default="false">
+          <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
+Whether to use a multi-line input widget in the UI.
+          </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="width" type="xsd:int" default="20">
+          <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
+The width of the multi-line input widget in characters.
+          </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
+        </xsd:attribute>
+        <xsd:attribute name="height" type="xsd:int" default="4">
+          <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
+The height of the multi-line input widget in characters.
+          </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
+        </xsd:attribute>
         <xsd:attribute name="initiallyEnabled" type="xsd:boolean">
           <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
 If specified, the option can be disabled by the user, and the initial
