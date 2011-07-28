@@ -36,7 +36,7 @@ public class BundleFactory {
                 ArrayList<File>(memberDirs));
     }
 
-    public List<Bundle> getBundles() {
+    public List<Bundle> getSearchBundles() {
         List<Bundle> bundles = new ArrayList<Bundle>();
         FilenameFilter filter = new FilenameFilter() {
             @Override
