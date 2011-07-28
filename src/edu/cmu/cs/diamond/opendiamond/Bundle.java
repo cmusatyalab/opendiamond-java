@@ -381,10 +381,13 @@ public class Bundle {
 
     private final String displayName;
 
+    private final boolean isCodec;
+
     private Bundle(FileLoader loader) throws IOException {
         this.loader = loader;
         SearchSpec manifest = loader.getManifest();
         this.displayName = manifest.getDisplayName();
+        this.isCodec = manifest.isCodec();
     }
 
     // Return a bundle which loads data from the filesystem on request.
@@ -401,6 +404,10 @@ public class Bundle {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public boolean isCodec() {
+        return isCodec;
     }
 
     public List<OptionGroup> getOptions() throws IOException {

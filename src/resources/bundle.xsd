@@ -40,6 +40,11 @@ ACCEPTANCE OF THIS AGREEMENT
 The display name for the search.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
+    <xsd:attribute name="codec" type="xsd:boolean" default="false">
+      <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
+Whether the bundle represents a codec rather than a search.
+      </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="OptionList">

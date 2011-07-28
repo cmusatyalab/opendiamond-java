@@ -36,20 +36,12 @@ public class BundleFactory {
                 ArrayList<File>(memberDirs));
     }
 
-    public List<Bundle> getSearchBundles() {
-        return getBundles(".search");
-    }
-
-    public List<Bundle> getCodecBundles() {
-        return getBundles(".codec");
-    }
-
-    private List<Bundle> getBundles(final String extension) {
+    public List<Bundle> getBundles() {
         List<Bundle> bundles = new ArrayList<Bundle>();
         FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.endsWith(extension);
+                return name.endsWith(".search");
             }
         };
         for (File dir : bundleDirs) {
