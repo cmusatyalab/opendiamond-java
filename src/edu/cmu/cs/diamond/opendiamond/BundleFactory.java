@@ -37,11 +37,19 @@ public class BundleFactory {
     }
 
     public List<Bundle> getSearchBundles() {
+        return getBundles(".search");
+    }
+
+    public List<Bundle> getCodecBundles() {
+        return getBundles(".codec");
+    }
+
+    private List<Bundle> getBundles(final String extension) {
         List<Bundle> bundles = new ArrayList<Bundle>();
         FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.endsWith(".search");
+                return name.endsWith(extension);
             }
         };
         for (File dir : bundleDirs) {
