@@ -26,6 +26,10 @@ public class BundleFactory {
 
     private List<File> memberDirs;
 
+    public BundleFactory(List<File> dirs) {
+        this(dirs, dirs);
+    }
+
     public BundleFactory(List<File> bundleDirs, List<File> memberDirs) {
         this.bundleDirs = new ArrayList<File>(bundleDirs);
         this.memberDirs = Collections.unmodifiableList(new
