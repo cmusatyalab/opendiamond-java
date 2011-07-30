@@ -228,6 +228,8 @@ public class Bundle {
                             throw new BundleFormatException(
                                     "Missing example specification");
                         }
+                        // Add examples directory
+                        zipMap.put("examples/", new byte[0]);
                         int i = 0;
                         for (BufferedImage example : examples) {
                             zipMap.put(String.format("examples/%07d.png", i++),
