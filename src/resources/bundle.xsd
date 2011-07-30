@@ -365,12 +365,14 @@ the specified members.
     </xsd:sequence>
     <xsd:attribute name="option" type="xsd:string">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The name of the option specifying the filename of the blob argument.
+The name of the option specifying the filename of the blob argument.  Cannot
+be present if there are member elements.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="data" type="Filename">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The filename of the file containing the blob argument.
+The filename of the file containing the blob argument.  Cannot be present if
+there are member elements.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
