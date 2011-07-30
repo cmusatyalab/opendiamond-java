@@ -63,6 +63,7 @@ Whether the bundle represents a codec rather than a search.
         <xsd:element name="numberOption" type="NumberOption"/>
         <xsd:element name="booleanOption" type="BooleanOption"/>
         <xsd:element name="choiceOption" type="ChoiceOption"/>
+        <xsd:element name="exampleOption" type="ExampleOption"/>
       </xsd:choice>
     </xsd:choice>
   </xsd:complexType>
@@ -76,6 +77,7 @@ Whether the bundle represents a codec rather than a search.
       <xsd:element name="numberOption" type="NumberOption"/>
       <xsd:element name="booleanOption" type="BooleanOption"/>
       <xsd:element name="choiceOption" type="ChoiceOption"/>
+      <xsd:element name="exampleOption" type="ExampleOption"/>
     </xsd:choice>
     <xsd:attribute name="displayName" type="xsd:string" use="required"/>
   </xsd:complexType>
@@ -224,6 +226,12 @@ True if this choice should be the initial value of the ChoiceOption.
     </xsd:attribute>
   </xsd:complexType>
 
+  <xsd:complexType name="ExampleOption">
+    <xsd:complexContent>
+      <xsd:extension base="Option"/>
+    </xsd:complexContent>
+  </xsd:complexType>
+
   <xsd:complexType name="FilterList">
     <xsd:sequence>
       <xsd:element name="filter" type="FilterSpec" maxOccurs="unbounded">
@@ -353,6 +361,13 @@ A constant value for the argument.  Overridden by the "option" attribute.
 
   <xsd:complexType name="FilterBlobArgumentSpec">
     <xsd:sequence>
+      <xsd:element name="examples" type="FilterBlobExampleSpec"
+          minOccurs="0">
+        <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
+If present, include an "examples" directory in the Zip file which contains
+example images in PNG format.
+        </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
+      </xsd:element>
       <xsd:element name="member" type="FilterBlobMemberSpec"
           minOccurs="0" maxOccurs="unbounded">
         <xsd:annotation><xsd:appinfo>
@@ -376,6 +391,8 @@ there are member elements.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
+
+  <xsd:complexType name="FilterBlobExampleSpec"/>
 
   <xsd:complexType name="FilterBlobMemberSpec">
     <xsd:attribute name="filename" type="xsd:string" use="required">

@@ -13,7 +13,9 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -30,6 +32,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.imageio.ImageIO;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -198,8 +201,8 @@ public class Bundle {
         private final List<String> arguments = new ArrayList<String>();
 
         public PendingFilter(PreparedFileLoader loader,
-                Map<String, String> optionMap, FilterSpec f)
-                throws IOException {
+                Map<String, String> optionMap, List<BufferedImage> examples,
+                FilterSpec f) throws IOException {
             // load basic metadata
             label = f.getLabel();
 
@@ -209,13 +212,27 @@ public class Bundle {
             // load blob
             FilterBlobArgumentSpec blobSpec = f.getBlob();
             if (blobSpec != null) {
-                if (blobSpec.getMembers().size() > 0) {
-                    // Construct a Zip file containing individual members
+                FilterBlobExampleSpec exampleSpec = blobSpec.getExamples();
+                if (blobSpec.getMembers().size() > 0 || exampleSpec != null) {
+                    // Construct a Zip file containing individual members.
+                    // First add the explicit members
                     Map<String, byte[]> zipMap = new HashMap<String, byte[]>();
                     for (FilterBlobMemberSpec member : blobSpec.getMembers()) {
                         byte[] data = getBlobData(loader, optionMap,
                                 member.getOption(), member.getData());
                         zipMap.put(member.getFilename(), data);
+                    }
+                    // Now add the examples
+                    if (exampleSpec != null) {
+                        if (examples == null) {
+                            throw new BundleFormatException(
+                                    "Missing example specification");
+                        }
+                        int i = 0;
+                        for (BufferedImage example : examples) {
+                            zipMap.put(String.format("examples/%07d.png", i++),
+                                     encodePNG(example));
+                        }
                     }
                     blob = Util.encodeZipFile(zipMap);
                 } else {
@@ -374,6 +391,15 @@ public class Bundle {
             }
             return loader.getBlob(filename);
         }
+
+        private static byte[] encodePNG(BufferedImage image)
+                throws IOException {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            if (!ImageIO.write(image, "PNG", baos)) {
+                throw new IOException("Couldn't write PNG");
+            }
+            return baos.toByteArray();
+        }
     }
 
 
@@ -424,8 +450,10 @@ public class Bundle {
             }
         }
 
-        // check that no two options have the same name
+        // check that no two options have the same name, and that there is
+        // at most one ExampleOption
         HashSet<String> names = new HashSet<String>();
+        boolean haveExample = false;
         for (OptionGroup group : groups) {
             for (Option opt : group.getOptions()) {
                 String name = opt.getName();
@@ -434,6 +462,13 @@ public class Bundle {
                             "Duplicate option name \"" + name + "\"");
                 }
                 names.add(name);
+                if (opt instanceof ExampleOption) {
+                    if (haveExample) {
+                        throw new BundleFormatException(
+                                "At most one exampleOption can be specified");
+                    }
+                    haveExample = true;
+                }
             }
         }
 
@@ -442,6 +477,11 @@ public class Bundle {
 
     public List<Filter> getFilters(Map<String, String> optionMap) throws
             IOException {
+        return getFilters(optionMap, null);
+    }
+
+    public List<Filter> getFilters(Map<String, String> optionMap,
+            List<BufferedImage> examples) throws IOException {
         PreparedFileLoader loader = this.loader.getPreparedLoader();
 
         ArrayList<PendingFilter> pending = new ArrayList<PendingFilter>();
@@ -449,7 +489,8 @@ public class Bundle {
         List<FilterSpec> specs = loader.getManifest().getFilterList()
                 .getFilters();
         for (FilterSpec f : specs) {
-            PendingFilter pf = new PendingFilter(loader, optionMap, f);
+            PendingFilter pf = new PendingFilter(loader, optionMap, examples,
+                    f);
             pending.add(pf);
             String label = pf.getLabel();
             if (label != null) {
