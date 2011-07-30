@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.zip.ZipEntry;
@@ -510,7 +511,9 @@ public class Util {
             throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ZipOutputStream zip = new ZipOutputStream(baos);
-        for (Map.Entry<String, byte[]> file: zipMap.entrySet()) {
+        TreeMap<String, byte[]> sortedMap =
+                new TreeMap<String, byte[]>(zipMap);
+        for (Map.Entry<String, byte[]> file: sortedMap.entrySet()) {
             ZipEntry entry = new ZipEntry(file.getKey());
             // when our output is used as the blob argument to a filter,
             // storing different timestamps on every call would defeat
