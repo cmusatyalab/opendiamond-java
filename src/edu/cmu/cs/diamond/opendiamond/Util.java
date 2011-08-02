@@ -22,7 +22,6 @@ import java.nio.ByteOrder;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CompletionService;
@@ -467,35 +466,6 @@ public class Util {
             } catch (IOException e) {
             }
         }
-    }
-
-    /**
-     * Remove the OpenDiamond manifest from the zipMap, parse it, and return
-     * the parsed Properties map.
-     *
-     * @param zipMap
-     *             a Zip map from readZipFile()
-     * @return the extracted properties
-     * @throws IOException
-     *             if an IO error occurs while reading
-     */
-    public static Properties extractManifest(Map<String, byte[]> zipMap)
-            throws IOException {
-        // defer to hyperfind-manifest.txt for legacy ZIP files
-        byte manifest[] = zipMap.remove("hyperfind-manifest.txt");
-        if (manifest == null) {
-            manifest = zipMap.remove("opendiamond-manifest.txt");
-        } else {
-            zipMap.remove("opendiamond-manifest.txt");
-        }
-
-        Properties p = new Properties();
-        if (manifest != null) {
-            ByteArrayInputStream bIn = new ByteArrayInputStream(manifest);
-            Reader r = new InputStreamReader(bIn, "UTF-8");
-            p.load(r);
-        }
-        return p;
     }
 
     /**
