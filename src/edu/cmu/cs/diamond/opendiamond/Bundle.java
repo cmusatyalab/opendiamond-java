@@ -35,6 +35,7 @@ import java.util.zip.ZipInputStream;
 import javax.imageio.ImageIO;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
@@ -46,12 +47,10 @@ import org.xml.sax.SAXException;
 import edu.cmu.cs.diamond.opendiamond.bundle.*;
 
 public class Bundle {
-    private static abstract class FileLoader {
+    private static class Manifest {
         private static final JAXBContext jaxbContext;
 
         private static final Schema schema;
-
-        protected static final String MANIFEST_NAME = "opendiamond-search.xml";
 
         static {
             JAXBContext ctx = null;
@@ -72,13 +71,21 @@ public class Bundle {
             schema = s;
         }
 
-        protected static SearchSpec parseManifest(InputStream in)
-                throws BundleFormatException {
+
+        private final SearchSpec spec;
+
+        private final boolean isCodec;
+
+        public Manifest(InputStream in) throws BundleFormatException {
             try {
                 Unmarshaller u = jaxbContext.createUnmarshaller();
                 u.setSchema(schema);
                 StreamSource source = new StreamSource(in);
-                return u.unmarshal(source, SearchSpec.class).getValue();
+                JAXBElement<SearchSpec> element = u.unmarshal(source,
+                        SearchSpec.class);
+                this.spec = element.getValue();
+                this.isCodec = element.getName().getLocalPart()
+                        .equals("codec");
             } catch (JAXBException e) {
                 String msg = e.getMessage();
                 Throwable linked = e.getLinkedException();
@@ -89,11 +96,22 @@ public class Bundle {
             }
         }
 
+        public SearchSpec getSpec() {
+            return spec;
+        }
+
+        public boolean isCodec() {
+            return isCodec;
+        }
+    }
+
+    private static abstract class FileLoader {
+        protected static final String MANIFEST_NAME = "opendiamond-search.xml";
 
         public abstract PreparedFileLoader getPreparedLoader()
                 throws IOException;
 
-        public abstract SearchSpec getManifest() throws IOException;
+        public abstract Manifest getManifest() throws IOException;
     }
 
     private static class PendingFileLoader extends FileLoader {
@@ -113,7 +131,7 @@ public class Bundle {
         }
 
         @Override
-        public SearchSpec getManifest() throws IOException {
+        public Manifest getManifest() throws IOException {
             // Read the search manifest from the bundle and return it without
             // loading the entire bundle into memory
             FileInputStream in = new FileInputStream(bundleFile);
@@ -122,7 +140,7 @@ public class Bundle {
                 ZipEntry entry;
                 while ((entry = zip.getNextEntry()) != null) {
                     if (entry.getName().equals(MANIFEST_NAME)) {
-                        return parseManifest(zip);
+                        return new Manifest(zip);
                     } else {
                         zip.closeEntry();
                     }
@@ -154,12 +172,12 @@ public class Bundle {
         }
 
         @Override
-        public SearchSpec getManifest() throws IOException {
+        public Manifest getManifest() throws IOException {
             byte[] manifest = bundleContents.get(MANIFEST_NAME);
             if (manifest == null) {
                 throw new BundleFormatException("Bundle manifest not found");
             }
-            return parseManifest(new ByteArrayInputStream(manifest));
+            return new Manifest(new ByteArrayInputStream(manifest));
         }
 
         public FilterCode getCode(String name) throws IOException {
@@ -413,8 +431,8 @@ public class Bundle {
 
     private Bundle(FileLoader loader) throws IOException {
         this.loader = loader;
-        SearchSpec manifest = loader.getManifest();
-        this.displayName = manifest.getDisplayName();
+        Manifest manifest = loader.getManifest();
+        this.displayName = manifest.getSpec().getDisplayName();
         this.isCodec = manifest.isCodec();
     }
 
@@ -439,7 +457,7 @@ public class Bundle {
     }
 
     public List<OptionGroup> getOptions() throws IOException {
-        OptionList l = loader.getManifest().getOptionList();
+        OptionList l = loader.getManifest().getSpec().getOptionList();
         List<OptionGroup> groups = Collections.emptyList();
         if (l != null) {
             groups = l.getOptionGroups();
@@ -488,8 +506,8 @@ public class Bundle {
 
         ArrayList<PendingFilter> pending = new ArrayList<PendingFilter>();
         HashMap<String, String> labelMap = new HashMap<String, String>();
-        List<FilterSpec> specs = loader.getManifest().getFilterList()
-                .getFilters();
+        List<FilterSpec> specs = loader.getManifest().getSpec()
+                .getFilterList().getFilters();
         for (FilterSpec f : specs) {
             PendingFilter pf = new PendingFilter(loader, optionMap, examples,
                     f);

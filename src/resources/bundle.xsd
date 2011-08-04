@@ -20,7 +20,11 @@ ACCEPTANCE OF THIS AGREEMENT
     targetNamespace="http://diamond.cs.cmu.edu/xmlns/opendiamond/bundle-1"
     elementFormDefault="qualified">
 
+  <!-- A search. -->
   <xsd:element name="search" type="SearchSpec"/>
+
+  <!-- A codec. -->
+  <xsd:element name="codec" type="SearchSpec"/>
 
   <xsd:complexType name="SearchSpec">
     <xsd:all>
@@ -38,11 +42,6 @@ ACCEPTANCE OF THIS AGREEMENT
     <xsd:attribute name="displayName" type="xsd:string" use="required">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
 The display name for the search.
-      </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
-    </xsd:attribute>
-    <xsd:attribute name="codec" type="xsd:boolean" default="false">
-      <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-Whether the bundle represents a codec rather than a search.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
