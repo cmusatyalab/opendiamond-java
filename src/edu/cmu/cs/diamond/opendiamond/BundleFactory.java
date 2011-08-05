@@ -33,11 +33,19 @@ public class BundleFactory {
     }
 
     public List<Bundle> getBundles() {
+        return getBundles(BundleType.values());
+    }
+
+    public List<Bundle> getBundles(BundleType type) {
+        return getBundles(new BundleType[] { type });
+    }
+
+    private List<Bundle> getBundles(final BundleType types[]) {
         List<Bundle> bundles = new ArrayList<Bundle>();
         FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                for (BundleType type : BundleType.values()) {
+                for (BundleType type : types) {
                     if (name.endsWith("." + type.getExtension())) {
                         return true;
                     }
