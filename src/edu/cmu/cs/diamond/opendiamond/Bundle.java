@@ -56,7 +56,7 @@ public class Bundle {
             JAXBContext ctx = null;
             Schema s = null;
             try {
-                ctx = JAXBContext.newInstance(SearchSpec.class);
+                ctx = JAXBContext.newInstance(PredicateSpec.class);
                 SchemaFactory sf = SchemaFactory.newInstance(
                         XMLConstants.W3C_XML_SCHEMA_NS_URI);
                 s = sf.newSchema(Bundle.class.getClassLoader().
@@ -72,7 +72,7 @@ public class Bundle {
         }
 
 
-        private final SearchSpec spec;
+        private final PredicateSpec spec;
 
         private final boolean isCodec;
 
@@ -81,8 +81,8 @@ public class Bundle {
                 Unmarshaller u = jaxbContext.createUnmarshaller();
                 u.setSchema(schema);
                 StreamSource source = new StreamSource(in);
-                JAXBElement<SearchSpec> element = u.unmarshal(source,
-                        SearchSpec.class);
+                JAXBElement<PredicateSpec> element = u.unmarshal(source,
+                        PredicateSpec.class);
                 this.spec = element.getValue();
                 this.isCodec = element.getName().getLocalPart()
                         .equals("codec");
@@ -96,7 +96,7 @@ public class Bundle {
             }
         }
 
-        public SearchSpec getSpec() {
+        public PredicateSpec getSpec() {
             return spec;
         }
 
@@ -106,7 +106,7 @@ public class Bundle {
     }
 
     private static abstract class FileLoader {
-        protected static final String MANIFEST_NAME = "opendiamond-search.xml";
+        protected static final String MANIFEST_NAME = "opendiamond-bundle.xml";
 
         public abstract PreparedFileLoader getPreparedLoader()
                 throws IOException;
@@ -132,7 +132,7 @@ public class Bundle {
 
         @Override
         public Manifest getManifest() throws IOException {
-            // Read the search manifest from the bundle and return it without
+            // Read the manifest from the bundle and return it without
             // loading the entire bundle into memory
             FileInputStream in = new FileInputStream(bundleFile);
             try {

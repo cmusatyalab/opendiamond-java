@@ -20,13 +20,13 @@ ACCEPTANCE OF THIS AGREEMENT
     targetNamespace="http://diamond.cs.cmu.edu/xmlns/opendiamond/bundle-1"
     elementFormDefault="qualified">
 
-  <!-- A search. -->
-  <xsd:element name="search" type="SearchSpec"/>
+  <!-- A search predicate. -->
+  <xsd:element name="predicate" type="PredicateSpec"/>
 
   <!-- A codec. -->
-  <xsd:element name="codec" type="SearchSpec"/>
+  <xsd:element name="codec" type="PredicateSpec"/>
 
-  <xsd:complexType name="SearchSpec">
+  <xsd:complexType name="PredicateSpec">
     <xsd:all>
       <xsd:element name="options" type="OptionList" minOccurs="0">
         <xsd:annotation><xsd:appinfo>
@@ -41,7 +41,7 @@ ACCEPTANCE OF THIS AGREEMENT
     </xsd:all>
     <xsd:attribute name="displayName" type="xsd:string" use="required">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The display name for the search.
+The display name for the predicate.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>

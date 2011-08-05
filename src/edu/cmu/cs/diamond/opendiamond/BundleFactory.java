@@ -37,7 +37,7 @@ public class BundleFactory {
         FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.endsWith(".search");
+                return name.endsWith(".pred") || name.endsWith(".codec");
             }
         };
         for (File dir : bundleDirs) {
@@ -55,7 +55,12 @@ public class BundleFactory {
     // Does not cache the contents of the file.  The file is reloaded when
     // getFilters() is called.
     public Bundle getBundle(File file) throws IOException {
-        return Bundle.getBundle(file, memberDirs);
+        Bundle bundle = Bundle.getBundle(file, memberDirs);
+        if (file.getName().endsWith(".codec") ^ bundle.isCodec()) {
+            throw new BundleFormatException(
+                    "Codecs must have .codec extension, predicates .pred");
+        }
+        return bundle;
     }
 
     // Caches the contents of the file in memory.  For use when we may not
