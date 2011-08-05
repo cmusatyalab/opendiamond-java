@@ -37,7 +37,12 @@ public class BundleFactory {
         FilenameFilter filter = new FilenameFilter() {
             @Override
             public boolean accept(File dir, String name) {
-                return name.endsWith(".pred") || name.endsWith(".codec");
+                for (BundleType type : BundleType.values()) {
+                    if (name.endsWith("." + type.getExtension())) {
+                        return true;
+                    }
+                }
+                return false;
             }
         };
         for (File dir : bundleDirs) {
@@ -56,9 +61,10 @@ public class BundleFactory {
     // getFilters() is called.
     public Bundle getBundle(File file) throws IOException {
         Bundle bundle = Bundle.getBundle(file, memberDirs);
-        if (file.getName().endsWith(".codec") ^ bundle.isCodec()) {
+        String ext = "." + bundle.getType().getExtension();
+        if (!file.getName().endsWith(ext)) {
             throw new BundleFormatException(
-                    "Codecs must have .codec extension, predicates .pred");
+                    "Bundle does not have the correct extension " + ext);
         }
         return bundle;
     }

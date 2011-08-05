@@ -74,7 +74,7 @@ public class Bundle {
 
         private final PredicateSpec spec;
 
-        private final boolean isCodec;
+        private final BundleType type;
 
         public Manifest(InputStream in) throws BundleFormatException {
             try {
@@ -84,8 +84,8 @@ public class Bundle {
                 JAXBElement<PredicateSpec> element = u.unmarshal(source,
                         PredicateSpec.class);
                 this.spec = element.getValue();
-                this.isCodec = element.getName().getLocalPart()
-                        .equals("codec");
+                this.type = BundleType.fromTag(element.getName()
+                        .getLocalPart());
             } catch (JAXBException e) {
                 String msg = e.getMessage();
                 Throwable linked = e.getLinkedException();
@@ -100,8 +100,8 @@ public class Bundle {
             return spec;
         }
 
-        public boolean isCodec() {
-            return isCodec;
+        public BundleType getType() {
+            return type;
         }
     }
 
@@ -427,13 +427,13 @@ public class Bundle {
 
     private final String displayName;
 
-    private final boolean isCodec;
+    private final BundleType type;
 
     private Bundle(FileLoader loader) throws IOException {
         this.loader = loader;
         Manifest manifest = loader.getManifest();
         this.displayName = manifest.getSpec().getDisplayName();
-        this.isCodec = manifest.isCodec();
+        this.type = manifest.getType();
     }
 
     // Return a bundle which loads data from the filesystem on request.
@@ -452,8 +452,8 @@ public class Bundle {
         return displayName;
     }
 
-    public boolean isCodec() {
-        return isCodec;
+    public BundleType getType() {
+        return type;
     }
 
     public List<OptionGroup> getOptions() throws IOException {
