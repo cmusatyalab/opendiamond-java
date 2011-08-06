@@ -1,6 +1,5 @@
 /*
  *  The OpenDiamond Platform for Interactive Search
- *  Version 5
  *
  *  Copyright (c) 2009-2010 Carnegie Mellon University
  *  All rights reserved.

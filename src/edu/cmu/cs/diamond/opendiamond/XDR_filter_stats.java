@@ -1,5 +1,5 @@
 /*
- *  The OpenDiamond Platform for Interimport java.io.IOException;
+ *  The OpenDiamond Platform for Interactive Search
  *
  *  Copyright (c) 2009 Carnegie Mellon University
  *  All rights reserved.
