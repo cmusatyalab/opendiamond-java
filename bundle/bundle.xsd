@@ -288,7 +288,7 @@ with different parameters.
 A label for specifying filter dependencies.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
-    <xsd:attribute name="code" type="Filename">
+    <xsd:attribute name="code" type="Filename" use="required">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
 The filename of the filter code.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
