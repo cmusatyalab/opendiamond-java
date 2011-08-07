@@ -5,7 +5,7 @@
     <property name="target" value="1.6"/>
     <property name="source" value="1.6"/>
     <property name="bundle_src"
-            value="src/resources/bundle.xsd"/>
+            value="bundle/bundle.xsd"/>
     <property name="bundle_dest"
             value="src/edu/cmu/cs/diamond/opendiamond/bundle"/>
     <path id="OpenDiamond java.classpath">
@@ -15,6 +15,9 @@
         <mkdir dir="bin"/>
         <copy includeemptydirs="false" todir="bin">
             <fileset dir="src" excludes="**/*.launch, **/*.java"/>
+        </copy>
+        <copy includeemptydirs="false" todir="bin/resources">
+            <fileset dir="bundle"/>
         </copy>
     </target>
     <target name="clean">
