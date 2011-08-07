@@ -21,13 +21,13 @@
         </copy>
     </target>
     <target name="clean">
-      <delete dir="bin"/>
-      <delete dir="doc"/>
-      <delete dir="${bundle_dest}"/>
-      <delete file="opendiamond.jar"/>
+        <delete dir="bin"/>
+        <delete dir="doc"/>
+        <delete dir="${bundle_dest}"/>
+        <delete file="opendiamond.jar"/>
     </target>
     <target depends="build" name="jar">
-      <jar destfile="opendiamond.jar" basedir="bin"/>
+        <jar destfile="opendiamond.jar" basedir="bin"/>
     </target>
     <target depends="clean" name="cleanall"/>
     <target depends="build-project" name="build"/>
@@ -47,17 +47,18 @@
     </target>
     <target depends="init,xjc" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
-        <javac debug="true" debuglevel="${debuglevel}" destdir="bin" source="${source}" target="${target}">
+        <javac debug="true" debuglevel="${debuglevel}" destdir="bin"
+                source="${source}" target="${target}">
             <src path="src"/>
             <classpath refid="OpenDiamond java.classpath"/>
         </javac>
     </target>
-<target name="javadoc">
-    <javadoc access="public" destdir="doc" author="true" version="true"
-	     use="true">
-      <fileset dir="src" defaultexcludes="yes">
-	<include name="**/*.java"/>
-      </fileset>
-    </javadoc>
-</target>
+    <target name="javadoc">
+        <javadoc access="public" destdir="doc" author="true" version="true"
+                 use="true">
+            <fileset dir="src" defaultexcludes="yes">
+                <include name="**/*.java"/>
+            </fileset>
+        </javadoc>
+    </target>
 </project>
