@@ -19,28 +19,45 @@ ACCEPTANCE OF THIS AGREEMENT
     targetNamespace="http://diamond.cs.cmu.edu/xmlns/opendiamond/bundle-1"
     elementFormDefault="qualified">
 
-  <!-- A search predicate. -->
-  <xsd:element name="predicate" type="PredicateSpec"/>
+  <xsd:element name="predicate" type="PredicateSpec">
+    <xsd:annotation><xsd:documentation>
+A search predicate.  Predicates are the basic unit of a Diamond search.  A
+predicate specifies a set of options the user can adjust to configure the
+parameters of the search.  It also specifies how to use these parameters to
+instantiate one or more Diamond filters to be included in the searchlet.
+    </xsd:documentation></xsd:annotation>
+  </xsd:element>
 
-  <!-- A codec. -->
-  <xsd:element name="codec" type="PredicateSpec"/>
+  <xsd:element name="codec" type="PredicateSpec">
+    <xsd:annotation><xsd:documentation>
+A codec.  Every searchlet includes one codec that assists in initial decoding
+of Diamond objects by performing such tasks as JPEG decoding and thumbnail
+generation.  A codec typically does not have options, and its filters only
+drop invalid objects.
+    </xsd:documentation></xsd:annotation>
+  </xsd:element>
 
   <xsd:complexType name="PredicateSpec">
     <xsd:all>
       <xsd:element name="options" type="OptionList" minOccurs="0">
         <xsd:annotation><xsd:appinfo>
-          <jxb:property name="optionList"/>
+          <jxb:property name="optionList"><jxb:javadoc>
+A list of options to be displayed in the user interface.  May include either
+option groups or individual options, but not both.
+          </jxb:javadoc></jxb:property>
         </xsd:appinfo></xsd:annotation>
       </xsd:element>
       <xsd:element name="filters" type="FilterList">
         <xsd:annotation><xsd:appinfo>
-          <jxb:property name="filterList"/>
+          <jxb:property name="filterList"><jxb:javadoc>
+A description of the filters to instantiate when performing a search.
+          </jxb:javadoc></jxb:property>
         </xsd:appinfo></xsd:annotation>
       </xsd:element>
     </xsd:all>
     <xsd:attribute name="displayName" type="xsd:string" use="required">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The display name for the predicate.
+The predicate or codec name to be shown to the user.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
@@ -50,7 +67,10 @@ The display name for the predicate.
       <xsd:element name="optionGroup" type="OptionGroup" minOccurs="0"
           maxOccurs="unbounded">
         <xsd:annotation><xsd:appinfo>
-          <jxb:property name="optionGroups"/>
+          <jxb:property name="optionGroups"><jxb:javadoc>
+A list of options to be grouped into a labeled section within the user
+interface.
+          </jxb:javadoc></jxb:property>
         </xsd:appinfo></xsd:annotation>
       </xsd:element>
       <xsd:choice minOccurs="0" maxOccurs="unbounded">
@@ -77,7 +97,11 @@ The display name for the predicate.
       <xsd:element name="choiceOption" type="ChoiceOption"/>
       <xsd:element name="exampleOption" type="ExampleOption"/>
     </xsd:choice>
-    <xsd:attribute name="displayName" type="xsd:string" use="required"/>
+    <xsd:attribute name="displayName" type="xsd:string" use="required">
+      <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
+The name for this option group to be shown to the user.
+      </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
+    </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="Option" abstract="true">
@@ -94,6 +118,10 @@ The name to be used when inserting this option into the option map.
   </xsd:complexType>
 
   <xsd:complexType name="BooleanOption">
+    <xsd:annotation><xsd:documentation>
+A boolean option, displayed in the user interface as a checkbox.  Produces
+an argument with the value "true" or "false".
+    </xsd:documentation></xsd:annotation>
     <xsd:complexContent>
       <xsd:extension base="Option">
         <xsd:attribute name="default" type="xsd:boolean" default="false">
@@ -106,6 +134,10 @@ The initial value of the option.
   </xsd:complexType>
 
   <xsd:complexType name="StringOption">
+    <xsd:annotation><xsd:documentation>
+A string option, displayed in the user interface as a single-line or
+multi-line text field.
+    </xsd:documentation></xsd:annotation>
     <xsd:complexContent>
       <xsd:extension base="Option">
         <xsd:attribute name="default" type="xsd:string" default="">
@@ -115,17 +147,17 @@ The initial value of the option.
         </xsd:attribute>
         <xsd:attribute name="multiLine" type="xsd:boolean" default="false">
           <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-Whether to use a multi-line input widget in the UI.
+Whether to use a multi-line input field in the user interface.
           </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="width" type="xsd:int" default="20">
           <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The width of the multi-line input widget in characters.
+The width of the multi-line input field in characters.
           </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="height" type="xsd:int" default="4">
           <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The height of the multi-line input widget in characters.
+The height of the multi-line input field in characters.
           </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
         </xsd:attribute>
         <xsd:attribute name="initiallyEnabled" type="xsd:boolean">
@@ -144,6 +176,11 @@ The value returned if the option is disabled by the user.
   </xsd:complexType>
 
   <xsd:complexType name="NumberOption">
+    <xsd:annotation><xsd:documentation>
+A numeric option, displayed in the user interface as an editable numeric
+field with increment/decrement buttons and a slider.  Produces an argument
+formatted as an integer if possible, and as a double otherwise.
+    </xsd:documentation></xsd:annotation>
     <xsd:complexContent>
       <xsd:extension base="Option">
         <xsd:attribute name="default" type="xsd:double" default="0">
@@ -174,7 +211,8 @@ enablement is as specified.
         </xsd:attribute>
         <xsd:attribute name="disabledValue" type="xsd:double" default="0">
           <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The value returned if the option is disabled by the user.
+The value returned if the option is disabled by the user.  Infinite and
+NaN values are supported.
           </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
         </xsd:attribute>
       </xsd:extension>
@@ -182,12 +220,17 @@ The value returned if the option is disabled by the user.
   </xsd:complexType>
 
   <xsd:complexType name="ChoiceOption">
+    <xsd:annotation><xsd:documentation>
+A choice option, displayed in the user interface as a popup menu of choices.
+    </xsd:documentation></xsd:annotation>
     <xsd:complexContent>
       <xsd:extension base="Option">
         <xsd:sequence>
           <xsd:element name="choice" type="Choice" maxOccurs="unbounded">
             <xsd:annotation><xsd:appinfo>
-              <jxb:property name="choices"/>
+              <jxb:property name="choices"><jxb:javadoc>
+One possible value for the choice option.
+              </jxb:javadoc></jxb:property>
             </xsd:appinfo></xsd:annotation>
           </xsd:element>
         </xsd:sequence>
@@ -209,7 +252,7 @@ The value returned if the option is disabled by the user.
   <xsd:complexType name="Choice">
     <xsd:attribute name="displayName" type="xsd:string" use="required">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The option name to be shown to the user.
+The choice name to be shown to the user.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="value" type="xsd:string" use="required">
@@ -219,12 +262,18 @@ The argument to be provided to the filter if this choice is selected.
     </xsd:attribute>
     <xsd:attribute name="default" type="xsd:boolean" default="false">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-True if this choice should be the initial value of the ChoiceOption.
+True if this choice should be the initial value of the choice option.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
 
   <xsd:complexType name="ExampleOption">
+    <xsd:annotation><xsd:documentation>
+An option allowing the user to add example images to the search.  The
+selected examples can then be included in a filter's blob argument by
+specifying &lt;examples&gt;.  Produces an integer argument, probably not
+actually useful, which gives the number of examples provided.
+    </xsd:documentation></xsd:annotation>
     <xsd:complexContent>
       <xsd:extension base="Option"/>
     </xsd:complexContent>
@@ -234,7 +283,9 @@ True if this choice should be the initial value of the ChoiceOption.
     <xsd:sequence>
       <xsd:element name="filter" type="FilterSpec" maxOccurs="unbounded">
         <xsd:annotation><xsd:appinfo>
-          <jxb:property name="filters"/>
+          <jxb:property name="filters"><jxb:javadoc>
+A single filter to instantiate.
+          </jxb:javadoc></jxb:property>
         </xsd:appinfo></xsd:annotation>
       </xsd:element>
     </xsd:sequence>
@@ -271,7 +322,9 @@ back to the desired type.
       </xsd:element>
       <xsd:element name="blob" type="FilterBlobArgumentSpec" minOccurs="0">
         <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The blob argument to be passed to this filter.
+The blob argument to be passed to this filter.  If child elements are
+present, construct a blob argument consisting of a Zip archive containing
+the specified members.
         </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
       </xsd:element>
     </xsd:all>
@@ -313,7 +366,9 @@ A constant value for the threshold.  Overridden by the "option" attribute.
       <xsd:element name="dependency" type="FilterDependencySpec"
           maxOccurs="unbounded">
         <xsd:annotation><xsd:appinfo>
-          <jxb:property name="dependencies"/>
+          <jxb:property name="dependencies"><jxb:javadoc>
+A filter that must run before this one.
+          </jxb:javadoc></jxb:property>
         </xsd:appinfo></xsd:annotation>
       </xsd:element>
     </xsd:sequence>
@@ -322,7 +377,9 @@ A constant value for the threshold.  Overridden by the "option" attribute.
   <xsd:complexType name="FilterDependencySpec">
     <xsd:attribute name="label" type="xsd:string">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-The label of the filter depended on.
+The label of the filter depended on.  Filter dependencies should be
+specified by label rather than fixedName whenever possible.  Labels can only
+refer to filters within the same predicate or codec.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="fixedName" type="xsd:string">
@@ -338,7 +395,9 @@ attribute.
       <xsd:element name="argument" type="FilterArgumentSpec"
           maxOccurs="unbounded">
         <xsd:annotation><xsd:appinfo>
-          <jxb:property name="arguments"/>
+          <jxb:property name="arguments"><jxb:javadoc>
+A single filter argument.
+          </jxb:javadoc></jxb:property>
         </xsd:appinfo></xsd:annotation>
       </xsd:element>
     </xsd:sequence>
@@ -362,16 +421,16 @@ A constant value for the argument.  Overridden by the "option" attribute.
       <xsd:element name="examples" type="FilterBlobExampleSpec"
           minOccurs="0">
         <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
-If present, include an "examples" directory in the Zip file which contains
-example images in PNG format.
+Include an "examples" directory in the Zip archive which contains example
+images in PNG format.  If present, the options section must include an
+exampleOption.
         </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
       </xsd:element>
       <xsd:element name="member" type="FilterBlobMemberSpec"
           minOccurs="0" maxOccurs="unbounded">
         <xsd:annotation><xsd:appinfo>
           <jxb:property name="members"><jxb:javadoc>
-If present, construct a blob argument consisting of a Zip file containing
-the specified members.
+Include the specified member in the Zip archive.
           </jxb:javadoc></jxb:property>
         </xsd:appinfo></xsd:annotation>
       </xsd:element>
@@ -379,13 +438,13 @@ the specified members.
     <xsd:attribute name="option" type="xsd:string">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
 The name of the option specifying the filename of the blob argument.  Cannot
-be present if there are member elements.
+be present if member elements are specified.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
     <xsd:attribute name="data" type="Filename">
       <xsd:annotation><xsd:appinfo><jxb:property><jxb:javadoc>
 The filename of the file containing the blob argument.  Cannot be present if
-there are member elements.
+member elements are specified.
       </jxb:javadoc></jxb:property></xsd:appinfo></xsd:annotation>
     </xsd:attribute>
   </xsd:complexType>
