@@ -448,7 +448,7 @@ public class Util {
      * @throws IOException
      *            if an IO error occurs while reading
      */
-    public static Map<String, byte[]> readZipFile(InputStream in)
+    static Map<String, byte[]> readZipFile(InputStream in)
             throws IOException {
         Map<String, byte[]> zipMap = new HashMap<String, byte[]>();
         try {
