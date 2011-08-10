@@ -227,7 +227,7 @@ public class SearchFactory {
 
         // pick a host based on the hash code of the signature
         String[] hosts = cookieMap.getHosts();
-        String host = hosts[signature.hashCode() % hosts.length];
+        String host = hosts[Math.abs(signature.hashCode()) % hosts.length];
         List<Cookie> c = cookieMap.get(host);
 
         LoggingFramework logging = LoggingFramework
