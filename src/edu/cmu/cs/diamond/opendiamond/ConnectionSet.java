@@ -58,8 +58,14 @@ class ConnectionSet {
                     cancelAllBlastTasks();
 
                     Throwable cause = e.getCause();
-                    if ((cause instanceof IOException) && !closing) {
-                        IOException e2 = (IOException) cause;
+                    if (!closing) {
+                        IOException e2;
+                        if (cause instanceof IOException) {
+                            e2 = (IOException) cause;
+                        } else {
+                            e2 = new IOException("couldn't read blast channel",
+                                    cause);
+                        }
 
                         // inject into blast queue, only if we are not closing
                         try {
