@@ -26,10 +26,6 @@ final class MiniRPCMessage {
 
     public final static int MINIRPC_INVALID_ARGUMENT = -4;
 
-    public final static int MINIRPC_INVALID_PROTOCOL = -5;
-
-    public final static int MINIRPC_NETWORK_FAILURE = -6;
-
     private final long sequence;
 
     private final int status;
@@ -86,10 +82,6 @@ final class MiniRPCMessage {
             return "procedure unavailable";
         case MINIRPC_INVALID_ARGUMENT:
             return "invalid argument";
-        case MINIRPC_INVALID_PROTOCOL:
-            return "invalid protocol";
-        case MINIRPC_NETWORK_FAILURE:
-            return "network failure";
         default:
             return Integer.toString(s);
 
