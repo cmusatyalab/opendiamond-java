@@ -33,7 +33,7 @@ class BlastGetter implements Callable<Object> {
         this.maxOutstandingRequests = maxOutstandingRequests;
     }
 
-    private final int CMD = 1;
+    private final int CMD = 2;
 
     private final byte[] DATA = new byte[0];
 
