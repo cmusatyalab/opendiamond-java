@@ -63,7 +63,7 @@ class BlastGetter implements Callable<Object> {
             XDR_object obj = getAndAcknowldgeBlastChannelObject();
 
             // no more objects?
-            if (obj.getAttributes().isEmpty() && (obj.getData().length == 0)) {
+            if (obj.getAttributes().isEmpty()) {
                 return null;
             }
 
