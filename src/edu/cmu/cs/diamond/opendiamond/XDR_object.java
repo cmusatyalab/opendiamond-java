@@ -19,14 +19,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 class XDR_object {
-    private final long searchID;
-
     private final byte[] data;
 
     private final Map<String, byte[]> attributes;
 
     public XDR_object(XDRGetter buf) throws IOException {
-        searchID = buf.getInt() & 0xFFFFFFFFL;
         data = buf.getOpaque();
 
         Map<String, byte[]> tmpMap = new HashMap<String, byte[]>();
@@ -39,10 +36,6 @@ class XDR_object {
         attributes = Collections.unmodifiableMap(tmpMap);
     }
 
-    public long getSearchID() {
-        return searchID;
-    }
-
     public byte[] getData() {
         return data;
     }
@@ -53,7 +46,6 @@ class XDR_object {
 
     @Override
     public String toString() {
-        return "searchID: " + searchID + ", attributes: " + attributes
-                + ", data: " + Arrays.toString(data);
+        return "attributes: " + attributes + ", data: " + Arrays.toString(data);
     }
 }
