@@ -18,11 +18,11 @@ import java.io.IOException;
 import java.util.Set;
 
 class XDR_start implements XDREncodeable {
-    private final int searchID;
+    private final byte[] searchID;
 
     private final XDR_attr_name_list attributes;
 
-    public XDR_start(int searchID, Set<String> attributes) {
+    public XDR_start(byte[] searchID, Set<String> attributes) {
         this.searchID = searchID;
         if (attributes != null) {
             this.attributes = new XDR_attr_name_list(attributes);
@@ -36,7 +36,7 @@ class XDR_start implements XDREncodeable {
         DataOutputStream out = new DataOutputStream(baos);
 
         try {
-            out.writeInt(searchID);
+            out.write(searchID, 0, 36);
             if (attributes != null) {
                 out.writeInt(1);
                 out.write(attributes.encode());
