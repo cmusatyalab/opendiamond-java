@@ -33,7 +33,7 @@ class BlastGetter implements Callable<Object> {
         this.maxOutstandingRequests = maxOutstandingRequests;
     }
 
-    private final int CMD = 1;
+    private final int CMD = 2;
 
     private final byte[] DATA = new byte[0];
 
@@ -63,7 +63,7 @@ class BlastGetter implements Callable<Object> {
             XDR_object obj = getAndAcknowldgeBlastChannelObject();
 
             // no more objects?
-            if (obj.getAttributes().isEmpty() && (obj.getData().length == 0)) {
+            if (obj.getAttributes().isEmpty()) {
                 return null;
             }
 
