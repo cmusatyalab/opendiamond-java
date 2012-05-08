@@ -165,7 +165,7 @@ public class Search {
         // compose new Result
         XDR_object obj = bco.getObj();
         Map<String, byte[]> attrs = obj.getAttributes();
-        
+
         Result result = new Result(attrs, bco.getHostname());
 
         logging.saveGetNewResult(result);
