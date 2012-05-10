@@ -16,13 +16,14 @@ package edu.cmu.cs.diamond.opendiamond;
  * A class representing some runtime statistics for a single server.
  */
 public class ServerStatistics {
-    final private int totalObjects;
+    final private long totalObjects;
 
-    final private int processedObjects;
+    final private long processedObjects;
 
-    final private int droppedObjects;
+    final private long droppedObjects;
 
-    ServerStatistics(int totalObjects, int processedObjects, int droppedObjects) {
+    ServerStatistics(long totalObjects, long processedObjects,
+            long droppedObjects) {
         this.totalObjects = totalObjects;
         this.processedObjects = processedObjects;
         this.droppedObjects = droppedObjects;
@@ -34,7 +35,13 @@ public class ServerStatistics {
      * @return dropped object count
      */
     public int getDroppedObjects() {
-        return droppedObjects;
+        if (droppedObjects < Integer.MIN_VALUE
+                || droppedObjects > Integer.MAX_VALUE) {
+            throw new UnsupportedOperationException(
+                    "Value out of range supported by int");
+        }
+
+        return (int) droppedObjects;
     }
 
     /**
@@ -43,7 +50,13 @@ public class ServerStatistics {
      * @return processed object count
      */
     public int getProcessedObjects() {
-        return processedObjects;
+        if (droppedObjects < Integer.MIN_VALUE
+                || droppedObjects > Integer.MAX_VALUE) {
+            throw new UnsupportedOperationException(
+                    "Value out of range supported by int");
+        }
+
+        return (int) processedObjects;
     }
 
     /**
@@ -52,7 +65,13 @@ public class ServerStatistics {
      * @return total object count
      */
     public int getTotalObjects() {
-        return totalObjects;
+        if (droppedObjects < Integer.MIN_VALUE
+                || droppedObjects > Integer.MAX_VALUE) {
+            throw new UnsupportedOperationException(
+                    "Value out of range supported by int");
+        }
+
+        return (int) totalObjects;
     }
 
     @Override
@@ -60,4 +79,35 @@ public class ServerStatistics {
         return totalObjects + " total, " + processedObjects + " processed, "
                 + droppedObjects + " dropped";
     }
+
+    // These API methods are deprecated because applications expect the values
+    // to
+    // be integers.
+    //
+    // /**
+    // * Gets the count of dropped objects.
+    // *
+    // * @return dropped object count
+    // */
+    // public long getDroppedObjects() {
+    // return droppedObjects;
+    // }
+    //
+    // /**
+    // * Gets the count of processed objects.
+    // *
+    // * @return processed object count
+    // */
+    // public long getProcessedObjects() {
+    // return processedObjects;
+    // }
+    //
+    // /**
+    // * Gets the count of total objects.
+    // *
+    // * @return total object count
+    // */
+    // public long getTotalObjects() {
+    // return totalObjects;
+    // }
 }
