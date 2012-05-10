@@ -263,8 +263,8 @@ public class SearchFactory {
     private Result reexecute(Connection conn, String objID,
             Set<String> attributes) throws IOException {
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();
-        // reexecute = 21
-        MiniRPCReply reply = new RPC(conn, conn.getHostname(), 21, reexec)
+        // reexecute = 22
+        MiniRPCReply reply = new RPC(conn, conn.getHostname(), 22, reexec)
                 .doRPC();
 
         // read reply
