@@ -16,14 +16,12 @@ import java.io.IOException;
 
 class XDR_attribute {
 
-    private final static int MAX_ATTRIBUTE_NAME = 256;
-
     private final String name;
 
     private final byte[] data;
 
     public XDR_attribute(XDRGetter buf) throws IOException {
-        name = buf.getString(MAX_ATTRIBUTE_NAME);
+        name = buf.getString();
         data = buf.getOpaque();
     }
 

@@ -76,7 +76,7 @@ class XDR_filter_stats {
     private final long avgExecTime;
 
     public XDR_filter_stats(XDRGetter data) throws IOException {
-        name = data.getString(RPC.MAX_FILTER_NAME);
+        name = data.getString();
         objsProcessed = data.getInt();
         objsDropped = data.getInt();
         objsCacheDropped = data.getInt();

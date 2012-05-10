@@ -27,11 +27,6 @@ public class SearchFactory {
             Integer.MAX_VALUE, 1, TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>());
 
-    /**
-     * The maximum length of an attribute name.
-     */
-    public static final int MAX_ATTRIBUTE_NAME = 256;
-
     private final List<Filter> filters;
 
     private final CookieMap cookieMap;
@@ -54,12 +49,6 @@ public class SearchFactory {
 
     private static Set<String> copyAndValidateAttributes(Set<String> attributes) {
         Set<String> copyOfAttributes = new HashSet<String>(attributes);
-        for (String string : copyOfAttributes) {
-            if (string.length() > MAX_ATTRIBUTE_NAME) {
-                throw new IllegalArgumentException("\"" + string
-                        + "\" length is greater than MAX_ATTRIBUTE_NAME");
-            }
-        }
         return copyOfAttributes;
     }
 

@@ -69,11 +69,6 @@ class XDR_dev_stats {
         avgObjTime = data.getLong();
 
         int numFilters = data.getInt();
-        if (numFilters > RPC.MAX_FILTERS) {
-            throw new IllegalArgumentException(
-                    "length of ds_filter_stats too large: " + numFilters
-                            + " > " + RPC.MAX_FILTERS);
-        }
 
         // read filters
         for (int i = 0; i < numFilters; i++) {
