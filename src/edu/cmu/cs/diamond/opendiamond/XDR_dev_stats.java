@@ -14,20 +14,21 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
 class XDR_dev_stats {
-	public Map<String, Long> getStats() {
-		return stats;
-	}
+    public Map<String, Long> getStats() {
+        return Collections.unmodifiableMap(stats);
+    }
 
-	public List<XDR_filter_stats> getFilterStats() {
-		return filterStats;
-	}
+    public List<XDR_filter_stats> getFilterStats() {
+        return Collections.unmodifiableList(filterStats);
+    }
 
-	private final Map<String, Long> stats = new HashMap<String, Long>();
+    private final Map<String, Long> stats = new HashMap<String, Long>();
 
     private final List<XDR_filter_stats> filterStats = new ArrayList<XDR_filter_stats>();
 

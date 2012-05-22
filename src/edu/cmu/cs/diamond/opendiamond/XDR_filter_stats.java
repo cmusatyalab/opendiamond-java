@@ -15,19 +15,20 @@ package edu.cmu.cs.diamond.opendiamond;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Collections;
 
 class XDR_filter_stats {
+    private final String name;
+
+    private final Map<String, Long> stats = new HashMap<String, Long>();
+
     public String getName() {
         return name;
     }
 
     public Map<String, Long> getStats() {
-        return stats;
+        return Collections.unmodifiableMap(stats);
     }
-
-    private final String name;
-
-    private final Map<String, Long> stats = new HashMap<String, Long>();
 
     public XDR_filter_stats(XDRGetter data) throws IOException {
         name = data.getString(RPC.MAX_FILTER_NAME);

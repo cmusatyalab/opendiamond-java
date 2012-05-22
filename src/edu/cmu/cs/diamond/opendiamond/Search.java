@@ -190,9 +190,9 @@ public class Search {
 
         Map<String, ServerStatistics> result = new HashMap<String, ServerStatistics>();
         synchronized (rpcLock) {
-            // request_stats = 16
+            // request_stats = 29
             CompletionService<MiniRPCReply> results = cs
-                    .sendToAllControlChannels(16, new byte[0]);
+                    .sendToAllControlChannels(29, new byte[0]);
 
             try {
                 for (int i = 0; i < cs.size(); i++) {
@@ -205,12 +205,7 @@ public class Search {
                                 new XDR_dev_stats(msg.getData()).getStats();
 
                         // add
-                        result.put(host, new ServerStatistics(
-                                stats.get("objs_total"),
-                                stats.get("objs_processed"),
-                                stats.get("objs_dropped")
-                                )
-                        );
+                        result.put(host, new ServerStatistics(stats));
                     } catch (ExecutionException e) {
                         Throwable cause = e.getCause();
                         if (cause instanceof IOException) {

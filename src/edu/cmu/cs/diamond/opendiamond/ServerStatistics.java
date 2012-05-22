@@ -12,21 +12,30 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
+import java.util.Map;
+
 /**
  * A class representing some runtime statistics for a single server.
  */
 public class ServerStatistics {
-    final private long totalObjects;
+    final private static String objsTotal = "objs_total";
 
-    final private long processedObjects;
+    final private static String objsProcessed = "objs_processed";
 
-    final private long droppedObjects;
+    final private static String objsDropped = "objs_dropped";
 
-    ServerStatistics(long totalObjects, long processedObjects,
-            long droppedObjects) {
-        this.totalObjects = totalObjects;
-        this.processedObjects = processedObjects;
-        this.droppedObjects = droppedObjects;
+    final private Map<String, Long> serverStatistics;
+
+    ServerStatistics(Map<String, Long> serverStatistics) {
+        this.serverStatistics = serverStatistics;
+    }
+
+    public long getStat(String name) {
+        if (serverStatistics.get(name) == null) {
+            throw new IllegalArgumentException("No such statistics name");
+        }
+
+        return serverStatistics.get(name);
     }
 
     /**
@@ -34,7 +43,10 @@ public class ServerStatistics {
      * 
      * @return dropped object count
      */
+    @Deprecated
     public int getDroppedObjects() {
+        long droppedObjects = getStat(objsDropped);
+
         if (droppedObjects < Integer.MIN_VALUE
                 || droppedObjects > Integer.MAX_VALUE) {
             throw new UnsupportedOperationException(
@@ -49,9 +61,12 @@ public class ServerStatistics {
      * 
      * @return processed object count
      */
+    @Deprecated
     public int getProcessedObjects() {
-        if (droppedObjects < Integer.MIN_VALUE
-                || droppedObjects > Integer.MAX_VALUE) {
+        long processedObjects = getStat(objsProcessed);
+
+        if (processedObjects < Integer.MIN_VALUE
+                || processedObjects > Integer.MAX_VALUE) {
             throw new UnsupportedOperationException(
                     "Value out of range supported by int");
         }
@@ -64,9 +79,12 @@ public class ServerStatistics {
      * 
      * @return total object count
      */
+    @Deprecated
     public int getTotalObjects() {
-        if (droppedObjects < Integer.MIN_VALUE
-                || droppedObjects > Integer.MAX_VALUE) {
+        long totalObjects = getStat(objsTotal);
+
+        if (totalObjects < Integer.MIN_VALUE
+                || totalObjects > Integer.MAX_VALUE) {
             throw new UnsupportedOperationException(
                     "Value out of range supported by int");
         }
@@ -76,38 +94,7 @@ public class ServerStatistics {
 
     @Override
     public String toString() {
-        return totalObjects + " total, " + processedObjects + " processed, "
-                + droppedObjects + " dropped";
+        return getStat(objsTotal) + " total, " + getStat(objsProcessed)
+                + " processed, " + getStat(objsDropped) + " dropped";
     }
-
-    // These API methods are deprecated because applications expect the values
-    // to
-    // be integers.
-    //
-    // /**
-    // * Gets the count of dropped objects.
-    // *
-    // * @return dropped object count
-    // */
-    // public long getDroppedObjects() {
-    // return droppedObjects;
-    // }
-    //
-    // /**
-    // * Gets the count of processed objects.
-    // *
-    // * @return processed object count
-    // */
-    // public long getProcessedObjects() {
-    // return processedObjects;
-    // }
-    //
-    // /**
-    // * Gets the count of total objects.
-    // *
-    // * @return total object count
-    // */
-    // public long getTotalObjects() {
-    // return totalObjects;
-    // }
 }
