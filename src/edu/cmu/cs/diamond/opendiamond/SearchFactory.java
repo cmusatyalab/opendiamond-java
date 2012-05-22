@@ -180,7 +180,11 @@ public class SearchFactory {
      * @param identifier
      *            the identifier representing the object to evaluate
      * @param desiredAttributes
-     *            a set of attribute names to specify which attributes to appear
+     *            an optional set of attribute names to specify which
+     *            attributes to appear. No set provided signifies a request for
+     *            all attributes. Diamond protocol used to use an empty list
+     *            to signify a request for all attributes, and for
+     *            compatibility, that is still allowed.
      * @return a new result
      * @throws IOException
      *             if an IO error occurs
@@ -214,7 +218,11 @@ public class SearchFactory {
      * @param data
      *            the data to evaluate
      * @param desiredAttributes
-     *            a set of attribute names to specify which attributes to appear
+     *            an optional set of attribute names to specify which
+     *            attributes to appear. No set provided signifies a request for
+     *            all attributes. Diamond protocol used to use an empty list
+     *            to signify a request for all attributes, and for
+     *            compatibility, that is still allowed.
      * @return a new result
      * @throws IOException
      *             if an IO error occurs
@@ -263,8 +271,8 @@ public class SearchFactory {
     private Result reexecute(Connection conn, String objID,
             Set<String> attributes) throws IOException {
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();
-        // reexecute = 22
-        MiniRPCReply reply = new RPC(conn, conn.getHostname(), 22, reexec)
+        // reexecute = 30
+        MiniRPCReply reply = new RPC(conn, conn.getHostname(), 30, reexec)
                 .doRPC();
 
         // read reply

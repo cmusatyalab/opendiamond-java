@@ -13,7 +13,9 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.util.Set;
-import java.nio.ByteBuffer;
+import java.io.DataOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 class XDR_reexecute implements XDREncodeable {
     private final String objectID;
@@ -22,33 +24,32 @@ class XDR_reexecute implements XDREncodeable {
 
     public XDR_reexecute(String objectID, Set<String> attributes) {
         this.objectID = objectID;
-        this.attributes = new XDR_attr_name_list(attributes);
+
+        if (attributes != null && !attributes.isEmpty()) {
+            this.attributes = new XDR_attr_name_list(attributes);
+        } else {
+            this.attributes = null;
+        }
     }
 
     public byte[] encode() {
-        byte b1[] = XDREncoders.encodeString(objectID);
-        byte b2[];
-        byte attrSignifier[];
-        byte result[];
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(baos);
 
-        // Optional attributes list
-        if (attributes != null) {
-            attrSignifier = ByteBuffer.allocate(4).putInt(1).array();
-            byte attrs[] = attributes.encode();
+        try {
+            out.write(XDREncoders.encodeString(objectID));
 
-            b2 = new byte[4 + attrs.length];
-            System.arraycopy(attrSignifier, 0, b2, 0, 4);
-            System.arraycopy(attrs, 0, b2, 4, attrs.length);
-        } else {
-            attrSignifier = ByteBuffer.allocate(4).putInt(0).array();
-            b2 = new byte[4];
-            System.arraycopy(attrSignifier, 0, b2, 0, 4);
+            // Optional attributes list
+            if (attributes != null) {
+                out.writeInt(1);
+                out.write(attributes.encode());
+            } else {
+                out.writeInt(0);
+            }
+        } catch(IOException e) {
+            e.printStackTrace();
         }
 
-        result = new byte[b1.length + b2.length];
-        System.arraycopy(b1, 0, result, 0, b1.length);
-        System.arraycopy(b2, 0, result, b1.length, b2.length);
-
-        return result;
+        return baos.toByteArray();
     }
 }
