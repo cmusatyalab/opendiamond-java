@@ -26,10 +26,6 @@ class RPC implements Callable<MiniRPCReply> {
 
     final public static int DIAMOND_SCHEME_NOT_SUPPORTED = 505;
 
-    final public static int MAX_FILTER_NAME = 128;
-
-    final public static int MAX_FILTERS = 64;
-
     final private Connection connection;
 
     final private int cmd;
