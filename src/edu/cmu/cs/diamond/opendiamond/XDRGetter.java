@@ -37,16 +37,7 @@ class XDRGetter {
     }
 
     public byte[] getOpaque() throws IOException {
-        return getOpaque(Integer.MAX_VALUE);
-    }
-
-    public byte[] getOpaque(int maxLength) throws IOException {
-        int len = data.readInt();
-        if (len > maxLength) {
-            throw new IllegalStateException("length greater than max (" + len
-                    + " > " + maxLength + ")");
-        }
-        return getOpaqueFixed(len);
+        return getOpaqueFixed(data.readInt());
     }
 
     public byte[] getOpaqueFixed(int len) throws IOException {
@@ -68,12 +59,8 @@ class XDRGetter {
         return data.readLong();
     }
 
-    public String getString(int maxLength) throws IOException {
-        return new String(getOpaque(maxLength), "UTF-8");
-    }
-
     public String getString() throws IOException {
-        return getString(Integer.MAX_VALUE);
+        return new String(getOpaque(), "UTF-8");
     }
 
     public double getDouble() throws IOException {
