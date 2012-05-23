@@ -47,11 +47,6 @@ public class SearchFactory {
         this.cookieMap = cookieMap;
     }
 
-    private static Set<String> copyAndValidateAttributes(Set<String> attributes) {
-        Set<String> copyOfAttributes = new HashSet<String>(attributes);
-        return copyOfAttributes;
-    }
-
     @Override
     public String toString() {
         return filters.toString();
@@ -83,7 +78,7 @@ public class SearchFactory {
             // no filtering requested
             pushAttributes = null;
         } else {
-            pushAttributes = copyAndValidateAttributes(desiredAttributes);
+            pushAttributes = new HashSet<String>(desiredAttributes);
         }
 
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
@@ -176,7 +171,7 @@ public class SearchFactory {
      */
     public Result generateResult(ObjectIdentifier identifier,
             Set<String> desiredAttributes) throws IOException {
-        Set<String> attributes = copyAndValidateAttributes(desiredAttributes);
+        Set<String> attributes = new HashSet<String>(desiredAttributes);
         String host = identifier.getHostname();
         String objID = identifier.getObjectID();
         List<Cookie> c = cookieMap.get(host);
@@ -210,7 +205,7 @@ public class SearchFactory {
      */
     public Result generateResult(byte[] data, Set<String> desiredAttributes)
             throws IOException {
-        Set<String> attributes = copyAndValidateAttributes(desiredAttributes);
+        Set<String> attributes = new HashSet<String>(desiredAttributes);
         Signature signature = new Signature(data);
         String objID = signature.asURI().toString();
 
