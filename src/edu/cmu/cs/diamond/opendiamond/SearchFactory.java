@@ -27,11 +27,6 @@ public class SearchFactory {
             Integer.MAX_VALUE, 1, TimeUnit.SECONDS,
             new SynchronousQueue<Runnable>());
 
-    /**
-     * The maximum length of an attribute name.
-     */
-    public static final int MAX_ATTRIBUTE_NAME = 256;
-
     private final List<Filter> filters;
 
     private final CookieMap cookieMap;
@@ -50,17 +45,6 @@ public class SearchFactory {
         this.filters = new ArrayList<Filter>(filters);
 
         this.cookieMap = cookieMap;
-    }
-
-    private static Set<String> copyAndValidateAttributes(Set<String> attributes) {
-        Set<String> copyOfAttributes = new HashSet<String>(attributes);
-        for (String string : copyOfAttributes) {
-            if (string.length() > MAX_ATTRIBUTE_NAME) {
-                throw new IllegalArgumentException("\"" + string
-                        + "\" length is greater than MAX_ATTRIBUTE_NAME");
-            }
-        }
-        return copyOfAttributes;
     }
 
     @Override
@@ -94,7 +78,7 @@ public class SearchFactory {
             // no filtering requested
             pushAttributes = null;
         } else {
-            pushAttributes = copyAndValidateAttributes(desiredAttributes);
+            pushAttributes = new HashSet<String>(desiredAttributes);
         }
 
         List<Future<Connection>> futures = new ArrayList<Future<Connection>>();
@@ -190,7 +174,7 @@ public class SearchFactory {
      */
     public Result generateResult(ObjectIdentifier identifier,
             Set<String> desiredAttributes) throws IOException {
-        Set<String> attributes = copyAndValidateAttributes(desiredAttributes);
+        Set<String> attributes = new HashSet<String>(desiredAttributes);
         String host = identifier.getHostname();
         String objID = identifier.getObjectID();
         List<Cookie> c = cookieMap.get(host);
@@ -227,7 +211,7 @@ public class SearchFactory {
      */
     public Result generateResult(byte[] data, Set<String> desiredAttributes)
             throws IOException {
-        Set<String> attributes = copyAndValidateAttributes(desiredAttributes);
+        Set<String> attributes = new HashSet<String>(desiredAttributes);
         Signature signature = new Signature(data);
         String objID = signature.asURI().toString();
 

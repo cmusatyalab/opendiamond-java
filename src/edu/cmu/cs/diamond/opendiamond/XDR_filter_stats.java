@@ -31,7 +31,7 @@ class XDR_filter_stats {
     }
 
     public XDR_filter_stats(XDRGetter data) throws IOException {
-        name = data.getString(RPC.MAX_FILTER_NAME);
+        name = data.getString();
 
         // read statistics
         int numStats = data.getInt();
