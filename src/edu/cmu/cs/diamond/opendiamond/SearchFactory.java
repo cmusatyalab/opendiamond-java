@@ -268,7 +268,7 @@ public class SearchFactory {
 
     private Result reexecute(Connection conn, String objID,
             Set<String> attributes) throws IOException {
-        if (attributes.isEmpty()) {
+        if (attributes != null && attributes.isEmpty()) {
             attributes = null;
         }
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();
