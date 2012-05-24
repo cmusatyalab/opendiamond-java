@@ -201,11 +201,13 @@ public class Search {
                         reply.checkStatus();
                         String host = reply.getHostname();
                         MiniRPCMessage msg = reply.getMessage();
-                        Map<String, Long> stats =
-                                new XDR_dev_stats(msg.getData()).getStats();
+                        XDR_dev_stats stats = new XDR_dev_stats(msg.getData());
+                        ServerStatistics serverStats = new ServerStatistics(
+                                stats.getStats(), stats.getFilterStats());
 
                         // add
-                        result.put(host, new ServerStatistics(stats));
+                        result.put(host, serverStats);
+
                     } catch (ExecutionException e) {
                         Throwable cause = e.getCause();
                         if (cause instanceof IOException) {
