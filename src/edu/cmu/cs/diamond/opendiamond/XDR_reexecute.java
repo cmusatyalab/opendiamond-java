@@ -13,6 +13,9 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.util.Set;
+import java.io.DataOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 class XDR_reexecute implements XDREncodeable {
     private final String objectID;
@@ -21,17 +24,32 @@ class XDR_reexecute implements XDREncodeable {
 
     public XDR_reexecute(String objectID, Set<String> attributes) {
         this.objectID = objectID;
-        this.attributes = new XDR_attr_name_list(attributes);
+
+        if (attributes != null) {
+            this.attributes = new XDR_attr_name_list(attributes);
+        } else {
+            this.attributes = null;
+        }
     }
 
     public byte[] encode() {
-        byte b1[] = XDREncoders.encodeString(objectID);
-        byte b2[] = attributes.encode();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(baos);
 
-        byte result[] = new byte[b1.length + b2.length];
-        System.arraycopy(b1, 0, result, 0, b1.length);
-        System.arraycopy(b2, 0, result, b1.length, b2.length);
+        try {
+            out.write(XDREncoders.encodeString(objectID));
 
-        return result;
+            // Optional attributes list
+            if (attributes != null) {
+                out.writeInt(1);
+                out.write(attributes.encode());
+            } else {
+                out.writeInt(0);
+            }
+        } catch(IOException e) {
+            e.printStackTrace();
+        }
+
+        return baos.toByteArray();
     }
 }

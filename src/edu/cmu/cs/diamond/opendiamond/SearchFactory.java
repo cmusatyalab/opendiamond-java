@@ -180,7 +180,10 @@ public class SearchFactory {
      * @param identifier
      *            the identifier representing the object to evaluate
      * @param desiredAttributes
-     *            a set of attribute names to specify which attributes to appear
+     *            a set of attribute names to specify which attributes to
+     *            appear. If null, all attributes are returned. For backward
+     *            compatibility, if the set is empty, all attributes are
+     *            returned.
      * @return a new result
      * @throws IOException
      *             if an IO error occurs
@@ -214,7 +217,10 @@ public class SearchFactory {
      * @param data
      *            the data to evaluate
      * @param desiredAttributes
-     *            a set of attribute names to specify which attributes to appear
+     *            a set of attribute names to specify which attributes to
+     *            appear. If null, all attributes are returned. For backward
+     *            compatibility, if the set is empty, all attributes are
+     *            returned.
      * @return a new result
      * @throws IOException
      *             if an IO error occurs
@@ -262,9 +268,12 @@ public class SearchFactory {
 
     private Result reexecute(Connection conn, String objID,
             Set<String> attributes) throws IOException {
+        if (attributes != null && attributes.isEmpty()) {
+            attributes = null;
+        }
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();
-        // reexecute = 21
-        MiniRPCReply reply = new RPC(conn, conn.getHostname(), 21, reexec)
+        // reexecute = 30
+        MiniRPCReply reply = new RPC(conn, conn.getHostname(), 30, reexec)
                 .doRPC();
 
         // read reply
