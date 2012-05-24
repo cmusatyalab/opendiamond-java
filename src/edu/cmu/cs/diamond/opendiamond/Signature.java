@@ -23,12 +23,12 @@ class Signature {
 
     private final byte[] digest;
 
-    final private static int SIG_SIZE = 16;
+    final private static int SIG_SIZE = 32;
 
     public Signature(byte data[]) {
         MessageDigest md = null;
         try {
-            md = MessageDigest.getInstance("MD5");
+            md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
@@ -55,7 +55,7 @@ class Signature {
 
     public URI asURI() {
         try {
-            return new URI("md5", asString(), null);
+            return new URI("sha256", asString(), null);
         } catch (URISyntaxException e) {
             throw new IllegalStateException();
         }
