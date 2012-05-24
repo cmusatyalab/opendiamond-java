@@ -23,7 +23,7 @@ public class FilterStatistics {
 
     private final Map<String, Long> filterStatistics;
 
-    public FilterStatistics(String name, Map<String, Long> filterStatistics) {
+    FilterStatistics(String name, Map<String, Long> filterStatistics) {
         this.name = name;
         this.filterStatistics = filterStatistics;
     }

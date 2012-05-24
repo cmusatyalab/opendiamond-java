@@ -30,11 +30,10 @@ public class ServerStatistics {
             List<XDR_filter_stats> filterStatistics) {
         this.serverStatistics = serverStatistics;
 
-        for (int i = 0; i < filterStatistics.size(); i++) {
-            XDR_filter_stats filterStat = filterStatistics.get(i);
+        for (XDR_filter_stats filterStat : filterStatistics) {
             String filterName = filterStat.getName();
             this.filterStatistics.put(filterName,
-                new FilterStatistics(filterName, filterStat.getStats()));
+                    new FilterStatistics(filterName, filterStat.getStats()));
         }
     }
 
