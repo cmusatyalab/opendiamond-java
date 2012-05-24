@@ -25,7 +25,7 @@ class XDR_reexecute implements XDREncodeable {
     public XDR_reexecute(String objectID, Set<String> attributes) {
         this.objectID = objectID;
 
-        if (attributes != null && !attributes.isEmpty()) {
+        if (attributes != null) {
             this.attributes = new XDR_attr_name_list(attributes);
         } else {
             this.attributes = null;

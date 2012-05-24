@@ -180,11 +180,10 @@ public class SearchFactory {
      * @param identifier
      *            the identifier representing the object to evaluate
      * @param desiredAttributes
-     *            an optional set of attribute names to specify which
-     *            attributes to appear. No set provided signifies a request for
-     *            all attributes. Diamond protocol used to use an empty list
-     *            to signify a request for all attributes, and for
-     *            compatibility, that is still allowed.
+     *            a set of attribute names to specify which attributes to
+     *            appear. If null, all attributes are returned. For backward
+     *            compatibility, if the set is empty, all attributes are
+     *            returned.
      * @return a new result
      * @throws IOException
      *             if an IO error occurs
@@ -218,11 +217,10 @@ public class SearchFactory {
      * @param data
      *            the data to evaluate
      * @param desiredAttributes
-     *            an optional set of attribute names to specify which
-     *            attributes to appear. No set provided signifies a request for
-     *            all attributes. Diamond protocol used to use an empty list
-     *            to signify a request for all attributes, and for
-     *            compatibility, that is still allowed.
+     *            a set of attribute names to specify which attributes to
+     *            appear. If null, all attributes are returned. For backward
+     *            compatibility, if the set is empty, all attributes are
+     *            returned.
      * @return a new result
      * @throws IOException
      *             if an IO error occurs
@@ -270,6 +268,9 @@ public class SearchFactory {
 
     private Result reexecute(Connection conn, String objID,
             Set<String> attributes) throws IOException {
+        if (attributes.isEmpty()) {
+            attributes = null;
+        }
         byte reexec[] = new XDR_reexecute(objID, attributes).encode();
         // reexecute = 30
         MiniRPCReply reply = new RPC(conn, conn.getHostname(), 30, reexec)
