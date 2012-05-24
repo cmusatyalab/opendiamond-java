@@ -190,25 +190,23 @@ public class Search {
 
         Map<String, ServerStatistics> result = new HashMap<String, ServerStatistics>();
         synchronized (rpcLock) {
-            // request_stats = 15
+            // request_stats = 29
             CompletionService<MiniRPCReply> results = cs
-                    .sendToAllControlChannels(15, new byte[0]);
+                    .sendToAllControlChannels(29, new byte[0]);
 
             try {
                 for (int i = 0; i < cs.size(); i++) {
                     try {
                         MiniRPCReply reply = results.take().get();
-
                         reply.checkStatus();
-
                         String host = reply.getHostname();
                         MiniRPCMessage msg = reply.getMessage();
                         XDR_dev_stats stats = new XDR_dev_stats(msg.getData());
+                        ServerStatistics serverStats = new ServerStatistics(
+                                stats.getStats(), stats.getFilterStats());
 
                         // add
-                        result.put(host, new ServerStatistics(stats
-                                .getObjsTotal(), stats.getObjsProcessed(),
-                                stats.getObjsDropped()));
+                        result.put(host, serverStats);
 
                     } catch (ExecutionException e) {
                         Throwable cause = e.getCause();
@@ -218,7 +216,6 @@ public class Search {
                         }
                     }
                 }
-
             } catch (IOException e) {
                 close(e);
                 throw e;

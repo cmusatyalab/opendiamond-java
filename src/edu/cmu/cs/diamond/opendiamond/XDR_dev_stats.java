@@ -14,59 +14,30 @@ package edu.cmu.cs.diamond.opendiamond;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 class XDR_dev_stats {
-
-    public int getObjsTotal() {
-        return objsTotal;
-    }
-
-    public int getObjsProcessed() {
-        return objsProcessed;
-    }
-
-    public int getObjsDropped() {
-        return objsDropped;
-    }
-
-    public int getObjsNproc() {
-        return objsNproc;
-    }
-
-    public int getSystemLoad() {
-        return systemLoad;
-    }
-
-    public long getAvgObjTime() {
-        return avgObjTime;
+    public Map<String, Long> getStats() {
+        return Collections.unmodifiableMap(stats);
     }
 
     public List<XDR_filter_stats> getFilterStats() {
-        return filterStats;
+        return Collections.unmodifiableList(filterStats);
     }
 
-    private final int objsTotal;
-
-    private final int objsProcessed;
-
-    private final int objsDropped;
-
-    private final int objsNproc;
-
-    private final int systemLoad;
-
-    private final long avgObjTime;
+    private final Map<String, Long> stats = new HashMap<String, Long>();
 
     private final List<XDR_filter_stats> filterStats = new ArrayList<XDR_filter_stats>();
 
     public XDR_dev_stats(XDRGetter data) throws IOException {
-        objsTotal = data.getInt();
-        objsProcessed = data.getInt();
-        objsDropped = data.getInt();
-        objsNproc = data.getInt();
-        systemLoad = data.getInt();
-        avgObjTime = data.getLong();
+        // read server statistics
+        int numStats = data.getInt();
+        for (int i = 0; i < numStats; i++) {
+            stats.put(data.getString(), data.getLong());
+        }
 
         int numFilters = data.getInt();
         if (numFilters > RPC.MAX_FILTERS) {
