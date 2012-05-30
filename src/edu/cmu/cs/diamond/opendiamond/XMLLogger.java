@@ -55,11 +55,11 @@ class XMLLogger extends LoggingFramework {
 
     private int sessionCounter;
 
-    private int totalObjects;
+    private long totalObjects;
 
-    private int processedObjects;
+    private long processedObjects;
 
-    private int droppedObjects;
+    private long droppedObjects;
 
     private final Logger javaLogger;
 
@@ -313,9 +313,9 @@ class XMLLogger extends LoggingFramework {
     public void stoppedSearch(Throwable cause) {
         synchronized (lock) {
             javaLogger.log(Level.FINEST, "Search has stopped.", new String[] {
-                    Integer.toString(totalObjects),
-                    Integer.toString(processedObjects),
-                    Integer.toString(droppedObjects) });
+                    Long.toString(totalObjects),
+                    Long.toString(processedObjects),
+                    Long.toString(droppedObjects) });
             shutdown(cause);
         }
     }
@@ -337,16 +337,17 @@ class XMLLogger extends LoggingFramework {
     			droppedObjects = 0;
     			for (ServerStatistics ss : result.values()) {
     				if (ss != null) {
-	    				totalObjects += ss.getTotalObjects();
-	    				processedObjects += ss.getProcessedObjects();
-	    				droppedObjects += ss.getDroppedObjects();
+					Map<String, Long> map = ss.getServerStats();
+					totalObjects += map.get(ss.TOTAL_OBJECTS);
+					processedObjects += map.get(ss.PROCESSED_OBJECTS);
+					droppedObjects += map.get(ss.DROPPED_OBJECTS);
     				}
     			}
 
     			javaLogger.log(Level.FINEST, "Updating server statistics.",
-    					new String[] { Integer.toString(totalObjects),
-    					Integer.toString(processedObjects),
-    					Integer.toString(droppedObjects) });
+					new String[] { Long.toString(totalObjects),
+					Long.toString(processedObjects),
+					Long.toString(droppedObjects) });
     		}
     	}
     }
