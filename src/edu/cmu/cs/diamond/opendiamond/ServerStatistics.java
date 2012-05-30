@@ -21,6 +21,10 @@ import java.util.List;
  * A class representing some runtime statistics for a single server.
  */
 public class ServerStatistics {
+    public static final String DROPPED_OBJECTS = "objs_dropped";
+    public static final String PROCESSED_OBJECTS = "objs_processed";
+    public static final String TOTAL_OBJECTS = "objs_total";
+
     final private Map<String, Long> serverStatistics;
 
     final private Map<String, FilterStatistics> filterStatistics =
@@ -81,7 +85,7 @@ public class ServerStatistics {
      *
      * @return dropped object count
      *
-     * @deprecated use getServerStats().get("objs_dropped") instead
+     * @deprecated use getServerStats().get(DROPPED_OBJECTS) instead
      */
     @Deprecated
     public int getDroppedObjects() {
@@ -93,7 +97,7 @@ public class ServerStatistics {
      *
      * @return processed object count
      *
-     * @deprecated use getServerStats().get("objs_processed") instead
+     * @deprecated use getServerStats().get(PROCESSED_OBJECTS) instead
      */
     @Deprecated
     public int getProcessedObjects() {
@@ -105,7 +109,7 @@ public class ServerStatistics {
      *
      * @return total object count
      *
-     * @deprecated use getServerStats().get("objs_total") instead
+     * @deprecated use getServerStats().get(TOTAL_OBJECTS) instead
      */
     @Deprecated
     public int getTotalObjects() {
