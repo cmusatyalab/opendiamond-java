@@ -199,6 +199,47 @@ public class Bundle {
     }
 
     private static class PendingFilter {
+        private static class PendingString {
+            private final String key;
+
+            private String value;
+
+            private PendingString(String key, String value) {
+                this.key = key;
+                this.value = value;
+            }
+
+            public static PendingString getPendingString(String key) {
+                return new PendingString(key, null);
+            }
+
+            public static PendingString getResolvedString(String value) {
+                return new PendingString(null, value);
+            }
+
+            public boolean resolve(Map<String, String> keyMap) {
+                if (value == null) {
+                    value = keyMap.get(key);
+                }
+                return isResolved();
+            }
+
+            public boolean isResolved() {
+                return value != null;
+            }
+
+            public String getKey() {
+                return key;
+            }
+
+            public String getValue() {
+                if (!isResolved()) {
+                    throw new IllegalStateException("String not resolved");
+                }
+                return value;
+            }
+        }
+
         private final String name;
 
         private final String label;
@@ -211,11 +252,12 @@ public class Bundle {
 
         private final double maxScore;
 
-        private final List<String> dependencies = new ArrayList<String>();
-
-        private final List<String> dependencyLabels = new ArrayList<String>();
+        private final List<PendingString> dependencies =
+                new ArrayList<PendingString>();
 
         private final List<String> arguments = new ArrayList<String>();
+
+        private boolean resolved;
 
         public PendingFilter(PreparedFileLoader loader,
                 Map<String, String> optionMap, List<BufferedImage> examples,
@@ -276,9 +318,11 @@ public class Bundle {
                     String depLabel = dep.getLabel();
                     String depName = dep.getFixedName();
                     if (depLabel != null) {
-                        dependencyLabels.add(depLabel);
+                        dependencies.add(PendingString.
+                                getPendingString(depLabel));
                     } else if (depName != null) {
-                        dependencies.add(depName);
+                        dependencies.add(PendingString.
+                                getResolvedString(depName));
                     } else {
                         throw new BundleFormatException(
                                 "Missing dependency specification");
@@ -339,17 +383,28 @@ public class Bundle {
             return label;
         }
 
-        public Filter getFilter(Map<String, String> labelMap)
+        public void resolve(Map<String, String> labelMap)
                 throws BundleFormatException {
-            HashSet<String> deps = new HashSet<String>(dependencies);
-            for (String label : dependencyLabels) {
-                String dep = labelMap.get(label);
-                if (dep == null) {
+            for (PendingString dependency : dependencies) {
+                if (!dependency.resolve(labelMap)) {
                     throw new BundleFormatException(
-                            "Missing filter label \"" + label + "\"");
+                            "Missing filter label \"" +
+                            dependency.getKey() + "\"");
                 }
-                deps.add(dep);
             }
+            resolved = true;
+        }
+
+        public Filter getFilter() {
+            if (!resolved) {
+                throw new IllegalStateException("Filter not resolved");
+            }
+
+            HashSet<String> deps = new HashSet<String>();
+            for (PendingString dependency : dependencies) {
+                deps.add(dependency.getValue());
+            }
+
             return new Filter(name, code, minScore, maxScore, deps,
                     arguments, blob);
         }
@@ -523,7 +578,8 @@ public class Bundle {
 
         ArrayList<Filter> filters = new ArrayList<Filter>();
         for (PendingFilter pf : pending) {
-            filters.add(pf.getFilter(labelMap));
+            pf.resolve(labelMap);
+            filters.add(pf.getFilter());
         }
         return filters;
     }
