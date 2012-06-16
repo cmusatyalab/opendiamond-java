@@ -240,7 +240,9 @@ public class Bundle {
             }
         }
 
-        private final String name;
+        private String name;
+
+        private final String fixedName;
 
         private final String label;
 
@@ -255,7 +257,10 @@ public class Bundle {
         private final List<PendingString> dependencies =
                 new ArrayList<PendingString>();
 
-        private final List<String> arguments = new ArrayList<String>();
+        private final List<PendingString> arguments =
+                new ArrayList<PendingString>();
+
+        private String failingLabel;
 
         private boolean resolved;
 
@@ -335,28 +340,74 @@ public class Bundle {
             if (argList != null) {
                 for (FilterArgumentSpec arg : argList.getArguments()) {
                     String option = arg.getOption();
-                    String value;
+                    String label = arg.getLabel();
+                    String value = arg.getValue();
+                    PendingString item;
+
                     if (option != null) {
-                        value = getOptionValue(optionMap, option);
+                        item = PendingString.getResolvedString(
+                                getOptionValue(optionMap, option));
+                    } else if (label != null) {
+                        item = PendingString.getPendingString(label);
+                    } else if (value != null) {
+                        item = PendingString.getResolvedString(value);
                     } else {
-                        value = arg.getValue();
-                        if (value == null) {
-                            throw new BundleFormatException(
-                                    "Missing argument specification");
-                        }
+                        throw new BundleFormatException(
+                                "Missing argument specification");
                     }
-                    arguments.add(value);
+                    arguments.add(item);
                 }
             }
 
-            // set filter name
-            String name = f.getFixedName();
+            // store fixed filter name, if declared
+            fixedName = f.getFixedName();
+        }
+
+        public String getFailingLabel() {
+            return failingLabel;
+        }
+
+        public boolean isResolved() {
+            return resolved;
+        }
+
+        // Try to resolve pending label references.
+        // Add ourself to labelMap once we figure out our own name.
+        // Return true if any progress was made.
+        public boolean resolveStep(Map<String, String> labelMap)
+                throws BundleFormatException {
+            boolean progressed = false;
+
+            if (resolved) {
+                return false;
+            }
+
+            // if we have a fixed name, add ourselves early to encourage
+            // progress
+            if (name == null && fixedName != null) {
+                name = fixedName;
+                progressed |= addToLabelMap(labelMap);
+            }
+
+            // resolve arguments
+            for (PendingString argument : arguments) {
+                if (!argument.isResolved()) {
+                    if (argument.resolve(labelMap)) {
+                        progressed = true;
+                    } else {
+                        failingLabel = argument.getKey();
+                        return progressed;
+                    }
+                }
+            }
+
+            // now we can calculate the filter name
             if (name == null) {
                 try {
                     MessageDigest m = MessageDigest.getInstance("SHA-256");
                     m.update(code.getBytes());
-                    for (String arg : arguments) {
-                        m.update(arg.getBytes());
+                    for (PendingString arg : arguments) {
+                        m.update(arg.getValue().getBytes());
                         m.update((byte) 0);
                     }
                     m.update(blob);
@@ -366,33 +417,31 @@ public class Bundle {
                         ff.format("%02x", b & 0xFF);
                     }
                     name = "z" + ff.toString();
+                    progressed |= addToLabelMap(labelMap);
                 } catch (NoSuchAlgorithmException e) {
                     // can't happen on java 6?
                     e.printStackTrace();
-                    name = "";
+                    failingLabel = "filter-name";
+                    return progressed;
                 }
             }
-            this.name = name;
-        }
 
-        public String getName() {
-            return name;
-        }
-
-        public String getLabel() {
-            return label;
-        }
-
-        public void resolve(Map<String, String> labelMap)
-                throws BundleFormatException {
+            // resolve dependencies late, since they're not necessary for
+            // adding ourselves to the label map
             for (PendingString dependency : dependencies) {
-                if (!dependency.resolve(labelMap)) {
-                    throw new BundleFormatException(
-                            "Missing filter label \"" +
-                            dependency.getKey() + "\"");
+                if (!dependency.isResolved()) {
+                    if (dependency.resolve(labelMap)) {
+                        progressed = true;
+                    } else {
+                        failingLabel = dependency.getKey();
+                        return progressed;
+                    }
                 }
             }
+
             resolved = true;
+            failingLabel = null;
+            return true;
         }
 
         public Filter getFilter() {
@@ -405,8 +454,31 @@ public class Bundle {
                 deps.add(dependency.getValue());
             }
 
-            return new Filter(name, code, minScore, maxScore, deps,
-                    arguments, blob);
+            ArrayList<String> args = new ArrayList<String>();
+            for (PendingString argument : arguments) {
+                args.add(argument.getValue());
+            }
+
+            return new Filter(name, code, minScore, maxScore, deps, args,
+                    blob);
+        }
+
+        // returns true if successful, false if there was nothing to add
+        private boolean addToLabelMap(Map<String, String> labelMap)
+                throws BundleFormatException {
+            if (name == null) {
+                throw new IllegalStateException("Filter name not set");
+            }
+            if (label == null) {
+                // nothing to add
+                return false;
+            }
+            if (labelMap.containsKey(label)) {
+                throw new BundleFormatException(
+                        "Duplicate filter label \"" + label + "\"");
+            }
+            labelMap.put(label, name);
+            return true;
         }
 
         private static String getOptionValue(Map<String, String> optionMap,
@@ -558,27 +630,34 @@ public class Bundle {
             List<BufferedImage> examples) throws IOException {
         PreparedFileLoader loader = this.loader.getPreparedLoader();
 
+        // Create pending filters
         ArrayList<PendingFilter> pending = new ArrayList<PendingFilter>();
         HashMap<String, String> labelMap = new HashMap<String, String>();
         List<FilterSpec> specs = loader.getManifest().getSpec()
                 .getFilterList().getFilters();
         for (FilterSpec f : specs) {
-            PendingFilter pf = new PendingFilter(loader, optionMap, examples,
-                    f);
-            pending.add(pf);
-            String label = pf.getLabel();
-            if (label != null) {
-                if (labelMap.containsKey(label)) {
-                    throw new BundleFormatException(
-                            "Duplicate filter label \"" + label + "\"");
-                }
-                labelMap.put(label, pf.getName());
+            pending.add(new PendingFilter(loader, optionMap, examples, f));
+        }
+
+        // Attempt to resolve label references.  This may take several
+        // tries because we can't calculate a filter's name until we know
+        // its arguments.
+        boolean progressed = true;
+        while (progressed) {
+            progressed = false;
+            for (PendingFilter pf : pending) {
+                progressed |= pf.resolveStep(labelMap);
             }
         }
 
+        // Create filters
         ArrayList<Filter> filters = new ArrayList<Filter>();
         for (PendingFilter pf : pending) {
-            pf.resolve(labelMap);
+            if (!pf.isResolved()) {
+                throw new BundleFormatException(
+                        "Undefined filter label \"" + pf.getFailingLabel() +
+                        "\" or circular reference");
+            }
             filters.add(pf.getFilter());
         }
         return filters;
