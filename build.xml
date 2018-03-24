@@ -5,9 +5,9 @@
     <property name="target" value="1.6"/>
     <property name="source" value="1.6"/>
     <property name="bundle_src"
-            value="src/resources/bundle.xsd"/>
+              value="src/resources/bundle.xsd"/>
     <property name="bundle_dest"
-            value="src/edu/cmu/cs/diamond/opendiamond/bundle"/>
+              value="src/edu/cmu/cs/diamond/opendiamond/bundle"/>
     <path id="OpenDiamond java.classpath">
         <pathelement location="bin"/>
     </path>
@@ -30,23 +30,23 @@
     <target depends="build-project" name="build"/>
     <target name="xjc-check">
         <uptodate property="xjc.current" srcfile="${bundle_src}"
-                targetfile="${bundle_dest}"/>
+                  targetfile="${bundle_dest}"/>
     </target>
     <target name="xjc" depends="xjc-check" unless="xjc.current">
         <delete dir="${bundle_dest}"/>
         <exec executable="xjc">
-             <arg value="-d"/>
-             <arg value="src"/>
-             <arg value="-p"/>
-             <arg value="edu.cmu.cs.diamond.opendiamond.bundle"/>
-             <arg value="${bundle_src}"/>
+            <arg value="-d"/>
+            <arg value="src"/>
+            <arg value="-p"/>
+            <arg value="edu.cmu.cs.diamond.opendiamond.bundle"/>
+            <arg value="${bundle_src}"/>
         </exec>
     </target>
     <target depends="init,xjc" name="build-project">
         <echo message="${ant.project.name}: ${ant.file}"/>
         <javac debug="true" debuglevel="${debuglevel}" destdir="bin"
-                includeantruntime="false" source="${source}"
-                target="${target}">
+               includeantruntime="false" source="${source}"
+               target="${target}">
             <src path="src"/>
             <classpath refid="OpenDiamond java.classpath"/>
         </javac>
@@ -58,5 +58,8 @@
                 <include name="**/*.java"/>
             </fileset>
         </javadoc>
+    </target>
+    <target depends="jar" name="install">
+        <copy file="opendiamond.jar" tofile="/usr/share/java/opendiamond.jar"/>
     </target>
 </project>
