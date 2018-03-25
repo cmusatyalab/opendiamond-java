@@ -13,12 +13,7 @@
 package edu.cmu.cs.diamond.opendiamond;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.IOException;
+import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -45,7 +40,7 @@ import org.xml.sax.SAXException;
 
 import edu.cmu.cs.diamond.opendiamond.bundle.*;
 
-public class Bundle {
+public class Bundle implements Serializable{
     private static class Manifest {
         private static final JAXBContext jaxbContext;
 
@@ -104,7 +99,7 @@ public class Bundle {
         }
     }
 
-    private static abstract class FileLoader {
+    private static abstract class FileLoader implements Serializable{
         protected static final String MANIFEST_NAME = "opendiamond-bundle.xml";
 
         public abstract PreparedFileLoader getPreparedLoader()
@@ -661,5 +656,24 @@ public class Bundle {
             filters.add(pf.getFilter());
         }
         return filters;
+    }
+
+    /**
+     * Jsonifiable
+     */
+    public static class BundleState {
+        public PreparedFileLoader fileLoader;
+
+        public BundleState(PreparedFileLoader fileLoader) {
+            this.fileLoader = fileLoader;
+        }
+    }
+
+    public BundleState export() throws IOException {
+        return new BundleState(this.loader.getPreparedLoader());
+    }
+
+    public static Bundle restore(BundleState state) throws IOException {
+        return new Bundle(state.fileLoader);
     }
 }
