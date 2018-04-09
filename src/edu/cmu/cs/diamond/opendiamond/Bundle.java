@@ -179,15 +179,23 @@ public class Bundle implements Serializable{
         }
 
         public byte[] getBlob(String name) throws IOException {
+            // In bundle
             byte[] data = bundleContents.get(name);
             if (data != null) {
                 return data;
             }
+            // In member directories
             for (File dir : memberDirs) {
                 File file = new File(dir, name);
                 if (file.exists()) {
                     return Util.readFully(new FileInputStream(file));
                 }
+            }
+            // Local path
+            File file = new File(name);
+            System.out.println("Trying to resolve locally: " + name);
+            if (file.exists()) {
+                return Util.readFully(new FileInputStream(file));
             }
             throw new IOException("File not found: " + name);
         }
@@ -526,7 +534,7 @@ public class Bundle implements Serializable{
                         "Missing blob data specification");
             }
             // Validation rule from the Filename XSD type
-            if (!filename.matches("^[A-Za-z0-9_.-]+$")) {
+            if (!filename.matches("^[A-Za-z0-9/_.-]+$")) {
                 throw new BundleFormatException(
                         "Invalid filename for blob data");
             }
