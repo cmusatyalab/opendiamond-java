@@ -24,6 +24,8 @@ public class ServerStatistics {
     public static final String DROPPED_OBJECTS = "objs_dropped";
     public static final String PROCESSED_OBJECTS = "objs_processed";
     public static final String TOTAL_OBJECTS = "objs_total";
+    public static final String TP_OBJECTS = "objs_true_positive";
+    public static final String FN_OBJECTS = "objs_false_negative";
 
     final private Map<String, Long> serverStatistics;
 
@@ -119,6 +121,8 @@ public class ServerStatistics {
     @Override
     public String toString() {
         return getStat("objs_total") + " total, " + getStat("objs_processed")
-                + " processed, " + getStat("objs_dropped") + " dropped";
+                + " processed, " + getStat("objs_dropped") + " dropped" 
+                + getStat("objs_true_positive") + " true_positive"
+                + getStat("objs_false_negative") + " false_negative";
     }
 }

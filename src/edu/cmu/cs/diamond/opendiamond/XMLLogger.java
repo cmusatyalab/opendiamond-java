@@ -61,6 +61,10 @@ class XMLLogger extends LoggingFramework {
 
     private long droppedObjects;
 
+    private long truepositiveObjects;
+
+    private long falsenegativeObjects;
+
     private final Logger javaLogger;
 
     private final Object lock = new Object();
@@ -315,7 +319,9 @@ class XMLLogger extends LoggingFramework {
             javaLogger.log(Level.FINEST, "Search has stopped.", new String[] {
                     Long.toString(totalObjects),
                     Long.toString(processedObjects),
-                    Long.toString(droppedObjects) });
+                    Long.toString(droppedObjects),
+                    Long.toString(truepositiveObjects),
+                    Long.toString(falsenegativeObjects) });
             shutdown(cause);
         }
     }
@@ -335,19 +341,25 @@ class XMLLogger extends LoggingFramework {
     			totalObjects = 0;
     			processedObjects = 0;
     			droppedObjects = 0;
+    			truepositiveObjects = 0;
+    			falsenegativeObjects = 0;
     			for (ServerStatistics ss : result.values()) {
     				if (ss != null) {
 					Map<String, Long> map = ss.getServerStats();
 					totalObjects += map.get(ss.TOTAL_OBJECTS);
 					processedObjects += map.get(ss.PROCESSED_OBJECTS);
 					droppedObjects += map.get(ss.DROPPED_OBJECTS);
+					truepositiveObjects += map.get(ss.TP_OBJECTS);
+					falsenegativeObjects += map.get(ss.FN_OBJECTS);
     				}
     			}
 
     			javaLogger.log(Level.FINEST, "Updating server statistics.",
 					new String[] { Long.toString(totalObjects),
 					Long.toString(processedObjects),
-					Long.toString(droppedObjects) });
+					Long.toString(droppedObjects),
+					Long.toString(truepositiveObjects),
+					Long.toString(falsenegativeObjects) });
     		}
     	}
     }
