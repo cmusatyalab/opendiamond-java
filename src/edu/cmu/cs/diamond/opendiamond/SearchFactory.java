@@ -173,7 +173,7 @@ public class SearchFactory {
      *             if an IO error occurs
      */
     public Result generateResult(ObjectIdentifier identifier,
-            Set<String> desiredAttributes) throws IOException {
+            Set<String> desiredAttributes, String deviceName) throws IOException {
         Set<String> attributes = new HashSet<String>(desiredAttributes);
         String host = identifier.getHostname();
         String objID = identifier.getObjectID();
@@ -193,6 +193,11 @@ public class SearchFactory {
         conn.close();
 
         return newResult;
+    }
+
+    public Result generateResult(ObjectIdentifier identifier,
+            Set<String> desiredAttributes) throws IOException {
+            return generateResult(identifier, desiredAttributes, null);
     }
 
     /**
@@ -251,11 +256,14 @@ public class SearchFactory {
     private class CacheMissException extends IOException {}
 
     private Result reexecute(Connection conn, String objID,
-            Set<String> attributes) throws IOException {
+            Set<String> attributes, String deviceName) throws IOException {
         if (attributes != null && attributes.isEmpty()) {
             attributes = null;
         }
-        byte reexec[] = new XDR_reexecute(objID, attributes).encode();
+        if (deviceName == null) {
+            deviceName = conn.getHostname();
+        }
+        byte reexec[] = new XDR_reexecute(objID, deviceName, attributes).encode();
         // reexecute = 30
         MiniRPCReply reply = new RPC(conn, conn.getHostname(), 30, reexec)
                 .doRPC();
@@ -270,6 +278,11 @@ public class SearchFactory {
 
         // create result
         return new Result(resultAttributes, conn.getHostname());
+    }
+
+    private Result reexecute(Connection conn, String objID,
+            Set<String> attributes) throws IOException {
+            return reexecute(conn, objID, attributes, null);
     }
 
     List<Filter> getFilters() {
