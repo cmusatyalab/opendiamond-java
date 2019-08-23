@@ -106,13 +106,11 @@ public class SearchFactory {
         try {
             for (int i = 0; i < futures.size(); i++) {
                 Future<Connection> f = connectService.take();
-                // System.out.println(f);
                 connections.add(f.get());
             }
         } catch (ExecutionException e1) {
             Throwable cause = e1.getCause();
             if (cause instanceof IOException) {
-                // System.out.println("*********");
                 IOException e = (IOException) cause;
                 ioe = new IOException();
                 ioe.initCause(e);
@@ -140,11 +138,9 @@ public class SearchFactory {
 
     private static void cleanup(List<Future<Connection>> futures)
             throws InterruptedException {
-        // System.out.println("cleanup of " + futures);
         InterruptedException ie = null;
         for (Future<Connection> future : futures) {
             try {
-                // System.out.println(" cleanup ");
                 Connection c = future.get();
                 c.close();
             } catch (ExecutionException e) {
@@ -189,7 +185,15 @@ public class SearchFactory {
         }
 
         Connection conn = Connection.createConnection(host, c, filters);
-        Result newResult = reexecute(conn, objID, attributes);
+
+        Result newResult;
+        if (deviceName != null) {
+            newResult = reexecute(conn, objID, attributes, deviceName);
+        }
+        else {
+            newResult = reexecute(conn, objID, attributes);
+        }
+
         conn.close();
 
         return newResult;

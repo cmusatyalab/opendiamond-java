@@ -274,6 +274,8 @@ public class Util {
      */
     public static String extractString(byte[] value) {
         try {
+            if (value.length == 0)
+                return "";
             return new String(value, 0, value.length - 1, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
