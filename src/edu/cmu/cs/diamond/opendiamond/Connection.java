@@ -25,6 +25,8 @@ import java.util.UUID;
 
 class Connection {
 
+    private static final int PROXY_PORT = 5904;
+
     private static final int DIAMOND_PORT = 5872;
 
     private static final int NONCE_SIZE = 16;
@@ -41,14 +43,17 @@ class Connection {
 
     // all public methods must close() on IOException!
 
-    private static Socket createOneChannel(String address, byte nonce[])
+
+    private static Socket createOneChannel(String address, byte nonce[], Boolean proxyFlag)
             throws IOException {
         if (nonce.length != NONCE_SIZE) {
             throw new IllegalArgumentException("nonce[] must be NONCE_SIZE ("
                     + NONCE_SIZE + "), actual size " + nonce.length);
         }
 
-        Socket socket = new Socket(address, DIAMOND_PORT);
+        int port = (proxyFlag) ? PROXY_PORT : DIAMOND_PORT;
+
+        Socket socket = new Socket(address, port);
         // System.out.println(address);
         // System.out.println(socket);
         DataInputStream in = new DataInputStream(socket.getInputStream());
@@ -64,6 +69,11 @@ class Connection {
         // System.out.println("read " + Arrays.toString(nonce));
 
         return socket;
+    }
+
+    private static Socket createOneChannel(String address, byte nonce[])
+            throws IOException {
+        return createOneChannel(address, nonce, false);
     }
 
     Connection(MiniRPCConnection control, MiniRPCConnection blast,
@@ -82,13 +92,15 @@ class Connection {
         MiniRPCConnection control;
         MiniRPCConnection blast;
 
+        Boolean proxyFlag = cookieList.get(0).getProxyFlag();
+
         try {
             // open control (if exception is thrown here, it's ok)
-            control = new MiniRPCConnection(createOneChannel(host, nonce));
+            control = new MiniRPCConnection(createOneChannel(host, nonce, proxyFlag));
 
             // open data
             try {
-                blast = new MiniRPCConnection(createOneChannel(host, nonce));
+                blast = new MiniRPCConnection(createOneChannel(host, nonce, proxyFlag));
             } catch (IOException e) {
                 try {
                     // close control and propagate
@@ -182,6 +194,16 @@ class Connection {
         }
     }
 
+    public void sendRetrain(byte [] data) throws IOException {
+        try {
+            new RPC(this, hostname, 31, data).doRPC().checkStatus();
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
+
+    }
+
     void close() {
         // System.out.println("closing " + toString());
 
@@ -208,6 +230,7 @@ class Connection {
 
     public void sendBlastRequest(int cmd, byte data[]) throws ServerException {
         try {
+            //System.out.println("Blast Request "+cmd);
             blast.sendRequest(cmd, data);
         } catch (IOException e) {
             close();

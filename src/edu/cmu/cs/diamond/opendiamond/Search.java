@@ -69,6 +69,8 @@ public class Search {
 
     private final Object rpcLock = new Object();
 
+    private static byte[] retrainData;
+
     /**
      * Closes the Search. After calling this method, all other methods will
      * throw a <code>SearchClosedException</code>. <code>close()</code> must be
@@ -124,6 +126,44 @@ public class Search {
             } else {
                 throw new SearchClosedException(closeCause);
             }
+        }
+    }
+
+    public void retrainFilter(Map<String, FeedbackObject> map) throws InterruptedException, IOException {
+        //checkClosed();
+        // encode
+        List<String> names = new ArrayList<String>();
+        List<Integer> labels = new ArrayList<Integer>();
+
+        List<byte[]> features = new ArrayList<byte[]>();
+        for (Map.Entry<String, FeedbackObject> e : map.entrySet()) {
+            FeedbackObject value = e.getValue();
+            names.add(e.getKey());
+            labels.add(value.label);
+            features.add(value.feature_vector);
+        }
+        retrainData = new XDR_retrain(names, labels, features).encode();
+
+        CompletionService<?> replies = cs
+                .runOnAllServers(new ConnectionFunction<Object>() {
+                    public Callable<Object> createCallable(final Connection c) {
+                        return new Callable<Object>() {
+                            public Object call() throws Exception {
+                                c.sendRetrain(retrainData);
+                                return null;
+                            }
+                        };
+                    }
+                });
+
+        try {
+            Util.checkResultsForIOException(cs.size(), replies);
+        } catch (InterruptedException e) {
+            close(e);
+            throw e;
+        } catch (IOException e) {
+            close(e);
+            throw e;
         }
     }
 

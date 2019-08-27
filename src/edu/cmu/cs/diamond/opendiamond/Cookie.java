@@ -35,7 +35,9 @@ class Cookie {
 
     private final String scopeData;
 
-    public Cookie(String s) throws IOException {
+    private final Boolean proxyFlag;
+
+    public Cookie(String s, final Boolean proxyFlag) throws IOException {
         if (!s.startsWith(BEGIN_COOKIE)) {
             throw new IllegalArgumentException("String does not begin with "
                     + BEGIN_COOKIE);
@@ -86,6 +88,7 @@ class Cookie {
         this.serial = serial;
         this.servers = Collections.unmodifiableList(servers);
         this.expires = expires;
+        this.proxyFlag = proxyFlag;
 
         // check
         if (!hasVersion) {
@@ -102,6 +105,10 @@ class Cookie {
         }
     }
 
+    public Cookie(String s) throws IOException {
+        this(s,false);
+    }
+
     public List<String> getServers() {
         return servers;
     }
@@ -110,10 +117,15 @@ class Cookie {
         return rawCookie;
     }
 
+    public Boolean getProxyFlag() {
+        return proxyFlag;
+    }
+
+
     @Override
     public String toString() {
         return "servers: " + servers + ", version: " + version + ", serial: "
-                + serial + ", expires: " + expires;
+                + serial + ", expires: " + expires + ", proxyFlag: " + proxyFlag;
     }
 
     public String getScopeData() {

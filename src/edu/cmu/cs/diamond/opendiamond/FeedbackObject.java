@@ -1,0 +1,12 @@
+package edu.cmu.cs.diamond.opendiamond;
+
+public class FeedbackObject {
+    //public String feature_vector; 
+    public byte[] feature_vector; 
+    public int label;
+
+    public FeedbackObject(byte[] feature_vector, int label) {
+        this.feature_vector = feature_vector;
+        this.label = label;
+    }
+}
