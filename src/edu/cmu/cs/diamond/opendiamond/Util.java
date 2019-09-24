@@ -18,16 +18,21 @@ import java.awt.image.DataBufferInt;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.Paths;
+import java.util.Date;
+import java.util.List;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.Arrays;
 import java.util.TreeMap;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import java.text.SimpleDateFormat;
 
 import javax.imageio.ImageIO;
 import javax.swing.Spring;
@@ -496,4 +501,27 @@ public class Util {
         zip.close();
         return baos.toByteArray();
     }
+
+    /**
+     * Checks for directories named 'positive' and 'negative'
+     * if not present creates them 
+     * @param dirPath 
+     *        path of directory to download images
+     * @result List of Strings path name 
+     * @throws IOException
+     *        if download path does not exist or unable to write
+     */
+
+     public static List<String> createDirStructure(String path) 
+            throws IOException {
+        Date now = new Date();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("hh-mm-ss");
+        String resultPath = "hyperfind-"+dateFormat.format(now);
+        List<String> paths = Arrays.asList(Paths.get(path, resultPath, "negative").toString(), 
+                                Paths.get(path, resultPath, "positive").toString());
+        for (String p : paths) 
+            new File(p).mkdirs();
+
+        return paths;
+     }
 }
