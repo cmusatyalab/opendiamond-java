@@ -169,10 +169,13 @@ public class SearchFactory {
      *             if an IO error occurs
      */
     public Result generateResult(ObjectIdentifier identifier,
-            Set<String> desiredAttributes, String deviceName) throws IOException {
+            Set<String> desiredAttributes) throws IOException {
+
         Set<String> attributes = new HashSet<String>(desiredAttributes);
         String host = identifier.getHostname();
         String objID = identifier.getObjectID();
+        String deviceName = identifier.getDeviceName();
+
         List<Cookie> c = cookieMap.get(host);
 
         LoggingFramework logging = LoggingFramework
@@ -187,21 +190,12 @@ public class SearchFactory {
         Connection conn = Connection.createConnection(host, c, filters);
 
         Result newResult;
-        if (deviceName != null) {
-            newResult = reexecute(conn, objID, attributes, deviceName);
-        }
-        else {
-            newResult = reexecute(conn, objID, attributes);
-        }
+
+        newResult = reexecute(conn, objID, attributes, deviceName);
 
         conn.close();
 
         return newResult;
-    }
-
-    public Result generateResult(ObjectIdentifier identifier,
-            Set<String> desiredAttributes) throws IOException {
-            return generateResult(identifier, desiredAttributes, null);
     }
 
     /**

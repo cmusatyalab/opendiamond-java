@@ -31,7 +31,7 @@ public class Result {
         this.attributes.putAll(attributes);
 
         objectIdentifier = new ObjectIdentifier(Util
-                .extractString(getValue("_ObjectID")), hostname);
+                .extractString(getValue("_ObjectID")), Util.extractString(getValue("Device-Name")), hostname);
     }
 
     /**

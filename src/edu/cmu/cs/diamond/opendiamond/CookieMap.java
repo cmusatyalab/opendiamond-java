@@ -28,8 +28,6 @@ public class CookieMap {
 
     private static final CookieMap EMPTY_COOKIE_MAP = new CookieMap();
 
-    private static final String PROXY_SERVER = "172.16.0.23"; //TODO: Take as argument
-
     private final Map<String, List<Cookie>> cookieMap;
 
     private final String megacookie;
@@ -41,7 +39,7 @@ public class CookieMap {
      * @throws IOException
      *             if the source of the default map cannot be found or used
      */
-    public static CookieMap createDefaultCookieMap(final Boolean proxyFlag) throws IOException {
+    public static CookieMap createDefaultCookieMap(String proxyIP) throws IOException {
         // get newscope file
         File home = new File(System.getProperty("user.home"));
         File diamondDir = new File(home, ".diamond");
@@ -51,11 +49,11 @@ public class CookieMap {
         String megacookie = new String(Util.readFully(in), "UTF-8");
         in.close();
 
-        return new CookieMap(megacookie, proxyFlag);
+        return new CookieMap(megacookie, proxyIP);
     }
 
     public static CookieMap createDefaultCookieMap() throws IOException {
-        return createDefaultCookieMap(false);
+        return createDefaultCookieMap(null);
     }
 
     /**
@@ -75,7 +73,7 @@ public class CookieMap {
      * @throws IOException
      *             if the string representation is malformed
      */
-    public CookieMap(String megacookie, final Boolean proxyFlag) throws IOException {
+    public CookieMap(String megacookie, String proxyIP) throws IOException {
         Map<String, List<Cookie>> cookieMap = new HashMap<String, List<Cookie>>();
 
         this.megacookie = megacookie;
@@ -83,12 +81,13 @@ public class CookieMap {
         // fill map from hostnames to cookies
         List<String> cookies = splitCookies(megacookie);
         for (String s : cookies) {
+
+            boolean proxyFlag = proxyIP != null && !proxyIP.isEmpty();
             Cookie c = new Cookie(s, proxyFlag);
-            // System.out.println(c);
             List<String> servers = null;
 
             if (proxyFlag)
-                servers = Arrays.asList(PROXY_SERVER);
+                servers = Arrays.asList(proxyIP);
             else
                 servers = c.getServers();
 
@@ -107,7 +106,7 @@ public class CookieMap {
     }
 
     public CookieMap(String megacookie) throws IOException {
-        this(megacookie, false);
+        this(megacookie, null);
     }
 
     private CookieMap() {

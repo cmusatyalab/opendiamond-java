@@ -21,13 +21,20 @@ public class ObjectIdentifier {
 
     private final String objectID;
 
-    ObjectIdentifier(String objectID, String hostname) {
+    private final String deviceName;
+
+    ObjectIdentifier(String objectID, String deviceName, String hostname) {
         this.objectID = objectID;
+        this.deviceName = deviceName;
         this.hostname = hostname;
     }
 
     String getHostname() {
         return hostname;
+    }
+
+    String getDeviceName() {
+        return deviceName;
     }
 
     String getObjectID() {

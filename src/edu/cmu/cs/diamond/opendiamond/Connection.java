@@ -54,8 +54,6 @@ class Connection {
         int port = (proxyFlag) ? PROXY_PORT : DIAMOND_PORT;
 
         Socket socket = new Socket(address, port);
-        // System.out.println(address);
-        // System.out.println(socket);
         DataInputStream in = new DataInputStream(socket.getInputStream());
         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 
@@ -85,7 +83,6 @@ class Connection {
 
     static Connection createConnection(String host, List<Cookie> cookieList,
             List<Filter> filters) throws ServerException {
-        // System.out.println("connecting to " + host);
 
         byte nonce[] = new byte[NONCE_SIZE];
 
@@ -196,7 +193,9 @@ class Connection {
 
     public void sendRetrain(byte [] data) throws IOException {
         try {
+            System.out.println("Connection:Sending retrain");
             new RPC(this, hostname, 31, data).doRPC().checkStatus();
+            System.out.println("Connection:Done retrain "+hostname);
         } catch (IOException e) {
             close();
             throw e;
@@ -205,7 +204,6 @@ class Connection {
     }
 
     void close() {
-        // System.out.println("closing " + toString());
 
         try {
             control.close();
@@ -230,7 +228,6 @@ class Connection {
 
     public void sendBlastRequest(int cmd, byte data[]) throws ServerException {
         try {
-            //System.out.println("Blast Request "+cmd);
             blast.sendRequest(cmd, data);
         } catch (IOException e) {
             close();
