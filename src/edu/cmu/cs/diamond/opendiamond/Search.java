@@ -134,8 +134,10 @@ public class Search {
         // encode
         List<String> names = new ArrayList<String>();
         List<Integer> labels = new ArrayList<Integer>();
-
         List<byte[]> features = new ArrayList<byte[]>();
+
+        cs.pauseBlastQueue();
+
         for (Map.Entry<String, FeedbackObject> e : map.entrySet()) {
             FeedbackObject value = e.getValue();
             names.add(e.getKey());
@@ -143,6 +145,7 @@ public class Search {
             features.add(value.feature_vector);
         }
         retrainData = new XDR_retrain(names, labels, features).encode();
+
 
         CompletionService<?> replies = cs
                 .runOnAllServers(new ConnectionFunction<Object>() {
@@ -165,6 +168,7 @@ public class Search {
             close(e);
             throw e;
         }
+        cs.resumeBlastQueue();
     }
 
     /**

@@ -23,6 +23,8 @@ class BlastQueue {
 
     private volatile boolean shutdown;
 
+    private volatile boolean pause;
+
     public BlastQueue(int size) {
         q = new ArrayBlockingQueue<BlastChannelObject>(size);
     }
@@ -38,14 +40,29 @@ class BlastQueue {
                     "cannot put the NO_MORE_RESULTS object");
         }
 
+        if (pause) {
+            return;
+        }
+
+
         q.put(blastChannelObject);
+    }
+
+    //clear the queue
+    public void pause() {
+        pause = true;
+        q.clear();
+    }
+
+    public void resume() {
+        pause = false;
     }
 
     // return sentinel when empty
     public BlastChannelObject take() throws InterruptedException {
         // synchronize to make single consumer
         synchronized (lock) {
-            if (shutdown) {
+            if (shutdown || pause) {
                 BlastChannelObject obj = q.poll(); // returns null when empty
                 if (obj == null) {
                     return BlastChannelObject.NO_MORE_RESULTS;

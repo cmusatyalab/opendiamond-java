@@ -115,6 +115,14 @@ class ConnectionSet {
         return blastQueue.take();
     }
 
+    public void pauseBlastQueue() {
+        blastQueue.pause();
+    }
+
+    public void resumeBlastQueue() {
+        blastQueue.resume();
+    }
+
     public <T> CompletionService<T> runOnAllServers(ConnectionFunction<T> cf) {
         CompletionService<T> cs = new ExecutorCompletionService<T>(executor);
 

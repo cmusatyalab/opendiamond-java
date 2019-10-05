@@ -29,15 +29,15 @@ public class ObjectIdentifier {
         this.hostname = hostname;
     }
 
-    String getHostname() {
+    public String getHostname() {
         return hostname;
     }
 
-    String getDeviceName() {
+    public String getDeviceName() {
         return deviceName;
     }
 
-    String getObjectID() {
+    public String getObjectID() {
         return objectID;
     }
 }

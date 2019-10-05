@@ -193,9 +193,7 @@ class Connection {
 
     public void sendRetrain(byte [] data) throws IOException {
         try {
-            System.out.println("Connection:Sending retrain");
             new RPC(this, hostname, 31, data).doRPC().checkStatus();
-            System.out.println("Connection:Done retrain "+hostname);
         } catch (IOException e) {
             close();
             throw e;
