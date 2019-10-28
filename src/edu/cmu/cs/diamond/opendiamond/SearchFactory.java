@@ -187,7 +187,16 @@ public class SearchFactory {
             throw new IOException("No cookie found for host " + host);
         }
 
-        Connection conn = Connection.createConnection(host, c, filters);
+        List<Filter> modified = new ArrayList<Filter>();
+        for (Filter f : filters) {
+            if(f.getName().equals("PROXY")) {
+                //Skip Proxy filter 
+                continue;
+            }
+            modified.add(f);
+        }
+
+        Connection conn = Connection.createConnection(host, c, modified);
 
         Result newResult;
 
@@ -229,7 +238,16 @@ public class SearchFactory {
         logging.saveSearchFactory(this, desiredAttributes);
 
         // prestart
-        Connection conn = Connection.createConnection(host, c, filters);
+        List<Filter> modified = new ArrayList<Filter>();
+        for (Filter f : filters) {
+            if(f.getName().equals("PROXY")) {
+                //Skip Proxy filter 
+                continue;
+            }
+            modified.add(f);
+        }
+
+        Connection conn = Connection.createConnection(host, c, modified);
 
         // send eval
         Result newResult;
