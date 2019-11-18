@@ -154,6 +154,10 @@ public class Filter {
         return name;
     }
 
+    public List<String> getDependencies() {
+        return dependencies;
+    }
+
     FilterCode getFilterCode() {
         return code;
     }
@@ -162,9 +166,6 @@ public class Filter {
         return blobSig;
     }
 
-    List<String> getDependencies() {
-        return dependencies;
-    }
 
     List<String> getArguments() {
         return arguments;
