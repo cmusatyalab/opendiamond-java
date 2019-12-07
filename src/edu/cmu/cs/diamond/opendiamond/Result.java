@@ -20,7 +20,7 @@ import java.util.Set;
 /**
  * A single result from a {@link Search}, consisting of key-value pairs
  * (attributes).
- * 
+ *
  */
 public class Result {
     final private Map<String, byte[]> attributes = new HashMap<String, byte[]>();
@@ -37,7 +37,7 @@ public class Result {
     /**
      * Gets the "data" attribute of this result. Equivalent to
      * <code>getValue("")</code>.
-     * 
+     *
      * @return a byte array with the data of this result
      */
     public byte[] getData() {
@@ -46,7 +46,7 @@ public class Result {
 
     /**
      * Gets the value associated with a particular key.
-     * 
+     *
      * @param key
      *            the name of the attribute to get the value for
      * @return the value
@@ -62,9 +62,38 @@ public class Result {
         }
     }
 
+    public String getStrValue(String name) {
+        byte value[] = getValue(name);
+        try {
+        if (value.length == 0) {
+            return "";
+        } else if (name.endsWith(".int")) {
+            return Integer.toString(Util.extractInt(value));
+        } else if (name.endsWith("-Name") || name.equals("_ObjectID")) {
+            return Util.extractString(value);
+        } else if (name.endsWith(".time")) {
+            return Long.toString(Util.extractLong(value));
+        } else if (name.endsWith("score")) {
+            return Util.extractString(value);
+        } else if (name.endsWith(".json")) {
+            try {
+                System.out.println("json string: " + Util.extractString(value));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return "";
+        } else {
+            return "";
+        }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
     /**
      * Gets the keys of this result, for use in <code>getValue</code>.
-     * 
+     *
      * @return a set of keys
      */
     public Set<String> getKeys() {
@@ -79,15 +108,7 @@ public class Result {
         for (String name : getKeys()) {
             byte value[] = getValue(name);
             sb.append(" '" + name + "'");
-            if (value.length == 0) {
-                sb.append(":" + "''");
-            } else if (name.endsWith(".int")) {
-                sb.append(":" + Util.extractInt(value));
-            } else if (name.endsWith("-Name")) {
-                sb.append(":'" + Util.extractString(value) + "'");
-            } else if (name.endsWith(".time")) {
-                sb.append(":" + Util.extractLong(value));
-            }
+            sb.append(":" + getStrValue(name));
             sb.append(" (" + value.length + ")");
         }
         sb.append(" ]");
@@ -98,7 +119,7 @@ public class Result {
      * Gets the "server name" of this result. The server name is a
      * server-defined string. Equivalent to
      * <code>Util.extractString(getValue("Device-Name"))</code>.
-     * 
+     *
      * @return the server-defined server name of this result
      */
     public String getServerName() {
@@ -108,7 +129,7 @@ public class Result {
     /**
      * Gets the "name" of this result. The name is a server-defined string.
      * Equivalent to <code>Util.extractString(getValue("Display-Name"))</code>.
-     * 
+     *
      * @return the server-defined name of this result
      */
     public String getName() {
@@ -118,7 +139,7 @@ public class Result {
     /**
      * Gets the server-defined identifier for this result. Useful for passing to
      * {@link SearchFactory#generateResult(ObjectIdentifier, Set)}.
-     * 
+     *
      * @return the identifier for this result
      */
     public ObjectIdentifier getObjectIdentifier() {
