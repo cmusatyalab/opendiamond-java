@@ -48,7 +48,7 @@ public class Util {
     // XXX endian specific
     /**
      * Extracts a little-endian <code>int</code> from a <code>byte[]</code>.
-     * 
+     *
      * @param value
      *            the <code>byte</code> array
      * @return the <code>int</code>
@@ -58,9 +58,13 @@ public class Util {
                 | (value[1] & 0xFF) << 8 | (value[0] & 0xFF);
     }
 
+    public static float extractFloat(byte [] value) {
+        return Float.intBitsToFloat(extractInt(value));
+    }
+
     /**
      * Extracts a little-endian <code>long</code> from a <code>byte[]</code>.
-     * 
+     *
      * @param value
      *            the <code>byte</code> array
      * @return the <code>long</code>
@@ -77,7 +81,7 @@ public class Util {
 
     /**
      * Extracts a little-endian <code>double</code> from a <code>byte[]</code>.
-     * 
+     *
      * @param value
      *            the <code>byte</code> array
      * @return the <code>double</code>
@@ -88,7 +92,7 @@ public class Util {
 
     /**
      * Gets a scale value for resizing images.
-     * 
+     *
      * @param w
      *            the existing width
      * @param h
@@ -122,7 +126,7 @@ public class Util {
 
     /**
      * Scales an image.
-     * 
+     *
      * @param img
      *            existing image
      * @param scale
@@ -138,7 +142,7 @@ public class Util {
 
     /**
      * Scales an image into an existing <code>BufferedImage</code>
-     * 
+     *
      * @param img
      *            existing image
      * @param dest
@@ -171,7 +175,7 @@ public class Util {
 
     /**
      * Scales an image using a fast, low quality algorithm.
-     * 
+     *
      * @param img
      *            existing image
      * @param scale
@@ -203,7 +207,7 @@ public class Util {
      * the maximum preferred width of the components in that column; height is
      * similarly determined for each row. The parent is made just big enough to
      * fit them all.
-     * 
+     *
      * @param parent
      *            container to put grid in
      * @param rows
@@ -272,7 +276,7 @@ public class Util {
 
     /**
      * Extracts a <code>String</code> from a <code>byte[]</code>.
-     * 
+     *
      * @param value
      *            the <code>byte[]</code>
      * @return a string
@@ -290,7 +294,7 @@ public class Util {
 
     /**
      * Reads an <code>InputStream</code> until EOF.
-     * 
+     *
      * @param in
      *            the <code>InputStream</code> to read
      * @return the read data
@@ -328,7 +332,7 @@ public class Util {
 
     /**
      * Extracts a BufferedImage from a Result.
-     * 
+     *
      * @param r
      *            the result to extract an image from
      * @return an image, or <code>null</code> if no image can be decoded
@@ -385,7 +389,7 @@ public class Util {
 
     /**
      * Retrieves an object from a server and extracts a BufferedImage from it.
-     * 
+     *
      * @param objectIdentifier
      *            the identifier for the object to extract an image from
      * @param factory
@@ -415,7 +419,7 @@ public class Util {
     /**
      * Takes two (non-absolute) paths and joins them together appropriately
      * depending on OS.
-     * 
+     *
      * @param path1
      *            the presumed beginning of the combined path
      * @param path2
@@ -429,10 +433,10 @@ public class Util {
     }
 
     /**
-     * 
+     *
      * This function returns a stacktrace as a <code>String</code> given an
      * input <code>Throwable</code> object.
-     * 
+     *
      * @param aThrowable
      *            the exception being thrown
      * @return stacktrace of the exception as a string
@@ -504,22 +508,22 @@ public class Util {
 
     /**
      * Checks for directories named 'positive' and 'negative'
-     * if not present creates them 
-     * @param dirPath 
+     * if not present creates them
+     * @param dirPath
      *        path of directory to download images
-     * @result List of Strings path name 
+     * @result List of Strings path name
      * @throws IOException
      *        if download path does not exist or unable to write
      */
 
-     public static List<String> createDirStructure(String path) 
+     public static List<String> createDirStructure(String path)
             throws IOException {
         Date now = new Date();
         SimpleDateFormat dateFormat = new SimpleDateFormat("hh-mm-ss");
         String resultPath = "hyperfind-"+dateFormat.format(now);
-        List<String> paths = Arrays.asList(Paths.get(path, resultPath, "negative").toString(), 
+        List<String> paths = Arrays.asList(Paths.get(path, resultPath, "negative").toString(),
                                 Paths.get(path, resultPath, "positive").toString());
-        for (String p : paths) 
+        for (String p : paths)
             new File(p).mkdirs();
 
         return paths;
