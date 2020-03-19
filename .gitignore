@@ -2,3 +2,5 @@
 /src/edu/cmu/cs/diamond/opendiamond/bundle
 /bin
 /opendiamond.jar
+.gradle
+.idea
