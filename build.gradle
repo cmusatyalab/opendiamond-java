@@ -19,6 +19,7 @@ repositories {
 }
 
 group = 'edu.cmu.cs.diamond.opendiamond'
+version gitVersion()
 
 sourceCompatibility = '11'
 targetCompatibility = '11'
