@@ -1,14 +1,36 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url "http://palantir.bintray.com/releases" }
+    }
+
+    dependencies {
+        classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.2'
+    }
+}
+
 apply plugin: 'idea'
 apply plugin: 'java'
 apply plugin: 'maven-publish'
+apply plugin: 'com.palantir.git-version'
 
 repositories {
     mavenCentral()
 }
+
+group = 'edu.cmu.cs.diamond.opendiamond'
 
 sourceCompatibility = '11'
 targetCompatibility = '11'
 
 dependencies {
     compile "javax.xml.bind:jaxb-api:2.3.1"
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
 }
