@@ -23,8 +23,6 @@ apt-get install opendiamond-java
 ## Compile from Source
 
 Clone this git repo and run:
-```bash
-# install ant and openjdk-8-jdk
-ant jar
-sudo ant install    # will install to /usr/share/java/opendiamond.jar
+```
+./gradlew build
 ```

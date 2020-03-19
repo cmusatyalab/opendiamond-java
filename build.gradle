@@ -1,4 +1,14 @@
+apply plugin: 'idea'
 apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+repositories {
+    mavenCentral()
+}
 
 sourceCompatibility = '11'
 targetCompatibility = '11'
+
+dependencies {
+    compile "javax.xml.bind:jaxb-api:2.3.1"
+}
