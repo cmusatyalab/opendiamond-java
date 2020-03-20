@@ -54,7 +54,7 @@ public class Bundle implements Serializable{
                 SchemaFactory sf = SchemaFactory.newInstance(
                         XMLConstants.W3C_XML_SCHEMA_NS_URI);
                 s = sf.newSchema(Bundle.class.getClassLoader().
-                        getResource("resources/bundle.xsd"));
+                        getResource("bundle.xsd"));
             } catch (JAXBException e) {
                 e.printStackTrace();
             } catch (SAXException e) {

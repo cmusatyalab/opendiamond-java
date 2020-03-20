@@ -1,0 +1,80 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven { url 'http://palantir.bintray.com/releases' }
+    }
+
+    dependencies {
+        classpath 'com.palantir.gradle.gitversion:gradle-git-version:0.12.2'
+    }
+}
+
+apply plugin: 'idea'
+apply plugin: 'java-library'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+apply plugin: 'com.palantir.git-version'
+
+repositories {
+    mavenCentral()
+}
+
+group = 'edu.cmu.cs.diamond.opendiamond'
+version gitVersion() + (versionDetails().isCleanTag ? "" : "-SNAPSHOT")
+
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+dependencies {
+    compile 'javax.xml.bind:jaxb-api:2.3.1'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'OpenDiamond Java'
+                description = 'Contains Java bindings for OpenDiamond.'
+                url = 'http://diamond.cs.cmu.edu'
+                licenses {
+                    license {
+                        name = 'Eclipse Public License - v 1.0'
+                        url = 'https://www.eclipse.org/legal/epl-v10.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'hturki'
+                        name = 'Haithem Turki'
+                        email = 'hturki@cs.cmu.edu'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/cmusatyalab/opendiamond-java'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            // change URLs to point to your repos, e.g. http://my.org/repo
+            def releasesRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            url = versionDetails().isCleanTag ? snapshotsRepoUrl : releasesRepoUrl
+
+            credentials {
+                username = System.env.MAVEN_UPLOAD_USER
+                password = System.env.MAVEN_UPLOAD_PWD
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications
+}
