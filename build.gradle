@@ -39,4 +39,17 @@ publishing {
             from components.java
         }
     }
+    repositories {
+        maven {
+            // change URLs to point to your repos, e.g. http://my.org/repo
+            def releasesRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            url = versionDetails().isCleanTag ? snapshotsRepoUrl : releasesRepoUrl
+
+            credentials {
+                username = System.env.MAVEN_UPLOAD_USER
+                password = System.env.MAVEN_UPLOAD_PWD
+            }
+        }
+    }
 }
