@@ -12,6 +12,7 @@ buildscript {
 apply plugin: 'idea'
 apply plugin: 'java-library'
 apply plugin: 'maven-publish'
+apply plugin: 'signing'
 apply plugin: 'com.palantir.git-version'
 
 repositories {
@@ -52,4 +53,8 @@ publishing {
             }
         }
     }
+}
+
+signing {
+    sign publishing.publications.mavenJava
 }
