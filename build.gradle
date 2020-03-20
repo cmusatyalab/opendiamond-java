@@ -36,10 +36,10 @@ java {
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
+        maven(MavenPublication) {
             pom {
                 name = 'OpenDiamond Java'
-                description = 'Contains Java bindings for OpenDiamond.'
+                description = 'Contains Java bindings for OpenDiamond'
                 url = 'http://diamond.cs.cmu.edu'
                 licenses {
                     license {
@@ -58,6 +58,7 @@ publishing {
                     url = 'https://github.com/cmusatyalab/opendiamond-java'
                 }
             }
+            from components.java
         }
     }
     repositories {
