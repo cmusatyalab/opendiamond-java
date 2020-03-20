@@ -10,7 +10,7 @@ buildscript {
 }
 
 apply plugin: 'idea'
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'maven-publish'
 apply plugin: 'com.palantir.git-version'
 
@@ -25,7 +25,12 @@ sourceCompatibility = '11'
 targetCompatibility = '11'
 
 dependencies {
-    compile 'javax.xml.bind:jaxb-api:2.3.1'
+    compile 'javax.xml.bind:jaxb-api:2.3.0'
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 publishing {
