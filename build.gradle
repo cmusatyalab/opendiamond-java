@@ -20,7 +20,7 @@ repositories {
 }
 
 group = 'edu.cmu.cs.diamond.opendiamond'
-version gitVersion()
+version gitVersion() + (versionDetails().isCleanTag ? "" : "-SNAPSHOT")
 
 sourceCompatibility = '11'
 targetCompatibility = '11'
@@ -36,8 +36,28 @@ java {
 
 publishing {
     publications {
-        maven(MavenPublication) {
-            from components.java
+        mavenJava(MavenPublication) {
+            pom {
+                name = 'OpenDiamond Java'
+                description = 'Contains Java bindings for OpenDiamond.'
+                url = 'http://diamond.cs.cmu.edu'
+                licenses {
+                    license {
+                        name = 'Eclipse Public License - v 1.0'
+                        url = 'https://www.eclipse.org/legal/epl-v10.html'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'hturki'
+                        name = 'Haithem Turki'
+                        email = 'hturki@cs.cmu.edu'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/cmusatyalab/opendiamond-java'
+                }
+            }
         }
     }
     repositories {
