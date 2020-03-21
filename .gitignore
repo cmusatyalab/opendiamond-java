@@ -2,3 +2,12 @@
 /src/edu/cmu/cs/diamond/opendiamond/bundle
 /bin
 /opendiamond.jar
+.gradle
+.idea
+*.iml
+*.ipr
+*.iws
+*.swp
+.DS_Store
+build
+out
