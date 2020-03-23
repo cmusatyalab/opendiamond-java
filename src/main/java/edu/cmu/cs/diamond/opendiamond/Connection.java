@@ -37,6 +37,10 @@ class Connection {
 
     final private String hostname;
 
+    final private List<String> nodes;
+
+    final private int nodeIndex;
+
     String getHostname() {
         return hostname;
     }
@@ -74,15 +78,16 @@ class Connection {
         return createOneChannel(address, nonce, false);
     }
 
-    Connection(MiniRPCConnection control, MiniRPCConnection blast,
-            String hostname) {
+    Connection(MiniRPCConnection control, MiniRPCConnection blast, String hostname, List<String> nodes, int nodeIndex) {
         this.control = control;
         this.blast = blast;
         this.hostname = hostname;
+        this.nodes = nodes;
+        this.nodeIndex = nodeIndex;
     }
 
     static Connection createConnection(String host, List<Cookie> cookieList,
-            List<Filter> filters) throws ServerException {
+            List<Filter> filters, List<String> nodes, int nodeIndex) throws ServerException {
 
         byte nonce[] = new byte[NONCE_SIZE];
 
@@ -107,7 +112,7 @@ class Connection {
                 throw e;
             }
 
-            Connection conn = new Connection(control, blast, host);
+            Connection conn = new Connection(control, blast, host, nodes, nodeIndex);
             conn.sendPreStart(cookieList, filters);
             return conn;
         } catch (IOException e) {
@@ -181,7 +186,7 @@ class Connection {
 
             byte[] searchId = UUID.randomUUID().toString().getBytes("UTF-8");
             byte[] encodedStart = new XDR_start(searchId,
-                    pushAttributes).encode();
+                    pushAttributes, nodes, nodeIndex).encode();
 
             // start = 28
             new RPC(this, hostname, 28, encodedStart).doRPC().checkStatus();
@@ -194,6 +199,16 @@ class Connection {
     public void sendRetrain(byte [] data) throws IOException {
         try {
             new RPC(this, hostname, 31, data).doRPC().checkStatus();
+        } catch (IOException e) {
+            close();
+            throw e;
+        }
+
+    }
+
+    public void sendLabelExamples(byte [] data) throws IOException {
+        try {
+            new RPC(this, hostname, 99, data).doRPC().checkStatus();
         } catch (IOException e) {
             close();
             throw e;

@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutionException;
  * <p>
  * When a search object is no longer needed, <code>close()</code> must be
  * called, or internal resources will leak.
- * 
+ *
  */
 public class Search {
     private static class SessionVariables {
@@ -75,7 +75,7 @@ public class Search {
      * Closes the Search. After calling this method, all other methods will
      * throw a <code>SearchClosedException</code>. <code>close()</code> must be
      * called at some point, or internal resources will leak.
-     * 
+     *
      * @throws InterruptedException
      *             if the close is interrupted
      */
@@ -83,11 +83,15 @@ public class Search {
         close(null);
     }
 
-    void close(Throwable cause) throws InterruptedException {
+    void close(Throwable cause) {
         synchronized (closeLock) {
             if (!closed) {
                 closed = true;
-                cs.close();
+                try {
+                    cs.close();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Failed to close connection set", e);
+                }
                 closeCause = cause;
             }
         }
@@ -176,7 +180,7 @@ public class Search {
      * <code>null</code> if there are no more results. The method will block
      * until a result is available or until an exception is thrown. This method
      * is thread safe and can be used simultaneously from multiple threads.
-     * 
+     *
      * @return the next result, or <code>null</code> if there are no more
      *         results
      * @throws InterruptedException
@@ -219,7 +223,7 @@ public class Search {
 
     /**
      * Gets the per-host statistics of a currently running search.
-     * 
+     *
      * @return a map of hostnames to statistics for each host
      * @throws InterruptedException
      *             if the thread is interrupted
@@ -327,6 +331,40 @@ public class Search {
 
         // set it all back
         setSessionVariables(newValues);
+    }
+
+    public void labelExamples(Set<LabeledExample> examples) {
+        try {
+            checkClosed();
+
+            Map<String, List<XDR_labeled_example>> serializedExamples = new HashMap<>();
+            examples.forEach(example -> {
+                ObjectIdentifier objectId = example.getObjectId();
+                String hostname = objectId.getHostname();
+                serializedExamples.putIfAbsent(hostname, new ArrayList<>());
+                serializedExamples.get(hostname).add(new XDR_labeled_example(objectId.getObjectID(), example.getLabel()));
+            });
+
+            CompletionService<?> replies = cs
+                    .runOnAllServers(new ConnectionFunction<Object>() {
+                        public Callable<Object> createCallable(final Connection c) {
+                            return new Callable<Object>() {
+                                public Object call() throws Exception {
+                                    String hostname = c.getHostname();
+                                    if (serializedExamples.containsKey(hostname)) {
+                                        c.sendLabelExamples(new XDR_label_examples(serializedExamples.get(hostname)).encode());
+                                    }
+                                    return null;
+                                }
+                            };
+                        }
+                    });
+
+            Util.checkResultsForIOException(cs.size(), replies);
+        } catch (IOException | InterruptedException e) {
+            close(e);
+            throw new RuntimeException("Failed to label examples", e);
+        }
     }
 
     private void composeVariables(Map<String, Double> globalValues,
