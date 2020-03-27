@@ -79,7 +79,7 @@ public class Search {
      * @throws InterruptedException
      *             if the close is interrupted
      */
-    public void close() throws InterruptedException {
+    public void close() {
         close(null);
     }
 
@@ -113,13 +113,11 @@ public class Search {
 
         try {
             Util.checkResultsForIOException(cs.size(), replies);
-        } catch (InterruptedException e) {
-            close(e);
-            throw e;
-        } catch (IOException e) {
+        } catch (InterruptedException | IOException e) {
             close(e);
             throw e;
         }
+
         logging.startedSearch();
     }
 
@@ -151,27 +149,27 @@ public class Search {
         retrainData = new XDR_retrain(names, labels, features).encode();
 
 
-        CompletionService<?> replies = cs
-                .runOnAllServers(new ConnectionFunction<Object>() {
-                    public Callable<Object> createCallable(final Connection c) {
-                        return new Callable<Object>() {
-                            public Object call() throws Exception {
-                                c.sendRetrain(retrainData);
-                                return null;
-                            }
-                        };
-                    }
-                });
+        synchronized (rpcLock) {
+            CompletionService<?> replies = cs
+                    .runOnAllServers(new ConnectionFunction<Object>() {
+                        public Callable<Object> createCallable(final Connection c) {
+                            return new Callable<Object>() {
+                                public Object call() throws Exception {
+                                    c.sendRetrain(retrainData);
+                                    return null;
+                                }
+                            };
+                        }
+                    });
 
-        try {
-            Util.checkResultsForIOException(cs.size(), replies);
-        } catch (InterruptedException e) {
-            close(e);
-            throw e;
-        } catch (IOException e) {
-            close(e);
-            throw e;
+            try {
+                Util.checkResultsForIOException(cs.size(), replies);
+            } catch (InterruptedException | IOException e) {
+                close(e);
+                throw e;
+            }
         }
+
         cs.resumeBlastQueue();
     }
 
@@ -336,34 +334,40 @@ public class Search {
     public void labelExamples(Set<LabeledExample> examples) {
         try {
             checkClosed();
+        } catch (SearchClosedException e) {
+            throw new RuntimeException("Failed to verify that search is open", e);
+        }
 
-            Map<String, List<XDR_labeled_example>> serializedExamples = new HashMap<>();
-            examples.forEach(example -> {
-                ObjectIdentifier objectId = example.getObjectId();
-                String hostname = objectId.getHostname();
-                serializedExamples.putIfAbsent(hostname, new ArrayList<>());
-                serializedExamples.get(hostname).add(new XDR_labeled_example(objectId.getObjectID(), example.getLabel()));
-            });
+        Map<String, List<XDR_labeled_example>> serializedExamples = new HashMap<>();
+        examples.forEach(example -> {
+            ObjectIdentifier objectId = example.getObjectId();
+            String hostname = objectId.getHostname();
+            serializedExamples.putIfAbsent(hostname, new ArrayList<>());
+            serializedExamples.get(hostname).add(new XDR_labeled_example(objectId.getObjectID(), example.getLabel()));
+        });
 
-            CompletionService<?> replies = cs
-                    .runOnAllServers(new ConnectionFunction<Object>() {
-                        public Callable<Object> createCallable(final Connection c) {
-                            return new Callable<Object>() {
-                                public Object call() throws Exception {
-                                    String hostname = c.getHostname();
-                                    if (serializedExamples.containsKey(hostname)) {
-                                        c.sendLabelExamples(new XDR_label_examples(serializedExamples.get(hostname)).encode());
+        synchronized (rpcLock) {
+            try {
+                CompletionService<?> replies = cs
+                        .runOnAllServers(new ConnectionFunction<Object>() {
+                            public Callable<Object> createCallable(final Connection c) {
+                                return new Callable<Object>() {
+                                    public Object call() throws Exception {
+                                        String hostname = c.getHostname();
+                                        if (serializedExamples.containsKey(hostname)) {
+                                            c.sendLabelExamples(new XDR_label_examples(serializedExamples.get(hostname)).encode());
+                                        }
+                                        return null;
                                     }
-                                    return null;
-                                }
-                            };
-                        }
-                    });
+                                };
+                            }
+                        });
 
-            Util.checkResultsForIOException(cs.size(), replies);
-        } catch (IOException | InterruptedException e) {
-            close(e);
-            throw new RuntimeException("Failed to label examples", e);
+                Util.checkResultsForIOException(cs.size(), replies);
+            } catch (IOException | InterruptedException e) {
+                close(e);
+                throw new RuntimeException("Failed to label examples", e);
+            }
         }
     }
 
