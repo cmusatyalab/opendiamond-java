@@ -27,6 +27,10 @@ public class Result {
 
     private final ObjectIdentifier objectIdentifier;
 
+    public Result(ObjectIdentifier objectIdentifier) {
+        this.objectIdentifier = objectIdentifier;
+    }
+
     Result(Map<String, byte[]> attributes, String hostname) {
         this.attributes.putAll(attributes);
 

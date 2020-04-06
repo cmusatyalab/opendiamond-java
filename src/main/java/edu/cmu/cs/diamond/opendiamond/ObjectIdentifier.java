@@ -23,7 +23,7 @@ public class ObjectIdentifier {
 
     private final String deviceName;
 
-    ObjectIdentifier(String objectID, String deviceName, String hostname) {
+    public ObjectIdentifier(String objectID, String deviceName, String hostname) {
         this.objectID = objectID;
         this.deviceName = deviceName;
         this.hostname = hostname;
