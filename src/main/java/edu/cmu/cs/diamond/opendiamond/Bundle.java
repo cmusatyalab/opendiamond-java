@@ -149,10 +149,10 @@ public class Bundle implements Serializable{
         }
     }
 
-    private static class PreparedFileLoader extends FileLoader {
-        private final Map<String, byte[]> bundleContents;
+    public static class PreparedFileLoader extends FileLoader {
+        public final Map<String, byte[]> bundleContents;
 
-        private final List<File> memberDirs;
+        public final List<File> memberDirs;
 
         public PreparedFileLoader(InputStream in, List<File> memberDirs)
                 throws IOException {
@@ -161,7 +161,7 @@ public class Bundle implements Serializable{
         }
 
         @Override
-        public PreparedFileLoader getPreparedLoader() throws IOException {
+        public PreparedFileLoader getPreparedLoader() {
             return this;
         }
 
