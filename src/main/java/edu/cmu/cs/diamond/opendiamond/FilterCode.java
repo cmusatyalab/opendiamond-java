@@ -53,7 +53,7 @@ public class FilterCode {
         return code;
     }
 
-    public Signature getSignature() {
+    Signature getSignature() {
         return sig;
     }
 }
