@@ -19,7 +19,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Formatter;
 
-public class Signature {
+class Signature {
 
     private final byte[] digest;
 

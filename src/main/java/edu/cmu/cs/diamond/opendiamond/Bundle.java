@@ -12,19 +12,8 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import edu.cmu.cs.diamond.opendiamond.bundle.*;
+import org.xml.sax.SAXException;
 
 import javax.imageio.ImageIO;
 import javax.xml.XMLConstants;
@@ -35,10 +24,13 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-
-import org.xml.sax.SAXException;
-
-import edu.cmu.cs.diamond.opendiamond.bundle.*;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class Bundle implements Serializable{
     private static class Manifest {
@@ -156,7 +148,11 @@ public class Bundle implements Serializable{
 
         public PreparedFileLoader(InputStream in, List<File> memberDirs)
                 throws IOException {
-            this.bundleContents = Util.readZipFile(in);
+            this(Util.readZipFile(in), memberDirs);
+        }
+
+        public PreparedFileLoader(Map<String, byte[]> bundleContents, List<File> memberDirs) {
+            this.bundleContents = bundleContents;
             this.memberDirs = memberDirs;
         }
 
@@ -558,7 +554,7 @@ public class Bundle implements Serializable{
 
     private final BundleType type;
 
-    private Bundle(FileLoader loader) throws IOException {
+    public Bundle(FileLoader loader) throws IOException {
         this.loader = loader;
         Manifest manifest = loader.getManifest();
         this.displayName = manifest.getSpec().getDisplayName();
