@@ -49,11 +49,11 @@ public class FilterCode {
         sig = new Signature(code);
     }
 
-    byte[] getBytes() {
+    public byte[] getBytes() {
         return code;
     }
 
-    Signature getSignature() {
+    public Signature getSignature() {
         return sig;
     }
 }

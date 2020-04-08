@@ -158,28 +158,28 @@ public class Filter {
         return dependencies;
     }
 
-    FilterCode getFilterCode() {
+    public FilterCode getFilterCode() {
         return code;
     }
 
-    Signature getBlobSig() {
+    public Signature getBlobSig() {
         return blobSig;
     }
 
 
-    List<String> getArguments() {
+    public List<String> getArguments() {
         return arguments;
     }
 
-    double getMinScore() {
+    public double getMinScore() {
         return minScore;
     }
 
-    double getMaxScore() {
+    public double getMaxScore() {
         return maxScore;
     }
 
-    byte[] getBlob() {
+    public byte[] getBlob() {
         return blob;
     }
 }
