@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * A Diamond filter. Use with {@link SearchFactory} to perform Diamond searches.
- * 
+ *
  */
 public class Filter {
     final private FilterCode code;
@@ -40,7 +40,7 @@ public class Filter {
     /**
      * Constructs a new filter with the given parameters (including blob
      * and maxScore).
-     * 
+     *
      * @param name
      *            the name of this filter
      * @param code
@@ -76,7 +76,7 @@ public class Filter {
     /**
      * Constructs a new Filter with the given parameters (including
      * maxScore).
-     * 
+     *
      * @param name
      *            the name of the new filter
      * @param code
@@ -99,7 +99,7 @@ public class Filter {
 
     /**
      * Constructs a new filter with the given parameters (including blob).
-     * 
+     *
      * @param name
      *            the name of this filter
      * @param code
@@ -122,7 +122,7 @@ public class Filter {
 
     /**
      * Constructs a new Filter with the given parameters.
-     * 
+     *
      * @param name
      *            the name of the new filter
      * @param code
@@ -147,7 +147,7 @@ public class Filter {
 
     /**
      * Gets the name of this filter.
-     * 
+     *
      * @return the name of this filter
      */
     public String getName() {
@@ -162,10 +162,9 @@ public class Filter {
         return code;
     }
 
-    public Signature getBlobSig() {
+    Signature getBlobSig() {
         return blobSig;
     }
-
 
     public List<String> getArguments() {
         return arguments;

@@ -15,7 +15,6 @@ package edu.cmu.cs.diamond.opendiamond;
 import edu.cmu.cs.diamond.opendiamond.bundle.*;
 import org.xml.sax.SAXException;
 
-import javax.imageio.ImageIO;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -24,7 +23,6 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -264,7 +262,7 @@ public class Bundle implements Serializable{
         private boolean resolved;
 
         public PendingFilter(PreparedFileLoader loader,
-                Map<String, String> optionMap, List<BufferedImage> examples,
+                Map<String, String> optionMap, List<byte[]> examples,
                 FilterSpec f) throws IOException {
             // load basic metadata
             label = f.getLabel();
@@ -294,9 +292,8 @@ public class Bundle implements Serializable{
                         // Add examples directory
                         zipMap.put("examples/", new byte[0]);
                         int i = 0;
-                        for (BufferedImage example : examples) {
-                            zipMap.put(String.format("examples/%07d.png", i++),
-                                     encodePNG(example));
+                        for (byte[] example : examples) {
+                            zipMap.put(String.format("examples/%07d.png", i++), example);
                         }
                     }
                     blob = Util.encodeZipFile(zipMap);
@@ -536,15 +533,6 @@ public class Bundle implements Serializable{
             }
             return loader.getBlob(filename);
         }
-
-        private static byte[] encodePNG(BufferedImage image)
-                throws IOException {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            if (!ImageIO.write(image, "PNG", baos)) {
-                throw new IOException("Couldn't write PNG");
-            }
-            return baos.toByteArray();
-        }
     }
 
 
@@ -626,7 +614,7 @@ public class Bundle implements Serializable{
     }
 
     public List<Filter> getFilters(Map<String, String> optionMap,
-            List<BufferedImage> examples) throws IOException {
+            List<byte[]> examples) throws IOException {
         PreparedFileLoader loader = this.loader.getPreparedLoader();
 
         // Create pending filters
