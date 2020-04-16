@@ -142,7 +142,7 @@ public class SearchFactory {
     private List<String> getNodes() {
         return cookieMap.entrySet().stream()
                 .map(Map.Entry::getKey)
-                .sorted()
+                .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());
     }
 
