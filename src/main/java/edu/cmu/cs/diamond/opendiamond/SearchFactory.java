@@ -15,13 +15,12 @@ package edu.cmu.cs.diamond.opendiamond;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 /**
  * Factory to create one or more {@link Search} instances. Instances of this
  * class can also be used to generate a <code>Result</code> from an
  * <code>ObjectIdentifier</code>.
- *
+ * 
  */
 public class SearchFactory {
     private final ExecutorService executor = new ThreadPoolExecutor(0,
@@ -35,7 +34,7 @@ public class SearchFactory {
     /**
      * Constructs a search factory from a collection of filters and a
      * cookie map.
-     *
+     * 
      * @param filters
      *            a collection of filters to run during a search
      * @param cookieMap
@@ -56,7 +55,7 @@ public class SearchFactory {
     /**
      * Creates a search from the parameters given when constructing the
      * <code>SearchFactory</code>.
-     *
+     * 
      * @param desiredAttributes
      *            a set of attribute names to specify which attributes to appear
      *            in results. May be <code>null</code>, in which case all
@@ -86,16 +85,14 @@ public class SearchFactory {
         CompletionService<Connection> connectService = new ExecutorCompletionService<Connection>(
                 executor);
 
-        List<String> nodes = getNodes();
-        for (int i = 0; i < nodes.size(); i++) {
-            String hostname = nodes.get(i);
-            List<Cookie> cookieList = cookieMap.get(hostname);
+        for (Map.Entry<String, List<Cookie>> e : cookieMap.entrySet()) {
+            final String hostname = e.getKey();
+            final List<Cookie> cookieList = e.getValue();
 
-            int nodeIndex = i;
             futures.add(connectService.submit(new Callable<Connection>() {
                 public Connection call() throws Exception {
                     return Connection.createConnection(hostname, cookieList,
-                            filters, nodes, nodeIndex);
+                            filters);
                 }
             }));
         }
@@ -139,13 +136,6 @@ public class SearchFactory {
         return search;
     }
 
-    private List<String> getNodes() {
-        return cookieMap.entrySet().stream()
-                .map(Map.Entry::getKey)
-                .sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList());
-    }
-
     private static void cleanup(List<Future<Connection>> futures)
             throws InterruptedException {
         InterruptedException ie = null;
@@ -166,7 +156,7 @@ public class SearchFactory {
 
     /**
      * Generates a <code>Result</code> from an object identifier.
-     *
+     * 
      * @param identifier
      *            the identifier representing the object to evaluate
      * @param desiredAttributes
@@ -206,13 +196,11 @@ public class SearchFactory {
             modified.add(f);
         }
 
-        List<String> nodes = getNodes();
-        int nodeIndex = nodes.indexOf(host);
-        Connection conn = Connection.createConnection(host, c, modified, nodes, nodeIndex);
+        Connection conn = Connection.createConnection(host, c, modified);
 
         Result newResult;
 
-        newResult = reexecute(conn, objID, attributes, deviceName, nodes, nodeIndex);
+        newResult = reexecute(conn, objID, attributes, deviceName);
 
         conn.close();
 
@@ -259,14 +247,12 @@ public class SearchFactory {
             modified.add(f);
         }
 
-        List<String> nodes = getNodes();
-        int nodeIndex = nodes.indexOf(host);
-        Connection conn = Connection.createConnection(host, c, modified, nodes, nodeIndex);
+        Connection conn = Connection.createConnection(host, c, modified);
 
         // send eval
         Result newResult;
         try {
-            newResult = reexecute(conn, objID, attributes, nodes, nodeIndex);
+            newResult = reexecute(conn, objID, attributes);
         } catch (CacheMissException e) {
             // send blob
             List<byte[]> blobs = new ArrayList<byte[]>();
@@ -274,7 +260,7 @@ public class SearchFactory {
             conn.sendBlobs(blobs);
 
             // retry reexecution
-            newResult = reexecute(conn, objID, attributes, nodes, nodeIndex);
+            newResult = reexecute(conn, objID, attributes);
         }
 
         // close
@@ -286,14 +272,14 @@ public class SearchFactory {
     private class CacheMissException extends IOException {}
 
     private Result reexecute(Connection conn, String objID,
-            Set<String> attributes, String deviceName, List<String> nodes, int nodeIndex) throws IOException {
+            Set<String> attributes, String deviceName) throws IOException {
         if (attributes != null && attributes.isEmpty()) {
             attributes = null;
         }
         if (deviceName == null) {
             deviceName = conn.getHostname();
         }
-        byte reexec[] = new XDR_reexecute(objID, deviceName, attributes, nodes, nodeIndex).encode();
+        byte reexec[] = new XDR_reexecute(objID, deviceName, attributes).encode();
         // reexecute = 30
         MiniRPCReply reply = new RPC(conn, conn.getHostname(), 30, reexec)
                 .doRPC();
@@ -311,8 +297,8 @@ public class SearchFactory {
     }
 
     private Result reexecute(Connection conn, String objID,
-            Set<String> attributes, List<String> nodes, int nodeIndex) throws IOException {
-            return reexecute(conn, objID, attributes, null, nodes, nodeIndex);
+            Set<String> attributes) throws IOException {
+            return reexecute(conn, objID, attributes, null);
     }
 
     List<Filter> getFilters() {

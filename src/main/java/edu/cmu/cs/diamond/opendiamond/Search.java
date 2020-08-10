@@ -331,46 +331,6 @@ public class Search {
         setSessionVariables(newValues);
     }
 
-    public void labelExamples(Set<LabeledExample> examples) {
-        try {
-            checkClosed();
-        } catch (SearchClosedException e) {
-            throw new RuntimeException("Failed to verify that search is open", e);
-        }
-
-        Map<String, List<XDR_labeled_example>> serializedExamples = new HashMap<>();
-        examples.forEach(example -> {
-            ObjectIdentifier objectId = example.getObjectId();
-            String hostname = objectId.getHostname();
-            serializedExamples.putIfAbsent(hostname, new ArrayList<>());
-            serializedExamples.get(hostname).add(new XDR_labeled_example(objectId.getObjectID(), example.getLabel()));
-        });
-
-        synchronized (rpcLock) {
-            try {
-                CompletionService<?> replies = cs
-                        .runOnAllServers(new ConnectionFunction<Object>() {
-                            public Callable<Object> createCallable(final Connection c) {
-                                return new Callable<Object>() {
-                                    public Object call() throws Exception {
-                                        String hostname = c.getHostname();
-                                        if (serializedExamples.containsKey(hostname)) {
-                                            c.sendLabelExamples(new XDR_label_examples(serializedExamples.get(hostname)).encode());
-                                        }
-                                        return null;
-                                    }
-                                };
-                            }
-                        });
-
-                Util.checkResultsForIOException(cs.size(), replies);
-            } catch (IOException | InterruptedException e) {
-                close(e);
-                throw new RuntimeException("Failed to label examples", e);
-            }
-        }
-    }
-
     private void composeVariables(Map<String, Double> globalValues,
             List<SessionVariables> sv) {
 
