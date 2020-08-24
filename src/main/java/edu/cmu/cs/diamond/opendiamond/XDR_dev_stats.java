@@ -39,11 +39,14 @@ class XDR_dev_stats {
             stats.put(data.getString(), data.getLong());
         }
 
-        int numFilters = data.getInt();
+        int hasFilters = data.getInt();
+        if (hasFilters != 0) {
+            int numFilters = data.getInt();
 
-        // read filters
-        for (int i = 0; i < numFilters; i++) {
-            filterStats.add(new XDR_filter_stats(data));
+            // read filters
+            for (int i = 0; i < numFilters; i++) {
+                filterStats.add(new XDR_filter_stats(data));
+            }
         }
     }
 }

@@ -174,7 +174,6 @@ public class SearchFactory {
         Set<String> attributes = new HashSet<String>(desiredAttributes);
         String host = identifier.getHostname();
         String objID = identifier.getObjectID();
-        String deviceName = identifier.getDeviceName();
 
         List<Cookie> c = cookieMap.get(host);
 
@@ -200,7 +199,7 @@ public class SearchFactory {
 
         Result newResult;
 
-        newResult = reexecute(conn, objID, attributes, deviceName);
+        newResult = reexecute(conn, objID, attributes);
 
         conn.close();
 
@@ -272,14 +271,12 @@ public class SearchFactory {
     private class CacheMissException extends IOException {}
 
     private Result reexecute(Connection conn, String objID,
-            Set<String> attributes, String deviceName) throws IOException {
+            Set<String> attributes) throws IOException {
         if (attributes != null && attributes.isEmpty()) {
             attributes = null;
         }
-        if (deviceName == null) {
-            deviceName = conn.getHostname();
-        }
-        byte reexec[] = new XDR_reexecute(objID, deviceName, attributes).encode();
+
+        byte reexec[] = new XDR_reexecute(objID, attributes).encode();
         // reexecute = 30
         MiniRPCReply reply = new RPC(conn, conn.getHostname(), 30, reexec)
                 .doRPC();
@@ -294,11 +291,6 @@ public class SearchFactory {
 
         // create result
         return new Result(resultAttributes, conn.getHostname());
-    }
-
-    private Result reexecute(Connection conn, String objID,
-            Set<String> attributes) throws IOException {
-            return reexecute(conn, objID, attributes, null);
     }
 
     List<Filter> getFilters() {

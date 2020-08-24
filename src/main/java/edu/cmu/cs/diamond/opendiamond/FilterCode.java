@@ -49,7 +49,7 @@ public class FilterCode {
         sig = new Signature(code);
     }
 
-    byte[] getBytes() {
+    public byte[] getBytes() {
         return code;
     }
 

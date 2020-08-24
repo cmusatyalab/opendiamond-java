@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutionException;
  * <p>
  * When a search object is no longer needed, <code>close()</code> must be
  * called, or internal resources will leak.
- * 
+ *
  */
 public class Search {
     private static class SessionVariables {
@@ -75,19 +75,23 @@ public class Search {
      * Closes the Search. After calling this method, all other methods will
      * throw a <code>SearchClosedException</code>. <code>close()</code> must be
      * called at some point, or internal resources will leak.
-     * 
+     *
      * @throws InterruptedException
      *             if the close is interrupted
      */
-    public void close() throws InterruptedException {
+    public void close() {
         close(null);
     }
 
-    void close(Throwable cause) throws InterruptedException {
+    void close(Throwable cause) {
         synchronized (closeLock) {
             if (!closed) {
                 closed = true;
-                cs.close();
+                try {
+                    cs.close();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Failed to close connection set", e);
+                }
                 closeCause = cause;
             }
         }
@@ -109,13 +113,11 @@ public class Search {
 
         try {
             Util.checkResultsForIOException(cs.size(), replies);
-        } catch (InterruptedException e) {
-            close(e);
-            throw e;
-        } catch (IOException e) {
+        } catch (InterruptedException | IOException e) {
             close(e);
             throw e;
         }
+
         logging.startedSearch();
     }
 
@@ -147,27 +149,27 @@ public class Search {
         retrainData = new XDR_retrain(names, labels, features).encode();
 
 
-        CompletionService<?> replies = cs
-                .runOnAllServers(new ConnectionFunction<Object>() {
-                    public Callable<Object> createCallable(final Connection c) {
-                        return new Callable<Object>() {
-                            public Object call() throws Exception {
-                                c.sendRetrain(retrainData);
-                                return null;
-                            }
-                        };
-                    }
-                });
+        synchronized (rpcLock) {
+            CompletionService<?> replies = cs
+                    .runOnAllServers(new ConnectionFunction<Object>() {
+                        public Callable<Object> createCallable(final Connection c) {
+                            return new Callable<Object>() {
+                                public Object call() throws Exception {
+                                    c.sendRetrain(retrainData);
+                                    return null;
+                                }
+                            };
+                        }
+                    });
 
-        try {
-            Util.checkResultsForIOException(cs.size(), replies);
-        } catch (InterruptedException e) {
-            close(e);
-            throw e;
-        } catch (IOException e) {
-            close(e);
-            throw e;
+            try {
+                Util.checkResultsForIOException(cs.size(), replies);
+            } catch (InterruptedException | IOException e) {
+                close(e);
+                throw e;
+            }
         }
+
         cs.resumeBlastQueue();
     }
 
@@ -176,7 +178,7 @@ public class Search {
      * <code>null</code> if there are no more results. The method will block
      * until a result is available or until an exception is thrown. This method
      * is thread safe and can be used simultaneously from multiple threads.
-     * 
+     *
      * @return the next result, or <code>null</code> if there are no more
      *         results
      * @throws InterruptedException
@@ -219,7 +221,7 @@ public class Search {
 
     /**
      * Gets the per-host statistics of a currently running search.
-     * 
+     *
      * @return a map of hostnames to statistics for each host
      * @throws InterruptedException
      *             if the thread is interrupted

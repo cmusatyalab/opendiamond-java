@@ -12,21 +12,9 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import edu.cmu.cs.diamond.opendiamond.bundle.*;
+import org.xml.sax.SAXException;
 
-import javax.imageio.ImageIO;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -35,10 +23,12 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-
-import org.xml.sax.SAXException;
-
-import edu.cmu.cs.diamond.opendiamond.bundle.*;
+import java.io.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class Bundle implements Serializable{
     private static class Manifest {
@@ -149,19 +139,23 @@ public class Bundle implements Serializable{
         }
     }
 
-    private static class PreparedFileLoader extends FileLoader {
-        private final Map<String, byte[]> bundleContents;
+    public static class PreparedFileLoader extends FileLoader {
+        public final Map<String, byte[]> bundleContents;
 
-        private final List<File> memberDirs;
+        public final List<File> memberDirs;
 
         public PreparedFileLoader(InputStream in, List<File> memberDirs)
                 throws IOException {
-            this.bundleContents = Util.readZipFile(in);
+            this(Util.readZipFile(in), memberDirs);
+        }
+
+        public PreparedFileLoader(Map<String, byte[]> bundleContents, List<File> memberDirs) {
+            this.bundleContents = bundleContents;
             this.memberDirs = memberDirs;
         }
 
         @Override
-        public PreparedFileLoader getPreparedLoader() throws IOException {
+        public PreparedFileLoader getPreparedLoader() {
             return this;
         }
 
@@ -268,7 +262,7 @@ public class Bundle implements Serializable{
         private boolean resolved;
 
         public PendingFilter(PreparedFileLoader loader,
-                Map<String, String> optionMap, List<BufferedImage> examples,
+                Map<String, String> optionMap, List<byte[]> examples,
                 FilterSpec f) throws IOException {
             // load basic metadata
             label = f.getLabel();
@@ -298,9 +292,8 @@ public class Bundle implements Serializable{
                         // Add examples directory
                         zipMap.put("examples/", new byte[0]);
                         int i = 0;
-                        for (BufferedImage example : examples) {
-                            zipMap.put(String.format("examples/%07d.png", i++),
-                                     encodePNG(example));
+                        for (byte[] example : examples) {
+                            zipMap.put(String.format("examples/%07d.png", i++), example);
                         }
                     }
                     blob = Util.encodeZipFile(zipMap);
@@ -540,15 +533,6 @@ public class Bundle implements Serializable{
             }
             return loader.getBlob(filename);
         }
-
-        private static byte[] encodePNG(BufferedImage image)
-                throws IOException {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            if (!ImageIO.write(image, "PNG", baos)) {
-                throw new IOException("Couldn't write PNG");
-            }
-            return baos.toByteArray();
-        }
     }
 
 
@@ -558,7 +542,7 @@ public class Bundle implements Serializable{
 
     private final BundleType type;
 
-    private Bundle(FileLoader loader) throws IOException {
+    public Bundle(FileLoader loader) throws IOException {
         this.loader = loader;
         Manifest manifest = loader.getManifest();
         this.displayName = manifest.getSpec().getDisplayName();
@@ -630,7 +614,7 @@ public class Bundle implements Serializable{
     }
 
     public List<Filter> getFilters(Map<String, String> optionMap,
-            List<BufferedImage> examples) throws IOException {
+            List<byte[]> examples) throws IOException {
         PreparedFileLoader loader = this.loader.getPreparedLoader();
 
         // Create pending filters
