@@ -75,7 +75,7 @@ abstract class LoggingFramework {
             throws IOException {
         boolean enabled = Boolean.parseBoolean(System.getProperty(
                 "edu.cmu.cs.diamond.opendiamond.loggingframework.enabled",
-                "true"));
+                "false"));
 
         if (enabled) {
             return new XMLLogger(message);

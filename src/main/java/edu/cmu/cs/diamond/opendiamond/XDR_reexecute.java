@@ -12,22 +12,19 @@
 
 package edu.cmu.cs.diamond.opendiamond;
 
-import java.util.Set;
-import java.io.DataOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Set;
 
 class XDR_reexecute implements XDREncodeable {
     private final String objectID;
 
-    private final String hostname;
-
     private final XDR_attr_name_list attributes;
 
-    public XDR_reexecute(String objectID, String hostname, Set<String> attributes) {
+    public XDR_reexecute(String objectID, Set<String> attributes) {
         this.objectID = objectID;
 
-        this.hostname = hostname;
 
         if (attributes != null) {
             this.attributes = new XDR_attr_name_list(attributes);
@@ -42,8 +39,6 @@ class XDR_reexecute implements XDREncodeable {
 
         try {
             out.write(XDREncoders.encodeString(objectID));
-
-            out.write(XDREncoders.encodeString(hostname));
 
             // Optional attributes list
             if (attributes != null) {

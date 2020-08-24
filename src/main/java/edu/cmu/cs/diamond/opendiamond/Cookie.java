@@ -18,7 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-class Cookie {
+public class Cookie {
     final static String BEGIN_COOKIE = "-----BEGIN OPENDIAMOND SCOPECOOKIE-----";
 
     final static String END_COOKIE = "-----END OPENDIAMOND SCOPECOOKIE-----";
