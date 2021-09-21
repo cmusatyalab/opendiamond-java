@@ -1,6 +1,12 @@
+opendiamond-java (8.2.0-1) UNRELEASED; urgency=medium
+
+  * Repackage
+
+ -- Jan Harkes <jaharkes@cs.cmu.edu>  Tue, 21 Sep 2021 09:00:00 -0400
+
 opendiamond-java (8.0.3-1ubuntu1-dev) UNRELEASED; urgency=medium
 
-  * 
+  *
 
  -- Ziqiang Feng <zf@cs.cmu.edu>  Mon, 24 Jun 2019 22:16:58 -0400
 

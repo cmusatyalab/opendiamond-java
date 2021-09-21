@@ -1,19 +1,20 @@
 Source: opendiamond-java
 Section: java
 Priority: optional
-Maintainer: Ziqiang Feng <zf@cs.cmu.edu>
+Maintainer: Jan Harkes <jaharkes@cs.cmu.edu>
 Build-Depends: 
     ant,
-    debhelper (>=9),
+    debhelper (>=12),
     openjdk-8-jdk,
-    javahelper
-Standards-Version: 3.9.6
+    javahelper,
+    libjaxb-java
+Standards-Version: 4.5.0
 Homepage: http://diamond.cs.cmu.edu
 Vcs-Git: https://github.com/cmusatyalab/opendiamond-java.git
-#Vcs-Browser: https://anonscm.debian.org/cgit/collab-maint/opendiamond-java.git
 
 Package: opendiamond-java
 Architecture: all
-Depends: ${misc:Depends}
+Depends: ${misc:Depends}, ${java:Depends}
 Description: Java client library for OpenDiamond
- Provide APIs to communicate with OpenDiamond backend servers with a dedicated protocol. 
+ Provide APIs to communicate with OpenDiamond backend servers with a
+ custom protocol. 
