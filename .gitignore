@@ -1,5 +1,9 @@
-/doc
-/src/edu/cmu/cs/diamond/opendiamond/bundle
-/bin
+/.pc/
+/bin/
+/debian/.debhelper/
+/debian/debhelper-build-stamp
+/debian/files
+/debian/opendiamond-java.substvars
+/debian/opendiamond-java/
 /opendiamond.jar
-/.pc
+/src/edu/cmu/cs/diamond/opendiamond/bundle/

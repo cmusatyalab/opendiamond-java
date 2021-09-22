@@ -17,4 +17,4 @@ Architecture: all
 Depends: ${misc:Depends}, ${java:Depends}
 Description: Java client library for OpenDiamond
  Provide APIs to communicate with OpenDiamond backend servers with a
- custom protocol. 
+ custom protocol.
