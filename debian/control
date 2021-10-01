@@ -4,11 +4,11 @@ Priority: optional
 Maintainer: Jan Harkes <jaharkes@cs.cmu.edu>
 Build-Depends: 
     ant,
-    debhelper (>=12),
+    debhelper (>=11),
     openjdk-8-jdk,
     javahelper,
     libjaxb-java
-Standards-Version: 4.5.0
+Standards-Version: 4.1.4
 Homepage: http://diamond.cs.cmu.edu
 Vcs-Git: https://github.com/cmusatyalab/opendiamond-java.git
 
